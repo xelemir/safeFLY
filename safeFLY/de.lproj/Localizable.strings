@@ -55,6 +55,20 @@
 "NATIONAL_PARK_CONDITIONS" = "Flug nur mit Genehmigung der Naturschutzbehörde ODER wenn regionale Regelungen dies erlauben. Höhen-Ausnahmen gelten nicht";
 "QUERY_FAILED" = "Abfrage fehlgeschlagen: %@";
 
+"ZONE_RESULT_CLEAR_MESSAGE" = "In den geprüften Provider-Daten wurden für diesen Ort keine Einschränkungen gefunden.";
+"ZONE_RESULT_CONDITIONAL_MESSAGE" = "An diesem Ort gelten Einschränkungen oder Bedingungen. Prüfe die gefundenen Zonenfakten unten.";
+"ZONE_RESULT_PROHIBITED_MESSAGE" = "Mindestens eine gefundene Zoneninformation verbietet den Flug an diesem Ort.";
+"ZONE_RESULT_NOT_ASSESSED_TITLE" = "Keine Bewertung verfügbar";
+"ZONE_RESULT_NO_LAYERS_MESSAGE" = "Aktiviere mindestens eine Kartenebene, um diesen Ort zu bewerten.";
+"ZONE_RESULT_UNAVAILABLE_TITLE" = "Bewertung nicht verfügbar";
+"ZONE_RESULT_OUTSIDE_COVERAGE_MESSAGE" = "Für diesen Ort sind keine DIPUL-Beschränkungsdaten verfügbar.";
+"ZONE_RESULT_NO_DATA_MESSAGE" = "Für die Bewertung dieses Orts waren keine Provider-Daten verfügbar.";
+"ZONE_RESULT_INVALID_RESPONSE_MESSAGE" = "Der Provider hat Daten zurückgegeben, die nicht bewertet werden konnten.";
+"ZONE_RESULT_REQUEST_FAILED_MESSAGE" = "Die Beschränkungsabfrage konnte nicht abgeschlossen werden.";
+"ZONE_FEATURE_RESTRICTION" = "Beschränkung";
+"ZONE_FEATURE_ALTITUDE" = "Höhe";
+"ZONE_FEATURE_LEGAL_REFERENCE" = "Rechtsgrundlage";
+
 /* Type labels */
 "TYPE.FLUGPLATZ" = "Flugplatz/Hubschrauberlandeplatz";
 "TYPE.FLUGHAFEN" = "Flughafen";
@@ -277,5 +291,4 @@
 
 /* Onboarding Specific Overrides */
 "ONBOARDING.HELIPAD_TITLE" = "Hubschrauberlandeplatz";
-
 

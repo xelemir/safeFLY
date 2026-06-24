@@ -105,7 +105,7 @@ struct MapView: View {
                 if newValue {
                     showZoneInfo = false
                     tappedLocation = nil
-                    dipulService.zoneInfo = []
+                    dipulService.clearZoneQueryResult()
                     droneSettings.dismissActiveSheet = false
                 }
             }
@@ -273,10 +273,10 @@ struct MapView: View {
     }
     
     private var zoneInfoSheet: some View {
-        ZoneInfoSheet(zones: dipulService.zoneInfo) {
+        ZoneInfoSheet(result: dipulService.zoneQueryResult) {
             showZoneInfo = false
             tappedLocation = nil
-            dipulService.zoneInfo = []
+            dipulService.clearZoneQueryResult()
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -493,51 +493,29 @@ struct SettingsChangeModifiers: ViewModifier {
 // MARK: - Zone Info Sheet
 
 struct ZoneInfoSheet: View {
-    let zones: [ZoneInfo]
+    let result: ZoneQueryResult?
     let onDismiss: () -> Void
-    
-    // Sort zones by priority (most restrictive first)
-    private var sortedZones: [ZoneInfo] {
-        zones.sorted { $0.displayPriority < $1.displayPriority }
+
+    private var sortedFeatures: [ZoneFeature] {
+        guard case .matches(let features, _) = result else {
+            return []
+        }
+
+        return features.sorted { lhs, rhs in
+            if lhs.category.displayPriority != rhs.category.displayPriority {
+                return lhs.category.displayPriority < rhs.category.displayPriority
+            }
+
+            return lhs.id < rhs.id
+        }
     }
-    
-    // Get the most restrictive status from all zones
-    private var combinedStatus: (allowed: Bool, conditional: Bool, message: String) {
-        if zones.isEmpty {
-            return (true, false, NSLocalizedString("FLIGHT_ALLOWED", comment: "Flight allowed default message"))
-        }
-        
-        let statuses = zones.map { $0.flightStatus }
-        
-        // If any zone is completely restricted (not allowed, not conditional), that takes precedence
-        if let restricted = statuses.first(where: { !$0.allowed && !$0.conditional }) {
-            return restricted
-        }
-        
-        // If any zone requires conditions, combine those messages
-        let conditionalZones = statuses.filter { !$0.allowed && $0.conditional }
-        if !conditionalZones.isEmpty {
-            return (false, true, NSLocalizedString("MULTIPLE_RESTRICTIONS", comment: "Multiple restrictions header"))
-        }
-        
-        // If any zone has warnings (allowed but conditional)
-        let warningZones = statuses.filter { $0.allowed && $0.conditional }
-        if !warningZones.isEmpty {
-            return (true, true, NSLocalizedString("FLIGHT_ALLOWED_CAUTION", comment: "Flight allowed with caution header"))
-        }
-        
-        return (true, false, NSLocalizedString("FLIGHT_ALLOWED", comment: "Flight allowed default message"))
-    }
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    if !zones.isEmpty {
-                        if zones.count > 1 || !combinedStatus.allowed {
-                            combinedStatusHeader
-                        }
-                        zonesListView
+                    if let result {
+                        resultContent(result)
                     } else {
                         ProgressView("Checking zone information...")
                             .frame(maxWidth: .infinity)
@@ -560,32 +538,46 @@ struct ZoneInfoSheet: View {
             }
         }
     }
-    
-    private var combinedStatusHeader: some View {
-        let status = combinedStatus
-        let mainColor = status.allowed ? Color.green : (status.conditional ? Color.orange : Color.red)
-        
+
+    @ViewBuilder
+    private func resultContent(_ result: ZoneQueryResult) -> some View {
+        switch result {
+        case .clear, .nonAssessment, .unavailable:
+            resultHeader(for: result)
+        case .matches:
+            resultHeader(for: result)
+            zonesListView
+        }
+    }
+
+    private func resultHeader(for result: ZoneQueryResult) -> some View {
+        let presentation = ZoneQueryPresentation.header(for: result)
+
         return HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(mainColor)
+                    .fill(presentation.color)
                     .frame(width: 44, height: 44)
-                
-                Image(systemName: status.allowed ? "checkmark" : 
-                       (status.conditional ? "exclamationmark.triangle.fill" : "xmark"))
+
+                Image(systemName: presentation.iconName)
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(.white)
             }
-            
+
             VStack(alignment: .leading, spacing: 2) {
-                Text(status.allowed ? NSLocalizedString("FLIGHT_PERMITTED", comment: "Header: flight permitted") : 
-                    (status.conditional ? NSLocalizedString("PERMITTED_UNDER_CONDITIONS", comment: "Header: permitted under conditions") : NSLocalizedString("FLIGHT_PROHIBITED", comment: "Header: flight prohibited")))
+                Text(presentation.title)
                     .font(.system(.headline, design: .rounded))
                     .fontWeight(.bold)
                     .foregroundStyle(.primary)
-                
-                if zones.count > 1 {
-                    Text(String.localizedStringWithFormat(NSLocalizedString("%d overlapping zones", comment: "Number of overlapping zones in the zone header"), zones.count))
+
+                if let message = presentation.message {
+                    Text(message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                if case .matches = result, sortedFeatures.count > 1 {
+                    Text(String.localizedStringWithFormat(NSLocalizedString("%d overlapping zones", comment: "Number of overlapping zones in the zone header"), sortedFeatures.count))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -597,16 +589,16 @@ struct ZoneInfoSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(mainColor.opacity(0.3), lineWidth: 1)
+                .strokeBorder(presentation.color.opacity(0.3), lineWidth: 1)
         )
     }
-    
+
     private var zonesListView: some View {
         VStack(spacing: 0) {
-            ForEach(Array(sortedZones.enumerated()), id: \.element.id) { index, info in
-                CompactZoneRow(info: info)
-                
-                if index < sortedZones.count - 1 {
+            ForEach(Array(sortedFeatures.enumerated()), id: \.element.id) { index, feature in
+                ZoneFeatureRow(feature: feature)
+
+                if index < sortedFeatures.count - 1 {
                     Divider()
                 }
             }
@@ -614,104 +606,72 @@ struct ZoneInfoSheet: View {
     }
 }
 
-// MARK: - Compact Zone Row
+// MARK: - Zone Feature Row
 
-struct CompactZoneRow: View {
-    let info: ZoneInfo
-    
+struct ZoneFeatureRow: View {
+    let feature: ZoneFeature
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if info.name == "Clear Zone" {
-                clearZoneView
-            } else {
-                zoneDetailsView(status: info.flightStatus)
+        VStack(alignment: .leading, spacing: 12) {
+            topRow
+
+            if let restriction = feature.sourceDeclaredRestriction {
+                DetailRow(
+                    label: NSLocalizedString("ZONE_FEATURE_RESTRICTION", comment: "Restriction label"),
+                    value: restriction,
+                    icon: "exclamationmark.bubble"
+                )
+            }
+
+            if let altitude = ZonePresentation.formattedAltitude(for: feature) {
+                DetailRow(
+                    label: NSLocalizedString("ZONE_FEATURE_ALTITUDE", comment: "Altitude label"),
+                    value: altitude,
+                    icon: "arrow.up.and.down"
+                )
+            }
+
+            if let legalReference = feature.legalReference {
+                DetailRow(
+                    label: NSLocalizedString("ZONE_FEATURE_LEGAL_REFERENCE", comment: "Legal reference label"),
+                    value: legalReference,
+                    icon: "book.pages"
+                )
             }
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
-    private var clearZoneView: some View {
-        HStack(alignment: .top, spacing: 12) {
+
+    private var topRow: some View {
+        let tint = ZonePresentation.tintColor(for: feature.category)
+
+        return HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color.green.opacity(0.15))
+                    .fill(tint.opacity(0.15))
                     .frame(width: 40, height: 40)
-                
-                Image(systemName: "checkmark")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.green)
+
+                Image(systemName: ZonePresentation.iconName(for: feature.category))
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(tint)
             }
-            
+
             VStack(alignment: .leading, spacing: 4) {
-                Text("No Restrictions")
+                Text(ZonePresentation.title(for: feature))
                     .font(.system(.headline, design: .rounded))
                     .fontWeight(.bold)
-                
-                Text("Drone flight is permitted at this location")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-    
-    private func zoneDetailsView(status: (allowed: Bool, conditional: Bool, message: String)) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Top Row: Icon and Title
-            HStack(spacing: 12) {
-                // Circle Background Icon
-                ZStack {
-                    Circle()
-                        .fill(status.allowed ? Color.green.opacity(0.15) : (status.conditional ? Color.orange.opacity(0.15) : Color.red.opacity(0.15)))
-                        .frame(width: 40, height: 40)
-                    
-                    Image(systemName: info.displayIcon)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(status.allowed ? .green : (status.conditional ? .orange : .red))
-                }
-                
-                // Title Section
-                VStack(alignment: .leading, spacing: 2) {
-                    if let layer = info.layerName {
-                        Text(info.formatLayerName(layer))
-                            .font(.system(.headline, design: .rounded)) 
-                            .fontWeight(.bold)
-                            .lineLimit(1)
-                    } else if let name = info.name {
-                        Text(name)
-                            .font(.system(.headline, design: .rounded))
-                            .fontWeight(.bold)
-                            .lineLimit(1)
-                    }
-                    
-                    if let name = info.name, info.layerName != nil {
-                        Text(name)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+                    .lineLimit(2)
+
+                if let subtitle = ZonePresentation.subtitle(for: feature) {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
             }
-            
-            // Content Row: Message and Legal
-            VStack(alignment: .leading, spacing: 6) {
-                Text(status.message)
-                    .font(.callout)
-                    .foregroundStyle(.primary.opacity(0.9)) 
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(2) 
-                
-                if let legal = info.legalRef {
-                    HStack(alignment: .center, spacing: 6) {
-                        Image(systemName: "book.pages")
-                        Text(legal)
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 2)
-                }
-            }
+            Spacer(minLength: 0)
         }
     }
 }

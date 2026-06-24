@@ -52,6 +52,20 @@
 "NATIONAL_PARK_CONDITIONS" = "Flight allowed with nature authority consent OR if regional regulations permit. Altitude exceptions do NOT apply";
 "QUERY_FAILED" = "Query failed: %@";
 
+"ZONE_RESULT_CLEAR_MESSAGE" = "No restrictions were found in the checked provider data for this location.";
+"ZONE_RESULT_CONDITIONAL_MESSAGE" = "Restrictions or conditions apply at this location. Review the matched zone facts below.";
+"ZONE_RESULT_PROHIBITED_MESSAGE" = "One or more matched zone facts prohibit flight at this location.";
+"ZONE_RESULT_NOT_ASSESSED_TITLE" = "Assessment Not Available";
+"ZONE_RESULT_NO_LAYERS_MESSAGE" = "Enable at least one map layer to assess this location.";
+"ZONE_RESULT_UNAVAILABLE_TITLE" = "Assessment Unavailable";
+"ZONE_RESULT_OUTSIDE_COVERAGE_MESSAGE" = "No DIPUL restriction data is available for this location.";
+"ZONE_RESULT_NO_DATA_MESSAGE" = "No provider data was available to assess this location.";
+"ZONE_RESULT_INVALID_RESPONSE_MESSAGE" = "The provider returned data that could not be assessed.";
+"ZONE_RESULT_REQUEST_FAILED_MESSAGE" = "The restriction query could not be completed.";
+"ZONE_FEATURE_RESTRICTION" = "Restriction";
+"ZONE_FEATURE_ALTITUDE" = "Altitude";
+"ZONE_FEATURE_LEGAL_REFERENCE" = "Legal Reference";
+
 /* Type labels */
 "TYPE.FLUGPLATZ" = "Aerodrome/Helipad";
 "TYPE.FLUGHAFEN" = "Airport";
@@ -246,5 +260,4 @@
 
 /* Onboarding Specific Overrides */
 "ONBOARDING.HELIPAD_TITLE" = "Helipad";
-
 
