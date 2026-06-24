@@ -1,0 +1,281 @@
+/* German localization for safeFLY */
+
+"Fly" = "Fliegen";
+"Settings" = "Einstellungen";
+"Search" = "Suchen";
+"Search location" = "Ort suchen";
+"No locations found" = "Keine Orte gefunden";
+"Drone Map" = "Drohnenkarte";
+"Zoom in to see geozones" = "Zoome, um Geozonen zu sehen";
+"Source geodata: DFS, BKG 2026" = "Datenquelle: DFS, BKG 2026";
+"Standard" = "Standard";
+"Hybrid" = "Hybrid";
+"Satellite" = "Satellit";
+"%d overlapping zones" = "%d überlappende Zonen";
+"Map Style" = "Kartenstil";
+"Map" = "Karte";
+"Weather" = "Wetter";
+"No Restrictions" = "Keine Einschränkungen";
+"Drone flight is permitted at this location" = "Dein Flug ist an diesem Ort erlaubt";
+"Flight allowed" = "Flug erlaubt";
+"Multiple restrictions apply - see details below" = "Mehrere Einschränkungen gelten – siehe Details unten";
+"Flight allowed with caution - see details below" = "Flug erlaubt mit Einschränkungen – siehe Details unten";
+"FLIGHT_ALLOWED_CAUTION" = "Flug erlaubt mit Einschränkungen – siehe Details unten";
+"MULTIPLE_RESTRICTIONS" = "Mehrere Einschränkungen gelten – siehe Details unten";
+"Zone Information" = "Geo-Zonen Infos";
+"Checking zone information..." = "Zoneninformationen werden überprüft...";
+"FLIGHT_PERMITTED" = "Flug erlaubt";
+"PERMITTED_UNDER_CONDITIONS" = "Unter Auflagen erlaubt";
+"FLIGHT_PROHIBITED" = "Flug verboten";
+"ALTITUDE_UP_TO" = "Bis %@";
+"ALTITUDE_FROM" = "Ab %@";
+"Fetching Forecast..." = "Wettervorhersage lädt...";
+"Getting the latest drone flight conditions for this area." = "Aktuelle Flug- und Wetterbedingungen werden abgerufen.";
+"Support the Developer" = "Unterstütze den Entwickler";
+
+"FLIGHT_ALLOWED" = "Flug erlaubt";
+"FLIGHT_RESTRICTED" = "Flug eingeschränkt";
+
+"AERODROME_CONDITIONAL" = "Betrieb über und innerhalb eines seitlichen Abstands von 1,5 km von der Begrenzung von Flugplätzen (keine Flughäfen) nur in der Kategorie „speziell“ oder nach ausdrücklicher Zustimmung der Luftaufsicht, der Flugleitung oder des Betreibers.";
+"AIRPORT_PROHIBITED" = "Betrieb über und innerhalb eines seitlichen Abstands von 1000 m von der Begrenzung von Flughäfen sowie innerhalb von <1000 m der um jeweils 5 km in An‑/Abflugrichtung verlängerten Bahnmittellinien nur in der Kategorie „speziell“ und mit entsprechender Risikoabschätzung.";
+"CONTROL_ZONE_CLEARANCE" = "Betrieb in Kontrollzonen nur mit einer Flugverkehrskontrollfreigabe nach § 21.";
+"MOTORWAY_HIGHWAY_RAILWAY_CONDITIONS" = "Betrieb über/innerhalb 100 m von Bundesfernstraßen, Bundeswasserstraßen oder Bahn‑anlagen nur zulässig, wenn: a) im „speziellen“ Betrieb mit Risikoabschätzung, b) ausdrückliche Zustimmung der zuständigen Stelle/Betreibers vorliegt, c) die Flughöhe stets kleiner ist als der seitliche Abstand und der seitliche Abstand > 10 m ist, oder d) bei Wasserstraßen Mindesthöhe 100 m, Querung auf kürzestem Weg und keine Überflüge von Schiffen/Schifffahrtsanlagen stattfinden.";
+"WATERWAYS_CONDITIONS" = "Über Wasserstraßen: Betrieb nur ab ≥100 m Höhe, auf kürzestem Weg, Schiffe/Anlagen meiden oder mit ausdrücklicher Zustimmung des Betreibers.";
+"NATURE_AUTHORITY_CONSENT" = "Betrieb über Naturschutzgebieten und Nationalparks nur mit Genehmigung der zuständigen Naturschutzbehörde oder nach landesrechtlicher Regelung. Ausnahmen (mit Ausnahme Nationalparks) gelten für nicht‑sportliche Zwecke, Betrieb >100 m, wenn der Fernpilot den Schutzzweck kennt und die Luftraumnutzung unumgänglich ist.";
+"RESIDENTIAL_CONDITIONS" = "Über Wohngrundstücken nur zulässig, wenn: a) ausdrückliche Zustimmung des Eigentümers/Nutzungsberechtigten, b) Startmasse ≤0,25 kg und keine Aufnahme/Übertragungsfunktionen Dritter vorhanden sind, oder c) Betrieb ab ≥100 m bei berechtigtem Betriebszweck und bei Einhaltung von Informationspflichten, Betriebszeit (nicht 22:00–6:00) und Lärmgrenzwerten.";
+"TEMP_NO_FLY_PROHIBITED" = "Temporärer Flugverbotsbereich – Flug während aktiver Periode verboten";
+"INACTIVE_TEMP_RESTRICTION" = "Inaktive temporäre Beschränkung – Derzeit nicht durchgesetzt; Aktivierungszeiträume prüfen";
+"RESTRICTED_ZONE_CHECK" = "Beschränkter Luftraum – Spezifische Bedingungen prüfen und erforderliche Genehmigungen einholen";
+"MODEL_FLYING_FIELD_CAUTION" = "Modellflugplatz in der Nähe – Vorsicht vor Kollisionen, besonders bei BVLOS-Flügen; Abstimmung mit lokalen Piloten empfohlen";
+"RESTRICTED_ZONE_DEFAULT" = "Eingeschränkter Luftraum – Prüfe rechtliche Anforderungen und besorge bei Bedarf Genehmigungen";
+
+"ZONE_INFO_TITLE" = "Geo-Zonen Infos";
+"CONSENT_REQUIRED" = "Flug nur mit ausdrücklicher Genehmigung der zuständigen Behörde oder des Anlagenbetreibers erlaubt";
+"OUTSIDE_OPERATING_HOURS" = "Flug außerhalb der Betriebs-/Badezeiten erlaubt";
+"NATIONAL_PARK_CONDITIONS" = "Flug nur mit Genehmigung der Naturschutzbehörde ODER wenn regionale Regelungen dies erlauben. Höhen-Ausnahmen gelten nicht";
+"QUERY_FAILED" = "Abfrage fehlgeschlagen: %@";
+
+/* Type labels */
+"TYPE.FLUGPLATZ" = "Flugplatz/Hubschrauberlandeplatz";
+"TYPE.FLUGHAFEN" = "Flughafen";
+"TYPE.KONTROLLZONE" = "Kontrollzone";
+"TYPE.ED-R" = "Eingeschränkter Bereich";
+"TYPE.WOHNGRUNDSTUECK" = "Wohngebiet";
+"TYPE.FREIBAD" = "Freibad/Strand";
+"TYPE.INDUSTRIEANLAGE" = "Industrieanlage";
+"TYPE.KRAFTWERK" = "Kraftwerk";
+"TYPE.UMSPANNWERK" = "Umspannwerk";
+"TYPE.STROMLEITUNG" = "Stromleitung";
+"TYPE.WINDKRAFTANLAGE" = "Windkraftanlage";
+"TYPE.JVA" = "Justizvollzugsanstalt";
+"TYPE.MILITAERANLAGE" = "Militärische Anlage";
+"TYPE.LABOR" = "BSL-4 Einrichtung";
+"TYPE.BEHORDE" = "Behörde";
+
+/* Layer labels */
+"LAYER.flugplaetze" = "Flugplatz/Hubschrauberlandeplatz";
+"LAYER.flughaefen" = "Flughafen";
+"LAYER.kontrollzonen" = "Kontrollzone";
+"LAYER.flugbeschraenkungsgebiete" = "Eingeschränkte Zone";
+"LAYER.bundesautobahnen" = "Bundesautobahn";
+"LAYER.bundesstrassen" = "Bundesstraße";
+"LAYER.bahnanlagen" = "Bahnanlage";
+"LAYER.binnenwasserstrassen" = "Binnenwasserstraße";
+"LAYER.seewasserstrassen" = "Seewasserstraße";
+"LAYER.schifffahrtsanlagen" = "Schifffahrtsanlage";
+"LAYER.wohngrundstuecke" = "Wohngebiet";
+"LAYER.freibaeder" = "Freibad/Strand";
+"LAYER.industrieanlagen" = "Industrieanlage";
+"LAYER.kraftwerke" = "Kraftwerk";
+"LAYER.umspannwerke" = "Umspannwerk";
+"LAYER.stromleitungen" = "Stromleitung";
+"LAYER.windkraftanlagen" = "Windkraftanlage";
+"LAYER.justizvollzugsanstalten" = "Justizvollzugsanstalt";
+"LAYER.militaerische_anlagen" = "Militärische Anlage";
+"LAYER.labore" = "BSL-4 Einrichtung";
+"LAYER.behoerden" = "Behörde";
+"LAYER.diplomatische_vertretungen" = "Diplomatische Vertretung";
+"LAYER.internationale_organisationen" = "Internationale Organisation";
+"LAYER.polizei" = "Polizeiobjekt";
+"LAYER.sicherheitsbehoerden" = "Sicherheitsbehörde";
+"LAYER.krankenhaeuser" = "Krankenhaus";
+"LAYER.nationalparks" = "Nationalpark";
+"LAYER.naturschutzgebiete" = "Naturschutzgebiet";
+"LAYER.ffh-gebiete" = "FFH-Gebiet";
+"LAYER.vogelschutzgebiete" = "Vogelschutzgebiet";
+"LAYER.temporaere_betriebseinschraenkungen" = "Temporäre Flugbeschränkung";
+"LAYER.inaktive_temporaere_betriebseinschraenkungen" = "Inaktive temporäre Beschränkung";
+"LAYER.modellflugplaetze" = "Modellflugplatz";
+"Drone Class" = "Drohnenklasse";
+"UAV e-ID" = "UAV e‑ID";
+"Drone Information" = "Information zur Drohne";
+"Save your UAV e-ID (e.g., DEU3otef849kry8h)" = "Speichere deine UAV e‑ID (z.B. DEU3otef849kry8h)";
+"Aviation" = "Luftfahrt";
+"Infrastructure" = "Infrastruktur";
+"Restricted Areas" = "Eingeschränkte Bereiche";
+"Map Layers" = "Kartenebenen";
+"Toggle specific layers to customize which restrictions are displayed on the map." = "Wähle bestimmte Ebenen, um anzupassen, welche Einschränkungen auf der Karte angezeigt werden.";
+"Resources" = "Ressourcen";
+"German Geozone Information" = "Deutsche Geozonen-Informationen";
+"EU Drone Regulations" = "EU-Drohnenvorschriften";
+"LBA Account Portal" = "LBA Konto-Portal";
+"DFS DIPUL Datasource" = "DFS DIPUL Datenquelle";
+"Developer Website" = "Entwicklerseite";
+"Version" = "Version";
+"About" = "Über";
+"Airports" = "Flughäfen";
+"Aerodromes" = "Flugplätze";
+"Control Zones" = "Kontrollzonen";
+"Temporary Restrictions" = "Temporäre Beschränkungen";
+"Model Flying Fields" = "Modellflugplätze";
+"Motorways" = "Autobahnen";
+"Highways" = "Bundesstraßen";
+"Railways" = "Eisenbahnen";
+"Waterways" = "Wasserstraßen";
+"Industrial Facilities" = "Industrieanlagen";
+"Residential Property" = "Wohngebiete";
+"Recreational Areas" = "Freizeitflächen";
+"Government Buildings" = "Behördengebäude";
+"Nature Reserves" = "Naturschutzgebiete";
+
+/* Weather View */
+"Weather" = "Wetter";
+"Loading weather data..." = "Wetterdaten werden geladen...";
+"No Weather Data" = "Keine Wetterdaten";
+"Move the map to see weather conditions" = "Bewege die Karte, um Wetterbedingungen zu sehen";
+"Unable to fetch weather." = "Wetterdaten können nicht abgerufen werden.";
+"Unknown Location" = "Unbekannter Ort";
+
+/* Weather - Flight Conditions */
+"Drone Flight Advisory" = "Drohnenflug-Beratung";
+"Flight Conditions" = "Flugbedingungen";
+"Optimal flight conditions" = "Optimale Flugbedingungen";
+"Limited - exercise caution" = "Eingeschränkt - Vorsicht geboten";
+"Flight not recommended" = "Flug nicht empfohlen";
+
+/* Weather - Condition Descriptions */
+"Clear" = "Klar";
+"Mainly clear" = "Überwiegend klar";
+"Partly cloudy" = "Teilweise bewölkt";
+"Overcast" = "Bedeckt";
+"Fog" = "Nebel";
+"Drizzle" = "Nieselregen";
+"Freezing Drizzle" = "Gefrierender Nieselregen";
+"Rain" = "Regen";
+"Freezing Rain" = "Gefrierender Regen";
+"Snow" = "Schnee";
+"Showers" = "Schauer";
+"Snow Showers" = "Schneeschauer";
+"Thunderstorm" = "Gewitter";
+"Unknown" = "Unbekannt";
+
+/* Weather - Section Headers */
+"Current Conditions" = "Aktuelle Bedingungen";
+"Hourly Forecast" = "Stündliche Vorhersage";
+"Detailed Information" = "Detaillierte Informationen";
+
+/* Weather - Info Row Labels */
+"Today" = "Heute";
+"Temperature" = "Temperatur";
+"Sun" = "Sonne";
+"Pressure (QNH)" = "Luftdruck (QNH)";
+"Cloud Cover" = "Bewölkung";
+"Dew Point" = "Taupunkt";
+"Max Gust" = "Maximale Böe";
+"Precipitation" = "Niederschlag";
+"Rain Chance" = "Regenwahrscheinlichkeit";
+"UV Index" = "UV-Index";
+"Feels like %@" = "Gefühlt %@";
+
+/* Weather - UV Levels */
+"Low" = "Niedrig";
+"Moderate" = "Mäßig";
+"High" = "Hoch";
+"Very High" = "Sehr hoch";
+"Extreme" = "Extrem";
+
+/* Weather - Flight Advisories */
+"Dangerous wind speed: %.1f m/s" = "Gefährliche Windgeschwindigkeit: %.1f m/s";
+"High wind speed: %.1f m/s" = "Hohe Windgeschwindigkeit: %.1f m/s";
+"Dangerous gusts: %.1f m/s" = "Gefährliche Böen: %.1f m/s";
+"Strong gusts: %.1f m/s" = "Starke Böen: %.1f m/s";
+"Very poor visibility: %.1f km" = "Sehr schlechte Sicht: %.1f km";
+"Limited visibility: %.1f km" = "Eingeschränkte Sicht: %.1f km";
+"Heavy precipitation" = "Starker Niederschlag";
+"Active precipitation" = "Aktiver Niederschlag";
+"High rain probability (%d%%) in next hour" = "Hohe Regenwahrscheinlichkeit (%d%%) in der nächsten Stunde";
+"Very high precipitation risk (%d%%) in the next hour" = "Sehr hohes Niederschlagsrisiko (%d%%) in der nächsten Stunde";
+"Precipitation risk (%d%%) in the next hour" = "Niederschlagsrisiko (%d%%) in der nächsten Stunde";
+"Snow precipitation - avoid flying" = "Schneefall - Flug vermeiden";
+"Snow precipitation present" = "Schneefall vorhanden";
+"Thunderstorm activity - DO NOT FLY" = "Gewitteraktivität – NICHT FLIEGEN";
+"Freezing rain - avoid flying" = "Gefrierender Regen - Flug vermeiden";
+"Fog present" = "Nebel vorhanden";
+"Drizzle present" = "Nieselregen vorhanden";
+"Rain or showers present" = "Regen oder Schauer vorhanden";
+"Snow or snow showers present" = "Schnee oder Schneeschauer vorhanden";
+"Very cold - battery performance affected" = "Sehr kalt – Akkuleistung beeinträchtigt";
+"Very hot - equipment may overheat" = "Sehr heiß – Ausrüstung kann überhitzen";
+"Overcast - limited visual reference" = "Bedeckt – eingeschränkte Sichtorientierung";
+"Nighttime - ensure proper lighting and permissions" = "Dunkelheit – entsprechende Beleuchtung und Genehmigungen sicherstellen";
+
+/* Weather - Wind Profile */
+"Wind Profile (AGL)" = "Windprofil (über Grund)";
+"Gust: %.1f m/s" = "Böe: %.1f m/s";
+
+/* Weather - Wind Directions */
+"North" = "Nord";
+"Northeast" = "Nordost";
+"East" = "Ost";
+"Southeast" = "Südost";
+"South" = "Süd";
+"Southwest" = "Südwest";
+"West" = "West";
+"Northwest" = "Nordwest";
+
+/* Weather - Footer */
+"Weather data by Open-Meteo.com" = "Wetterdaten von Open-Meteo.com";
+"Wind profile data by DIPUL/DFS (ICON-D2)" = "Windprofildaten von DIPUL/DFS (ICON-D2)";
+
+/* Onboarding Flow */
+"ONBOARDING.WELCOME.TITLE" = "Willkommen bei safeFLY";
+"ONBOARDING.WELCOME.DESCRIPTION" = "Diese Einführung zeigt dir die wichtigsten Funktionen von safeFLY. Wische nach links oder tippe auf \"Los geht's\".";
+
+"ONBOARDING.AIRSPACE.TITLE" = "Mehr Informationen";
+"ONBOARDING.AIRSPACE.DESCRIPTION" = "Tippe auf die Karte, um detaillierte Informationen zu den Geo-Zonen an deinem Standort zu erhalten.";
+
+"ONBOARDING.LOCATION.TITLE" = "Standortzugriff";
+"ONBOARDING.LOCATION.DESCRIPTION" = "Erlaube den Standortzugriff, um die Luftrauminformationen deines aktuellen Standorts zu sehen.";
+
+"ONBOARDING.WEATHER.TITLE" = "Wetterhinweise";
+"ONBOARDING.WEATHER.DESCRIPTION" = "Im Wetter-Tab siehst du die aktuellen Wetterbedingungen und Windvorhersagen in verschiedenen Höhen.";
+
+"ONBOARDING.READY.TITLE" = "Ready for Takeoff";
+"ONBOARDING.READY.DESCRIPTION" = "Alles bereit! In den Einstellungen kannst du die angezeigten Geo-Zonen anpassen und App-Fehler melden.";
+
+"ONBOARDING.BUTTON.GET_STARTED" = "Los geht's";
+"ONBOARDING.BUTTON.ACTIVATE_LOCATION" = "Standort aktivieren";
+"ONBOARDING.BUTTON.SAFE_FLIGHT" = "Guten Flug!";
+"ONBOARDING.BUTTON.CONTINUE" = "Weiter";
+
+/* Settings & Core App Setup */
+"Play App Introduction Again" = "App-Einführung erneut abspielen";
+"App Setup" = "App-Einrichtung";
+"Done" = "Fertig";
+"App Webpage & Status" = "App-Webseite & Status";
+"Contact" = "Kontakt";
+
+
+
+/* Missing Geozone Type Labels */
+"TYPE.KRANKENHAUS" = "Krankenhaus";
+"TYPE.NATIONALPARK" = "Nationalpark";
+"TYPE.NSG" = "Naturschutzgebiet";
+"TYPE.FFH-GEBIET" = "FFH-Gebiet";
+"TYPE.VOGELSCHUTZGEBIET" = "Vogelschutzgebiet";
+"RESTRICTED_ZONE_DEFAULT_TITLE" = "Eingeschränkte Zone";
+
+/* Onboarding Specific Overrides */
+"ONBOARDING.HELIPAD_TITLE" = "Hubschrauberlandeplatz";
+
+

@@ -1,0 +1,4 @@
+/* German InfoPlist localization */
+
+NSLocationWhenInUseUsageDescription = "Wir benötigen Deinen Standort, um nahegelegene Geozonen und Flugbeschränkungen für Deine Drohne anzuzeigen.";
+NSLocationAlwaysAndWhenInUseUsageDescription = "Wir benötigen Deinen Standort, um nahegelegene Geozonen und Flugbeschränkungen für Deine Drohne anzuzeigen.";

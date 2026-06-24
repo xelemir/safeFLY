@@ -1,0 +1,11 @@
+safeFLY
+Copyright 2026 Jan Grüttefien and safeFLY contributors
+
+This product includes icons from Google Material Symbols
+(https://fonts.google.com/icons), licensed under the Apache License, Version 2.0.
+
+This product retrieves drone geozone and aeronautical weather data from
+the German "Digitale Plattform Unbemannte Luftfahrt" (DIPUL) and DFS
+Deutsche Flugsicherung GmbH services, and general weather data from
+Open-Meteo (https://open-meteo.com). These services are not affiliated
+with this project and retain all rights to their respective data.
