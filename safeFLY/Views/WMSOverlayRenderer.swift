@@ -95,6 +95,9 @@ struct WMSNativeOverlay: UIViewRepresentable {
     func makeUIView(context: Context) -> WMSOverlayHostView {
         let view = WMSOverlayHostView()
         view.coordinator = context.coordinator
+        view.onLayout = { [weak coordinator = context.coordinator] hostView in
+            coordinator?.syncOverlayIfNeeded(in: hostView)
+        }
         view.backgroundColor = .clear
         view.isUserInteractionEnabled = false
         return view
@@ -102,44 +105,55 @@ struct WMSNativeOverlay: UIViewRepresentable {
 
     func updateUIView(_ uiView: WMSOverlayHostView, context: Context) {
         let coordinator = context.coordinator
-        guard payloads != coordinator.currentPayloads else {
-            return
-        }
-
-        coordinator.currentPayloads = payloads
-        coordinator.generation += 1
-        coordinator.cancelDownloads()
-
-        guard let mapView = uiView.findMKMapView() else {
-            return
-        }
-
-        coordinator.installDelegateProxy(on: mapView)
-
-        let existing = mapView.overlays.filter { $0 is WMSImageOverlay }
-        if !existing.isEmpty {
-            mapView.removeOverlays(existing)
-        }
-
-        let generation = coordinator.generation
-
-        for payload in payloads {
-            coordinator.downloadImage(payloadID: payload.id, url: payload.imageURL) { image in
-                guard let image else { return }
-                guard generation == coordinator.generation else { return }
-
-                let overlay = WMSImageOverlay(payload: payload)
-                overlay.image = image
-                mapView.addOverlay(overlay, level: .aboveLabels)
-            }
-        }
+        coordinator.pendingPayloads = payloads
+        coordinator.syncOverlayIfNeeded(in: uiView)
     }
 
     class Coordinator: NSObject {
         var currentPayloads: [WMSRenderPayload] = []
+        var pendingPayloads: [WMSRenderPayload] = []
         var generation = 0
         private var delegateProxy: MapDelegateProxy?
         private var downloadTasks: [String: URLSessionDataTask] = [:]
+        private weak var mapView: MKMapView?
+
+        func syncOverlayIfNeeded(in hostView: WMSOverlayHostView) {
+            guard let mapView = hostView.findMKMapView() else {
+                return
+            }
+
+            if self.mapView !== mapView {
+                self.mapView = mapView
+                currentPayloads = []
+            }
+
+            guard pendingPayloads != currentPayloads else {
+                return
+            }
+
+            currentPayloads = pendingPayloads
+            generation += 1
+            cancelDownloads()
+            installDelegateProxy(on: mapView)
+
+            let existing = mapView.overlays.filter { $0 is WMSImageOverlay }
+            if !existing.isEmpty {
+                mapView.removeOverlays(existing)
+            }
+
+            let generation = generation
+
+            for payload in pendingPayloads {
+                downloadImage(payloadID: payload.id, url: payload.imageURL) { image in
+                    guard let image else { return }
+                    guard generation == self.generation else { return }
+
+                    let overlay = WMSImageOverlay(payload: payload)
+                    overlay.image = image
+                    mapView.addOverlay(overlay, level: .aboveLabels)
+                }
+            }
+        }
 
         func downloadImage(payloadID: String, url: URL, completion: @escaping (UIImage?) -> Void) {
             let task = URLSession.shared.dataTask(with: url) { data, _, _ in
@@ -189,6 +203,17 @@ struct WMSNativeOverlay: UIViewRepresentable {
 
 class WMSOverlayHostView: UIView {
     weak var coordinator: WMSNativeOverlay.Coordinator?
+    var onLayout: ((WMSOverlayHostView) -> Void)?
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        onLayout?(self)
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        onLayout?(self)
+    }
 
     func findMKMapView() -> MKMapView? {
         var current: UIView? = self
