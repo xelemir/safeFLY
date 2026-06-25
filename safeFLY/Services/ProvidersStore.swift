@@ -26,6 +26,8 @@ final class ProvidersStore: ObservableObject {
     @Published private(set) var configurationRevision = 0
     @Published var enabledProviderIDs: Set<String> {
         didSet {
+            invalidateRenderGeneration()
+            invalidateQueryGeneration()
             persistEnabledProviderIDs()
             clearZoneQueryResult()
             configurationRevision += 1
@@ -34,6 +36,8 @@ final class ProvidersStore: ObservableObject {
 
     private let enabledProvidersStorageKey = "providers.enabled"
     private let providerOrderStorageKey = "providers.order"
+    private var renderGeneration = 0
+    private var queryGeneration = 0
 
     init(registrations: [ProviderRegistration]) {
         let sessions = registrations.map {
@@ -81,6 +85,7 @@ final class ProvidersStore: ObservableObject {
         reorderedSessions.insert(contentsOf: movedSessions, at: insertionIndex)
         sessions = reorderedSessions
         persistProviderOrder()
+        invalidateRenderGeneration()
         configurationRevision += 1
     }
 
@@ -124,6 +129,7 @@ final class ProvidersStore: ObservableObject {
     }
 
     func refreshRenderPayloads(for request: ProviderRenderRequest) async {
+        let generation = nextRenderGeneration()
         let enabledSessions = enabledSessions
         let renderOrderedSessions = Array(enabledSessions.reversed())
 
@@ -158,6 +164,10 @@ final class ProvidersStore: ObservableObject {
             return payloads
         }
 
+        guard generation == renderGeneration else {
+            return
+        }
+
         for session in renderOrderedSessions {
             session.applyRenderPayloads(payloadsByProviderID[session.id] ?? [])
         }
@@ -166,9 +176,11 @@ final class ProvidersStore: ObservableObject {
     }
 
     func queryLocation(for request: ProviderPointQueryRequest) async {
+        let generation = nextQueryGeneration()
         let enabledSessions = enabledSessions
 
         guard !enabledSessions.isEmpty else {
+            isLoading = false
             zoneQueryResult = .nonAssessment(reason: .noEnabledLayers)
             return
         }
@@ -207,6 +219,10 @@ final class ProvidersStore: ObservableObject {
             return outcomes
         }
 
+        guard generation == queryGeneration else {
+            return
+        }
+
         for session in enabledSessions {
             if let outcome = outcomesByProviderID[session.id] {
                 session.applyQueryOutcome(outcome)
@@ -218,16 +234,20 @@ final class ProvidersStore: ObservableObject {
     }
 
     func clearZoneQueryResult() {
+        invalidateQueryGeneration()
+        isLoading = false
         zoneQueryResult = nil
         sessions.forEach { $0.clearZoneQueryResult() }
     }
 
     func clearRenderPayloads() {
+        invalidateRenderGeneration()
         renderPayloads = []
         sessions.forEach { $0.clearRenderPayloads() }
     }
 
     func markConfigurationChanged() {
+        invalidateRenderGeneration()
         clearZoneQueryResult()
         configurationRevision += 1
     }
@@ -287,6 +307,24 @@ final class ProvidersStore: ObservableObject {
 
     private func persistProviderOrder() {
         UserDefaults.standard.set(sessions.map(\.id), forKey: providerOrderStorageKey)
+    }
+
+    private func nextRenderGeneration() -> Int {
+        renderGeneration += 1
+        return renderGeneration
+    }
+
+    private func nextQueryGeneration() -> Int {
+        queryGeneration += 1
+        return queryGeneration
+    }
+
+    private func invalidateRenderGeneration() {
+        renderGeneration += 1
+    }
+
+    private func invalidateQueryGeneration() {
+        queryGeneration += 1
     }
 
     private static func loadEnabledProviderIDs(
