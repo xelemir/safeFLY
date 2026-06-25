@@ -7,7 +7,8 @@
 "No locations found" = "Keine Orte gefunden";
 "Drone Map" = "Drohnenkarte";
 "Zoom in to see geozones" = "Zoome, um Geozonen zu sehen";
-"Source geodata: DFS, BKG 2026" = "Datenquelle: DFS, BKG 2026";
+"Source geodata: %@" = "Datenquelle: %@";
+"Source geodata: No enabled providers" = "Datenquelle: Keine aktiven Anbieter";
 "Standard" = "Standard";
 "Hybrid" = "Hybrid";
 "Satellite" = "Satellit";

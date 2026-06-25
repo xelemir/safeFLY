@@ -122,6 +122,7 @@ enum ProviderQueryOutcome {
 
 enum ProviderRenderPayloadType {
     case wmsImage
+    case polygon
 }
 
 struct WMSRenderPayload: Identifiable, Equatable {
@@ -131,12 +132,25 @@ struct WMSRenderPayload: Identifiable, Equatable {
     let opacity: Double
 }
 
+struct PolygonRenderPayload: Identifiable, Equatable {
+    let id: String
+    let coordinates: [MapCoordinate]
+    let fillColorHex: String
+    let fillOpacity: Double
+    let strokeColorHex: String
+    let strokeOpacity: Double
+    let lineWidth: Double
+}
+
 enum ProviderRenderPayload: Identifiable, Equatable {
     case wmsImage(WMSRenderPayload)
+    case polygon(PolygonRenderPayload)
 
     var id: String {
         switch self {
         case .wmsImage(let payload):
+            return payload.id
+        case .polygon(let payload):
             return payload.id
         }
     }
@@ -145,6 +159,8 @@ enum ProviderRenderPayload: Identifiable, Equatable {
         switch self {
         case .wmsImage:
             return .wmsImage
+        case .polygon:
+            return .polygon
         }
     }
 }

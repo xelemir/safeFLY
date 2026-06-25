@@ -36,6 +36,18 @@ struct MapView: View {
         default: return .standard
         }
     }
+
+    private var providerAttributionText: String {
+        let providerNames = providersStore.enabledSessions.map { $0.provider.displayName }.joined(separator: ", ")
+        guard !providerNames.isEmpty else {
+            return NSLocalizedString("Source geodata: No enabled providers", comment: "Map attribution when no providers are enabled")
+        }
+
+        return String.localizedStringWithFormat(
+            NSLocalizedString("Source geodata: %@", comment: "Map attribution for enabled providers"),
+            providerNames
+        )
+    }
     
     // Only show geozones when zoomed in enough
     private var shouldShowGeozones: Bool {
@@ -49,6 +61,16 @@ struct MapView: View {
             }
 
             return wmsPayload
+        }
+    }
+
+    private var polygonRenderPayloads: [PolygonRenderPayload] {
+        providersStore.renderPayloads.compactMap { payload in
+            guard case .polygon(let polygonPayload) = payload else {
+                return nil
+            }
+
+            return polygonPayload
         }
     }
 
@@ -149,10 +171,16 @@ struct MapView: View {
     }
     
     private var mapView: some View {
-        MapReader { proxy in
+            MapReader { proxy in
             Map(position: $cameraPosition, interactionModes: .all.subtracting(.rotate).subtracting(.pitch)) {
                 UserAnnotation()
-                
+
+                ForEach(shouldShowGeozones ? polygonRenderPayloads : []) { payload in
+                    MapPolygon(coordinates: payload.coordinates.map(\.clLocationCoordinate2D))
+                        .stroke(color(hex: payload.strokeColorHex, opacity: payload.strokeOpacity), lineWidth: payload.lineWidth)
+                        .foregroundStyle(color(hex: payload.fillColorHex, opacity: payload.fillOpacity))
+                }
+                 
                 if let location = tappedLocation {
                     Annotation("", coordinate: location) {
                         if #available(iOS 26.0, *) {
@@ -238,14 +266,14 @@ struct MapView: View {
             HStack {
                 Spacer()
                 if #available(iOS 26.0, *) {
-                    Text("Source geodata: DFS, BKG 2026")
+                    Text(providerAttributionText)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .glassEffect()
                 } else {
-                    Text("Source geodata: DFS, BKG 2026")
+                    Text(providerAttributionText)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 8)
@@ -713,6 +741,18 @@ private extension View {
         )
         .onPreferenceChange(HeightPreferenceKey.self, perform: onChange)
     }
+}
+
+private func color(hex: String, opacity: Double) -> Color {
+    let sanitized = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+    guard sanitized.count == 6, let value = UInt64(sanitized, radix: 16) else {
+        return .red.opacity(opacity)
+    }
+
+    let red = Double((value & 0xFF0000) >> 16) / 255
+    let green = Double((value & 0x00FF00) >> 8) / 255
+    let blue = Double(value & 0x0000FF) / 255
+    return Color(.sRGB, red: red, green: green, blue: blue, opacity: opacity)
 }
 
 // MARK: - Detail Row
