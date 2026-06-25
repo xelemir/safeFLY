@@ -263,6 +263,7 @@
 /* Provider Management */
 "Providers" = "Providers";
 "Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets." = "Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets.";
+"Manage the built-in geospatial provider and configure its provider-specific datasets." = "Manage the built-in geospatial provider and configure its provider-specific datasets.";
 "Refreshing Status..." = "Refreshing Status...";
 "Refresh Provider Status" = "Refresh Provider Status";
 "Provider Status" = "Provider Status";

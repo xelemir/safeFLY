@@ -12,6 +12,10 @@ struct SettingsView: View {
     @EnvironmentObject var providersStore: ProvidersStore
     @Environment(\.dismiss) var dismiss
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
+    private var supportsProviderReordering: Bool {
+        providersStore.sessions.count > 1
+    }
     
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -43,21 +47,39 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    ForEach(providersStore.sessions) { providerSession in
-                        NavigationLink {
-                            ProviderDetailView(providerSession: providerSession)
-                        } label: {
-                            ProviderSummaryRow(
-                                providerSession: providerSession,
-                                isEnabled: providersStore.isProviderEnabled(providerSession.provider.id)
-                            )
+                    if supportsProviderReordering {
+                        ForEach(providersStore.sessions) { providerSession in
+                            NavigationLink {
+                                ProviderDetailView(providerSession: providerSession)
+                            } label: {
+                                ProviderSummaryRow(
+                                    providerSession: providerSession,
+                                    isEnabled: providersStore.isProviderEnabled(providerSession.provider.id)
+                                )
+                            }
+                        }
+                        .onMove(perform: providersStore.moveProviders)
+                    } else {
+                        ForEach(providersStore.sessions) { providerSession in
+                            NavigationLink {
+                                ProviderDetailView(providerSession: providerSession)
+                            } label: {
+                                ProviderSummaryRow(
+                                    providerSession: providerSession,
+                                    isEnabled: providersStore.isProviderEnabled(providerSession.provider.id)
+                                )
+                            }
                         }
                     }
-                    .onMove(perform: providersStore.moveProviders)
                 } header: {
                     Text(NSLocalizedString("Providers", comment: "Providers section title"))
                 } footer: {
-                    Text(NSLocalizedString("Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets.", comment: "Providers section footer"))
+                    Text(NSLocalizedString(
+                        supportsProviderReordering
+                        ? "Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets."
+                        : "Manage the built-in geospatial provider and configure its provider-specific datasets.",
+                        comment: "Providers section footer"
+                    ))
                 }
                 
                 Section {
@@ -102,8 +124,10 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    EditButton()
+                if supportsProviderReordering {
+                    ToolbarItem(placement: .topBarLeading) {
+                        EditButton()
+                    }
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
