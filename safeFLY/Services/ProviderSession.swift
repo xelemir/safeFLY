@@ -75,6 +75,11 @@ final class ProviderSession: ObservableObject, Identifiable {
     private let selectionStorageKey: String
     private let statusStorageKey: String
 
+    // How long a persisted status snapshot is trusted before the provider is probed
+    // again. Within this window a layer flagged as broken stays hidden and we retry it
+    // only in the background after the cooldown, matching the original resilience.
+    static let statusRefreshCooldown: TimeInterval = 12 * 3600
+
     init(
         provider: any GeospatialProvider,
         normalizer: any ZoneFeatureNormalizing,
@@ -98,6 +103,35 @@ final class ProviderSession: ObservableObject, Identifiable {
 
     var datasetCatalog: [ProviderDataset] {
         provider.datasets
+    }
+
+    func needsStatusRefresh(now: Date = Date()) -> Bool {
+        Self.shouldRefreshStatus(
+            supportsStatusRefresh: provider.capabilities.supportsStatusRefresh,
+            refreshedAt: statusSnapshot.refreshedAt,
+            now: now,
+            cooldown: Self.statusRefreshCooldown
+        )
+    }
+
+    nonisolated static func shouldRefreshStatus(
+        supportsStatusRefresh: Bool,
+        refreshedAt: Date?,
+        now: Date,
+        cooldown: TimeInterval
+    ) -> Bool {
+        // Never probed yet: always refresh so we either learn the real status or apply
+        // the available fallback for providers that don't report status.
+        guard let refreshedAt else {
+            return true
+        }
+
+        // Providers without status refresh keep their first snapshot forever.
+        guard supportsStatusRefresh else {
+            return false
+        }
+
+        return now.timeIntervalSince(refreshedAt) > cooldown
     }
 
     func makeStatusRefreshJob() -> ProviderStatusRefreshJob {

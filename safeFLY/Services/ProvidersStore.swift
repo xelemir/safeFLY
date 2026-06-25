@@ -89,8 +89,13 @@ final class ProvidersStore: ObservableObject {
         configurationRevision += 1
     }
 
-    func refreshAllStatuses() async {
-        let jobs = sessions.map { $0.makeStatusRefreshJob() }
+    func refreshAllStatuses(force: Bool = false) async {
+        let sessionsToRefresh = force ? sessions : sessions.filter { $0.needsStatusRefresh() }
+        guard !sessionsToRefresh.isEmpty else {
+            return
+        }
+
+        let jobs = sessionsToRefresh.map { $0.makeStatusRefreshJob() }
         let snapshotsByProviderID = await withTaskGroup(of: (String, ProviderStatusSnapshot).self, returning: [String: ProviderStatusSnapshot].self) { group in
             for job in jobs {
                 group.addTask {

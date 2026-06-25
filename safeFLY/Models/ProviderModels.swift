@@ -88,16 +88,47 @@ enum ProviderAvailabilityStatus: String, Codable, Sendable {
 struct ProviderStatusSnapshot: Equatable, Codable, Sendable {
     let providerStatus: ProviderAvailabilityStatus
     let datasetStatuses: [String: ProviderAvailabilityStatus]
+    // Individual source layer IDs known to be broken at the provider. Layers in this
+    // set are excluded from combined requests so a single failing layer cannot blank
+    // out the otherwise-working layers it is bundled with.
+    let brokenLayerIDs: Set<String>
     let refreshedAt: Date?
+
+    init(
+        providerStatus: ProviderAvailabilityStatus,
+        datasetStatuses: [String: ProviderAvailabilityStatus],
+        brokenLayerIDs: Set<String> = [],
+        refreshedAt: Date?
+    ) {
+        self.providerStatus = providerStatus
+        self.datasetStatuses = datasetStatuses
+        self.brokenLayerIDs = brokenLayerIDs
+        self.refreshedAt = refreshedAt
+    }
+
+    // Decodes resiliently: snapshots persisted before `brokenLayerIDs` existed simply
+    // default to an empty set rather than failing the whole decode.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        providerStatus = try container.decode(ProviderAvailabilityStatus.self, forKey: .providerStatus)
+        datasetStatuses = try container.decode([String: ProviderAvailabilityStatus].self, forKey: .datasetStatuses)
+        brokenLayerIDs = try container.decodeIfPresent(Set<String>.self, forKey: .brokenLayerIDs) ?? []
+        refreshedAt = try container.decodeIfPresent(Date.self, forKey: .refreshedAt)
+    }
 
     nonisolated func status(for datasetID: String) -> ProviderAvailabilityStatus {
         datasetStatuses[datasetID] ?? .unknown
+    }
+
+    nonisolated func isLayerBroken(_ layerID: String) -> Bool {
+        brokenLayerIDs.contains(layerID)
     }
 
     static func unknown(for datasets: [ProviderDataset]) -> ProviderStatusSnapshot {
         ProviderStatusSnapshot(
             providerStatus: .unknown,
             datasetStatuses: Dictionary(uniqueKeysWithValues: datasets.map { ($0.id, .unknown) }),
+            brokenLayerIDs: [],
             refreshedAt: nil
         )
     }

@@ -355,6 +355,7 @@ final class DIPULProvider: GeospatialProvider, @unchecked Sendable {
         return ProviderStatusSnapshot(
             providerStatus: providerStatus,
             datasetStatuses: datasetStatuses,
+            brokenLayerIDs: brokenLayers,
             refreshedAt: Date()
         )
     }
@@ -479,7 +480,10 @@ final class DIPULProvider: GeospatialProvider, @unchecked Sendable {
                     return []
                 }
 
-                return definition.layerIDs
+                // Drop individual layers known to be broken so one failing layer does
+                // not take down the rest of the bundled WMS request (the sibling layers
+                // in this dataset and every other selected dataset keep working).
+                return definition.layerIDs.filter { !status.isLayerBroken($0) }
             }
 
         return layers
