@@ -279,6 +279,23 @@
 "App Webpage & Status" = "App-Webseite & Status";
 "Contact" = "Kontakt";
 
+/* Provider Management */
+"Providers" = "Provider";
+"Manage built-in geospatial providers and their provider-specific datasets." = "Verwalte die eingebauten Geodaten-Provider und ihre jeweiligen Datensätze.";
+"Refreshing Status..." = "Status wird aktualisiert...";
+"Refresh Provider Status" = "Provider-Status aktualisieren";
+"Provider Status" = "Provider-Status";
+"Last refreshed at %@." = "Zuletzt aktualisiert: %@.";
+"Provider status has not been refreshed yet." = "Der Provider-Status wurde noch nicht aktualisiert.";
+"Provider Datasets" = "Provider-Datensätze";
+"Dataset selection remains editable even when a dataset is temporarily unavailable." = "Du kannst die Datensätze weiter auswählen, auch wenn ein Datensatz gerade vorübergehend nicht verfügbar ist.";
+"Provider References" = "Provider-Referenzen";
+"Available" = "Verfügbar";
+"Degraded" = "Eingeschränkt";
+"Unavailable" = "Nicht verfügbar";
+"Show More" = "Mehr anzeigen";
+"Show Less" = "Weniger anzeigen";
+
 
 
 /* Missing Geozone Type Labels */
@@ -291,4 +308,3 @@
 
 /* Onboarding Specific Overrides */
 "ONBOARDING.HELIPAD_TITLE" = "Hubschrauberlandeplatz";
-

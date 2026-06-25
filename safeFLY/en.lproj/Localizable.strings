@@ -249,6 +249,24 @@
 "App Webpage & Status" = "App Webpage & Status";
 "Contact" = "Contact";
 
+/* Provider Management */
+"Providers" = "Providers";
+"Manage built-in geospatial providers and their provider-specific datasets." = "Manage built-in geospatial providers and their provider-specific datasets.";
+"Refreshing Status..." = "Refreshing Status...";
+"Refresh Provider Status" = "Refresh Provider Status";
+"Provider Status" = "Provider Status";
+"Last refreshed at %@." = "Last refreshed at %@.";
+"Provider status has not been refreshed yet." = "Provider status has not been refreshed yet.";
+"Provider Datasets" = "Provider Datasets";
+"Dataset selection remains editable even when a dataset is temporarily unavailable." = "Dataset selection remains editable even when a dataset is temporarily unavailable.";
+"Provider References" = "Provider References";
+"Unknown" = "Unknown";
+"Available" = "Available";
+"Degraded" = "Degraded";
+"Unavailable" = "Unavailable";
+"Show More" = "Show More";
+"Show Less" = "Show Less";
+
 
 /* Missing Geozone Type Labels */
 "TYPE.KRANKENHAUS" = "Hospital";
@@ -260,4 +278,3 @@
 
 /* Onboarding Specific Overrides */
 "ONBOARDING.HELIPAD_TITLE" = "Helipad";
-

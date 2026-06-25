@@ -66,20 +66,25 @@ struct ProviderDetailView: View {
                 if isRefreshingStatus {
                     HStack(spacing: 8) {
                         ProgressView()
-                        Text("Refreshing Status...")
+                        Text(NSLocalizedString("Refreshing Status...", comment: "Provider status refresh in progress"))
                     }
                 } else {
-                    Text("Refresh Provider Status")
+                    Text(NSLocalizedString("Refresh Provider Status", comment: "Refresh provider status button"))
                 }
             }
             .disabled(isRefreshingStatus)
         } header: {
-            Text("Provider Status")
+            Text(NSLocalizedString("Provider Status", comment: "Provider status section title"))
         } footer: {
             if let refreshedAt = providerSession.statusSnapshot.refreshedAt {
-                Text("Last refreshed at \(refreshedAt.formatted(date: .abbreviated, time: .shortened)).")
+                Text(
+                    String.localizedStringWithFormat(
+                        NSLocalizedString("Last refreshed at %@.", comment: "Provider status last refreshed footer"),
+                        refreshedAt.formatted(date: .abbreviated, time: .shortened)
+                    )
+                )
             } else {
-                Text("Provider status has not been refreshed yet.")
+                Text(NSLocalizedString("Provider status has not been refreshed yet.", comment: "Provider status not refreshed footer"))
             }
         }
     }
@@ -97,9 +102,9 @@ struct ProviderDetailView: View {
                 }
             }
         } header: {
-            Text("Provider Datasets")
+            Text(NSLocalizedString("Provider Datasets", comment: "Provider datasets section title"))
         } footer: {
-            Text("Dataset selection remains editable even when a dataset is temporarily unavailable.")
+            Text(NSLocalizedString("Dataset selection remains editable even when a dataset is temporarily unavailable.", comment: "Provider datasets section footer"))
         }
     }
 
@@ -109,7 +114,7 @@ struct ProviderDetailView: View {
                 Link(link.title, destination: link.url)
             }
         } header: {
-            Text("Provider References")
+            Text(NSLocalizedString("Provider References", comment: "Provider references section title"))
         }
     }
 
@@ -175,13 +180,13 @@ extension ProviderAvailabilityStatus {
     var displayTitle: String {
         switch self {
         case .unknown:
-            return "Unknown"
+            return NSLocalizedString("Unknown", comment: "Provider availability unknown")
         case .available:
-            return "Available"
+            return NSLocalizedString("Available", comment: "Provider availability available")
         case .degraded:
-            return "Degraded"
+            return NSLocalizedString("Degraded", comment: "Provider availability degraded")
         case .unavailable:
-            return "Unavailable"
+            return NSLocalizedString("Unavailable", comment: "Provider availability unavailable")
         }
     }
 

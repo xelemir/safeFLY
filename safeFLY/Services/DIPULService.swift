@@ -10,6 +10,13 @@ import CoreLocation
 import MapKit
 import UIKit
 
+private func localizedProviderPresentation(title: String, groupTitle: String) -> ProviderDatasetPresentation {
+    ProviderDatasetPresentation(
+        title: NSLocalizedString(title, comment: "Provider dataset title"),
+        groupTitle: NSLocalizedString(groupTitle, comment: "Provider dataset group title")
+    )
+}
+
 struct DIPULFeatureInfoRecord: ProviderRawRecord {
     let layerName: String
     let name: String?
@@ -55,7 +62,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "aviation.airports",
-                presentation: ProviderDatasetPresentation(title: "Airports", groupTitle: "Aviation"),
+                presentation: localizedProviderPresentation(title: "Airports", groupTitle: "Aviation"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -64,7 +71,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "aviation.aerodromes",
-                presentation: ProviderDatasetPresentation(title: "Aerodromes", groupTitle: "Aviation"),
+                presentation: localizedProviderPresentation(title: "Aerodromes", groupTitle: "Aviation"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -73,7 +80,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "aviation.control-zones",
-                presentation: ProviderDatasetPresentation(title: "Control Zones", groupTitle: "Aviation"),
+                presentation: localizedProviderPresentation(title: "Control Zones", groupTitle: "Aviation"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -82,7 +89,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "aviation.restricted-areas",
-                presentation: ProviderDatasetPresentation(title: "Restricted Areas", groupTitle: "Aviation"),
+                presentation: localizedProviderPresentation(title: "Restricted Areas", groupTitle: "Aviation"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -91,7 +98,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "aviation.temporary-restrictions",
-                presentation: ProviderDatasetPresentation(title: "Temporary Restrictions", groupTitle: "Aviation"),
+                presentation: localizedProviderPresentation(title: "Temporary Restrictions", groupTitle: "Aviation"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -103,7 +110,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "aviation.model-flying-fields",
-                presentation: ProviderDatasetPresentation(title: "Model Flying Fields", groupTitle: "Aviation"),
+                presentation: localizedProviderPresentation(title: "Model Flying Fields", groupTitle: "Aviation"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -112,7 +119,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "infrastructure.motorways",
-                presentation: ProviderDatasetPresentation(title: "Motorways", groupTitle: "Infrastructure"),
+                presentation: localizedProviderPresentation(title: "Motorways", groupTitle: "Infrastructure"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -121,7 +128,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "infrastructure.highways",
-                presentation: ProviderDatasetPresentation(title: "Highways", groupTitle: "Infrastructure"),
+                presentation: localizedProviderPresentation(title: "Highways", groupTitle: "Infrastructure"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -130,7 +137,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "infrastructure.railways",
-                presentation: ProviderDatasetPresentation(title: "Railways", groupTitle: "Infrastructure"),
+                presentation: localizedProviderPresentation(title: "Railways", groupTitle: "Infrastructure"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -139,7 +146,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "infrastructure.waterways",
-                presentation: ProviderDatasetPresentation(title: "Waterways", groupTitle: "Infrastructure"),
+                presentation: localizedProviderPresentation(title: "Waterways", groupTitle: "Infrastructure"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -152,7 +159,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "infrastructure.industrial-facilities",
-                presentation: ProviderDatasetPresentation(title: "Industrial Facilities", groupTitle: "Infrastructure"),
+                presentation: localizedProviderPresentation(title: "Industrial Facilities", groupTitle: "Infrastructure"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -167,7 +174,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "restricted.residential-property",
-                presentation: ProviderDatasetPresentation(title: "Residential Property", groupTitle: "Restricted Areas"),
+                presentation: localizedProviderPresentation(title: "Residential Property", groupTitle: "Restricted Areas"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -176,7 +183,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "restricted.recreational-areas",
-                presentation: ProviderDatasetPresentation(title: "Recreational Areas", groupTitle: "Restricted Areas"),
+                presentation: localizedProviderPresentation(title: "Recreational Areas", groupTitle: "Restricted Areas"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -185,7 +192,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "restricted.government-buildings",
-                presentation: ProviderDatasetPresentation(title: "Government Buildings", groupTitle: "Restricted Areas"),
+                presentation: localizedProviderPresentation(title: "Government Buildings", groupTitle: "Restricted Areas"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -204,7 +211,7 @@ final class DIPULProvider: GeospatialProvider {
         DatasetDefinition(
             dataset: ProviderDataset(
                 id: "restricted.nature-reserves",
-                presentation: ProviderDatasetPresentation(title: "Nature Reserves", groupTitle: "Restricted Areas"),
+                presentation: localizedProviderPresentation(title: "Nature Reserves", groupTitle: "Restricted Areas"),
                 capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
                 isSelectedByDefault: true
             ),
@@ -224,7 +231,7 @@ final class DIPULProvider: GeospatialProvider {
     var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: "DFS DIPUL Datasource",
+                title: NSLocalizedString("DFS DIPUL Datasource", comment: "Provider reference link title"),
                 url: URL(string: "https://uas-betrieb.dfs.de/homepage/")!
             )
         ]

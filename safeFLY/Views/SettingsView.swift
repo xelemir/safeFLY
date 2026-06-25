@@ -49,9 +49,9 @@ struct SettingsView: View {
                         providerSummaryRow
                     }
                 } header: {
-                    Text("Providers")
+                    Text(NSLocalizedString("Providers", comment: "Providers section title"))
                 } footer: {
-                    Text("Manage built-in geospatial providers and their provider-specific datasets.")
+                    Text(NSLocalizedString("Manage built-in geospatial providers and their provider-specific datasets.", comment: "Providers section footer"))
                 }
                 
                 Section {
