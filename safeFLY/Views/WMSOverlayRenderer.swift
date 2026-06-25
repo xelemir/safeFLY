@@ -153,16 +153,24 @@ struct WMSNativeOverlay: UIViewRepresentable {
 
                     guard self.downloadTasks.isEmpty else { return }
 
-                    self.installDelegateProxy(on: mapView)
-                    self.removeCurrentOverlays(from: mapView)
-
-                    for orderedPayload in self.currentPayloads {
+                    let replacementOverlays = self.currentPayloads.compactMap { orderedPayload -> WMSImageOverlay? in
                         guard let orderedImage = self.downloadedImages[orderedPayload.id] else {
-                            continue
+                            return nil
                         }
 
                         let overlay = WMSImageOverlay(payload: orderedPayload)
                         overlay.image = orderedImage
+                        return overlay
+                    }
+
+                    guard !replacementOverlays.isEmpty else {
+                        return
+                    }
+
+                    self.installDelegateProxy(on: mapView)
+                    self.removeCurrentOverlays(from: mapView)
+
+                    for overlay in replacementOverlays {
                         mapView.addOverlay(overlay, level: .aboveLabels)
                     }
                 }
