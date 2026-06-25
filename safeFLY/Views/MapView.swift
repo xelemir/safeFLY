@@ -289,9 +289,9 @@ struct MapView: View {
     
     private var zoneInfoSheet: some View {
         ZoneInfoSheet(result: providersStore.zoneQueryResult) {
+            // Setting this false dismisses the sheet, which triggers handleSheetDismiss
+            // (the sheet's onDismiss) where the marker and query result are cleared.
             showZoneInfo = false
-            tappedLocation = nil
-            providersStore.clearZoneQueryResult()
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -331,10 +331,15 @@ struct MapView: View {
     // MARK: - Helper Methods
     
     private func handleSheetDismiss() {
+        // Runs for every dismissal — the X button and an interactive swipe-down — so the
+        // tapped-location marker and query result are always cleared, not just via the X.
+        tappedLocation = nil
+        providersStore.clearZoneQueryResult()
+
         if sheetClosedCount < 2 {
             sheetClosedCount += 1
         }
-        
+
         if sheetClosedCount == 2 && !hasShownRatingPrompt {
             requestReview()
             hasShownRatingPrompt = true
@@ -539,37 +544,47 @@ struct ZoneInfoSheet: View {
 
     private func resultHeader(for result: ZoneQueryResult) -> some View {
         let presentation = ZoneQueryPresentation.header(for: result)
-
-        return HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(presentation.color)
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: presentation.iconName)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.white)
+        let showsZoneCount: Bool = {
+            if case .matches = result, sortedFeatures.count > 1 {
+                return true
             }
+            return false
+        }()
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(presentation.title)
-                    .font(.system(.headline, design: .rounded))
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: showsZoneCount ? .top : .center, spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(presentation.color)
+                        .frame(width: 44, height: 44)
 
-                if let message = presentation.message {
-                    Text(message)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Image(systemName: presentation.iconName)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
                 }
 
-                if case .matches = result, sortedFeatures.count > 1 {
-                    Text(String.localizedStringWithFormat(NSLocalizedString("%d overlapping zones", comment: "Number of overlapping zones in the zone header"), sortedFeatures.count))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(presentation.title)
+                        .font(.system(.headline, design: .rounded))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
+
+                    if showsZoneCount {
+                        Text(String.localizedStringWithFormat(NSLocalizedString("%d overlapping zones", comment: "Number of overlapping zones in the zone header"), sortedFeatures.count))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                Spacer(minLength: 0)
             }
-            Spacer()
+
+            if let message = presentation.message {
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .padding(20)
         .background(Color(uiColor: .secondarySystemBackground))
@@ -597,16 +612,18 @@ struct ZoneInfoSheet: View {
 
 struct ZoneFeatureRow: View {
     let feature: ZoneFeature
-    @State private var isRestrictionExpanded = false
-    @State private var collapsedRestrictionHeight: CGFloat = 0
-    @State private var expandedRestrictionHeight: CGFloat = 0
+    @State private var areDetailsExpanded = false
 
     private var restrictionText: String? {
         ZonePresentation.explanation(for: feature)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var showsRestrictionDisclosure: Bool {
-        expandedRestrictionHeight > collapsedRestrictionHeight + 1
+    private var altitudeText: String? {
+        ZonePresentation.formattedAltitude(for: feature)
+    }
+
+    private var hasDetails: Bool {
+        altitudeText != nil || feature.legalReference != nil
     }
 
     var body: some View {
@@ -614,23 +631,14 @@ struct ZoneFeatureRow: View {
             topRow
 
             if let restrictionText {
-                restrictionPreview(restrictionText)
+                Text(restrictionText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            if let altitude = ZonePresentation.formattedAltitude(for: feature) {
-                DetailRow(
-                    label: NSLocalizedString("ZONE_FEATURE_ALTITUDE", comment: "Altitude label"),
-                    value: altitude,
-                    icon: "arrow.up.and.down"
-                )
-            }
-
-            if let legalReference = feature.legalReference {
-                DetailRow(
-                    label: NSLocalizedString("ZONE_FEATURE_LEGAL_REFERENCE", comment: "Legal reference label"),
-                    value: legalReference,
-                    icon: "book.pages"
-                )
+            if hasDetails {
+                detailsSection
             }
         }
         .padding(.vertical, 16)
@@ -641,7 +649,7 @@ struct ZoneFeatureRow: View {
     private var topRow: some View {
         let tint = ZonePresentation.tintColor(for: feature.category)
 
-        return HStack(alignment: .top, spacing: 12) {
+        return HStack(alignment: .center, spacing: 12) {
             ZStack {
                 Circle()
                     .fill(tint.opacity(0.15))
@@ -669,77 +677,46 @@ struct ZoneFeatureRow: View {
         }
     }
 
-    @ViewBuilder
-    private func restrictionPreview(_ restrictionText: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(restrictionText)
-                .font(.body)
-                .foregroundStyle(.primary)
-                .lineLimit(isRestrictionExpanded ? nil : 2)
-                .overlay(alignment: .topLeading) {
-                    restrictionMeasurementOverlay(restrictionText)
+    private var detailsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    areDetailsExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(
+                        areDetailsExpanded
+                            ? NSLocalizedString("Show Less", comment: "Collapse zone details")
+                            : NSLocalizedString("Show More", comment: "Expand zone details")
+                    )
+
+                    Image(systemName: areDetailsExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption.weight(.semibold))
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+
+            if areDetailsExpanded {
+                if let altitudeText {
+                    DetailRow(
+                        label: NSLocalizedString("ZONE_FEATURE_ALTITUDE", comment: "Altitude label"),
+                        value: altitudeText,
+                        icon: "arrow.up.and.down"
+                    )
                 }
 
-            if showsRestrictionDisclosure {
-                Button {
-                    isRestrictionExpanded.toggle()
-                } label: {
-                    HStack(spacing: 6) {
-                        Text(
-                            isRestrictionExpanded
-                                ? NSLocalizedString("Show Less", comment: "Collapse restriction text")
-                                : NSLocalizedString("Show More", comment: "Expand restriction text")
-                        )
-
-                        Image(systemName: isRestrictionExpanded ? "chevron.up" : "chevron.down")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                if let legalReference = feature.legalReference {
+                    DetailRow(
+                        label: NSLocalizedString("ZONE_FEATURE_LEGAL_REFERENCE", comment: "Legal reference label"),
+                        value: legalReference,
+                        icon: "book.pages"
+                    )
                 }
-                .buttonStyle(.plain)
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: isRestrictionExpanded)
-    }
-
-    private func restrictionMeasurementOverlay(_ restrictionText: String) -> some View {
-        ZStack(alignment: .topLeading) {
-            Text(restrictionText)
-                .font(.body)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .opacity(0)
-                .allowsHitTesting(false)
-                .readHeight { collapsedRestrictionHeight = $0 }
-
-            Text(restrictionText)
-                .font(.body)
-                .fixedSize(horizontal: false, vertical: true)
-                .opacity(0)
-                .allowsHitTesting(false)
-                .readHeight { expandedRestrictionHeight = $0 }
-        }
-    }
-}
-
-private struct HeightPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-private extension View {
-    func readHeight(_ onChange: @escaping (CGFloat) -> Void) -> some View {
-        background(
-            GeometryReader { geometry in
-                Color.clear
-                    .preference(key: HeightPreferenceKey.self, value: geometry.size.height)
-            }
-        )
-        .onPreferenceChange(HeightPreferenceKey.self, perform: onChange)
     }
 }
 

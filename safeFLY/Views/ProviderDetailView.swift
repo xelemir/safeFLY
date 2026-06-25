@@ -37,7 +37,7 @@ struct ProviderDetailView: View {
         Form {
             enablementSection
             statusSection
-            datasetSection
+            datasetSectionsView
 
             if !providerSession.provider.referenceLinks.isEmpty {
                 referencesSection
@@ -66,18 +66,8 @@ struct ProviderDetailView: View {
 
     private var statusSection: some View {
         Section {
-            HStack {
-                Label(providerSession.statusSnapshot.providerStatus.displayTitle, systemImage: providerSession.statusSnapshot.providerStatus.symbolName)
-                    .foregroundStyle(providerSession.statusSnapshot.providerStatus.color)
-
-                Spacer()
-
-                if let refreshedAt = providerSession.statusSnapshot.refreshedAt {
-                    Text(refreshedAt.formatted(date: .omitted, time: .shortened))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            Label(providerSession.statusSnapshot.providerStatus.displayTitle, systemImage: providerSession.statusSnapshot.providerStatus.symbolName)
+                .foregroundStyle(providerSession.statusSnapshot.providerStatus.color)
 
             Button {
                 refreshStatus()
@@ -108,22 +98,22 @@ struct ProviderDetailView: View {
         }
     }
 
-    private var datasetSection: some View {
-        Section {
-            ForEach(Array(datasetSections.enumerated()), id: \.offset) { index, section in
-                if let title = section.title {
-                    SectionHeader(title: title)
-                        .padding(.top, index == 0 ? 0 : 8)
-                }
+    @ViewBuilder
+    private var datasetSectionsView: some View {
+        let sections = datasetSections
 
+        ForEach(Array(sections.enumerated()), id: \.element.id) { index, section in
+            Section {
                 ForEach(section.datasets) { dataset in
                     ProviderDatasetToggleRow(providerSession: providerSession, dataset: dataset)
                 }
+            } header: {
+                Text(section.title ?? NSLocalizedString("Provider Datasets", comment: "Provider datasets section title"))
+            } footer: {
+                if index == sections.count - 1 {
+                    Text(NSLocalizedString("Dataset selection remains editable even when a dataset is temporarily unavailable.", comment: "Provider datasets section footer"))
+                }
             }
-        } header: {
-            Text(NSLocalizedString("Provider Datasets", comment: "Provider datasets section title"))
-        } footer: {
-            Text(NSLocalizedString("Dataset selection remains editable even when a dataset is temporarily unavailable.", comment: "Provider datasets section footer"))
         }
     }
 
@@ -153,6 +143,21 @@ private struct ProviderDatasetToggleRow: View {
     @ObservedObject var providerSession: ProviderSession
     let dataset: ProviderDataset
 
+    private var status: ProviderAvailabilityStatus {
+        providerSession.statusSnapshot.status(for: dataset.id)
+    }
+
+    // Only surface a status caption when there is something to flag — a healthy or
+    // not-yet-checked dataset just shows its name, avoiding a wall of "Available".
+    private var statusCaption: String? {
+        switch status {
+        case .available, .unknown:
+            return nil
+        case .degraded, .unavailable:
+            return status.displayTitle
+        }
+    }
+
     var body: some View {
         Toggle(
             isOn: Binding(
@@ -160,15 +165,14 @@ private struct ProviderDatasetToggleRow: View {
                 set: { providerSession.setDatasetSelected(dataset.id, isSelected: $0) }
             )
         ) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(dataset.presentation.title)
-                    Text(providerSession.statusSnapshot.status(for: dataset.id).displayTitle)
-                        .font(.caption)
-                        .foregroundStyle(providerSession.statusSnapshot.status(for: dataset.id).color)
-                }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(dataset.presentation.title)
 
-                Spacer(minLength: 12)
+                if let statusCaption {
+                    Text(statusCaption)
+                        .font(.caption)
+                        .foregroundStyle(status.color)
+                }
             }
         }
     }

@@ -11,16 +11,18 @@ enum ZonePresentation {
     }
 
     static func subtitle(for feature: ZoneFeature) -> String? {
-        if let name = feature.name, !name.isEmpty {
-            return name
-        }
-
-        guard let sourceDeclaredType = feature.sourceDeclaredType else {
+        // Only the concrete zone name is shown as a subtitle. Without a name — or when the
+        // name is just the category itself (e.g. "Industrieanlage" / "Bahnanlage") — the
+        // title already carries the category, so we avoid repeating it.
+        guard let name = feature.name?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
             return nil
         }
 
-        let formattedType = formattedTypeCode(sourceDeclaredType)
-        return formattedType == localizedTitle(for: feature.category) ? nil : formattedType
+        if name.caseInsensitiveCompare(localizedTitle(for: feature.category)) == .orderedSame {
+            return nil
+        }
+
+        return name
     }
 
     static func localizedTitle(for category: ZoneCategory) -> String {
