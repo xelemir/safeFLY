@@ -292,6 +292,3 @@
 "DIPUL decoding: %@" = "DIPUL decoding: %@";
 "No DIPUL weather data available" = "No DIPUL weather data available";
 "Location outside DIPUL coverage (Central Europe only)" = "Location outside DIPUL coverage (Central Europe only)";
-
-/* Onboarding Specific Overrides */
-"ONBOARDING.HELIPAD_TITLE" = "Helipad";

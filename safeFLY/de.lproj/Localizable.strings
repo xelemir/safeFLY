@@ -18,7 +18,7 @@
 "Weather" = "Wetter";
 "No Restrictions" = "Keine Einschränkungen";
 "Flight allowed" = "Flug erlaubt";
-"Zone Information" = "Geo-Zonen Infos";
+"Zone Information" = "Zoneninformationen";
 "Checking zone information..." = "Zoneninformationen werden überprüft...";
 "FLIGHT_PERMITTED" = "Flug erlaubt";
 "PERMITTED_UNDER_CONDITIONS" = "Unter Auflagen erlaubt";
@@ -61,7 +61,7 @@
 "ZONE_FEATURE_LEGAL_REFERENCE" = "Rechtsgrundlage";
 
 /* Type labels */
-"TYPE.FLUGPLATZ" = "Flugplatz/Hubschrauberlandeplatz";
+"TYPE.FLUGPLATZ" = "Flug-/Landeplatz";
 "TYPE.FLUGHAFEN" = "Flughafen";
 "TYPE.KONTROLLZONE" = "Kontrollzone";
 "TYPE.ED-R" = "Eingeschränkter Bereich";
@@ -78,7 +78,7 @@
 "TYPE.BEHORDE" = "Behörde";
 
 /* Layer labels */
-"LAYER.flugplaetze" = "Flugplatz/Hubschrauberlandeplatz";
+"LAYER.flugplaetze" = "Flug-/Landeplatz";
 "LAYER.flughaefen" = "Flughafen";
 "LAYER.kontrollzonen" = "Kontrollzone";
 "LAYER.flugbeschraenkungsgebiete" = "Eingeschränkte Zone";
@@ -234,7 +234,7 @@
 "ONBOARDING.WELCOME.DESCRIPTION" = "Diese Einführung zeigt dir die wichtigsten Funktionen von safeFLY. Wische nach links oder tippe auf \"Los geht's\".";
 
 "ONBOARDING.AIRSPACE.TITLE" = "Mehr Informationen";
-"ONBOARDING.AIRSPACE.DESCRIPTION" = "Tippe auf die Karte, um detaillierte Informationen zu den Geo-Zonen an deinem Standort zu erhalten.";
+"ONBOARDING.AIRSPACE.DESCRIPTION" = "Tippe auf die Karte, um detaillierte Informationen zu den Geozonen an deinem Standort zu erhalten.";
 
 "ONBOARDING.LOCATION.TITLE" = "Standortzugriff";
 "ONBOARDING.LOCATION.DESCRIPTION" = "Erlaube den Standortzugriff, um die Luftrauminformationen deines aktuellen Standorts zu sehen.";
@@ -243,7 +243,7 @@
 "ONBOARDING.WEATHER.DESCRIPTION" = "Im Wetter-Tab siehst du die aktuellen Wetterbedingungen und Windvorhersagen in verschiedenen Höhen.";
 
 "ONBOARDING.READY.TITLE" = "Bereit zum Abheben";
-"ONBOARDING.READY.DESCRIPTION" = "Alles bereit! In den Einstellungen kannst du die angezeigten Geo-Zonen anpassen und App-Fehler melden.";
+"ONBOARDING.READY.DESCRIPTION" = "Alles bereit! In den Einstellungen kannst du die angezeigten Geozonen anpassen und App-Fehler melden.";
 
 "ONBOARDING.BUTTON.GET_STARTED" = "Los geht's";
 "ONBOARDING.BUTTON.ACTIVATE_LOCATION" = "Standort aktivieren";
@@ -293,6 +293,3 @@
 "DIPUL decoding: %@" = "DIPUL-Antwort konnte nicht verarbeitet werden: %@";
 "No DIPUL weather data available" = "Keine DIPUL-Wetterdaten verfügbar";
 "Location outside DIPUL coverage (Central Europe only)" = "Ort liegt außerhalb der DIPUL-Abdeckung (nur Mitteleuropa)";
-
-/* Onboarding Specific Overrides */
-"ONBOARDING.HELIPAD_TITLE" = "Hubschrauberlandeplatz";

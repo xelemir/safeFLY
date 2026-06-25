@@ -107,9 +107,6 @@ struct OnboardingView: View {
 
                                     VStack(alignment: .leading, spacing: 2) {
                                         let titleText: String = {
-                                            if feature.category == .aerodrome {
-                                                return NSLocalizedString("ONBOARDING.HELIPAD_TITLE", comment: "Onboarding specific helipad title")
-                                            }
                                             return ZonePresentation.title(for: feature)
                                         }()
                                         Text(titleText)
