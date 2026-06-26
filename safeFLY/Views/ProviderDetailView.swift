@@ -18,6 +18,8 @@ struct ProviderDetailView: View {
     @EnvironmentObject private var providersStore: ProvidersStore
     @ObservedObject var providerSession: ProviderSession
     @State private var isRefreshingStatus = false
+    @State private var isDownloading = false
+    @State private var downloadError: String? = nil
 
     private var datasetSections: [DatasetSection] {
         var sections: [DatasetSection] = []
@@ -36,11 +38,15 @@ struct ProviderDetailView: View {
     var body: some View {
         Form {
             enablementSection
-            statusSection
-            datasetSectionsView
+            
+            let isDownloaded = providerSession.provider.downloadURL == nil || providerSession.provider.isDataDownloaded
+            if isDownloaded {
+                statusSection
+                datasetSectionsView
 
-            if !providerSession.provider.referenceLinks.isEmpty {
-                referencesSection
+                if !providerSession.provider.referenceLinks.isEmpty {
+                    referencesSection
+                }
             }
         }
         .navigationTitle(providerSession.provider.displayName)
@@ -48,19 +54,76 @@ struct ProviderDetailView: View {
         .onChange(of: providerSession.selectedDatasetIDs) { _, _ in
             providersStore.markConfigurationChanged()
         }
+        .alert(NSLocalizedString("Download Failed", comment: "Download failed alert title"), isPresented: Binding(
+            get: { downloadError != nil },
+            set: { if !$0 { downloadError = nil } }
+        )) {
+            Button(NSLocalizedString("Done", comment: "Done button"), role: .cancel) {}
+        } message: {
+            if let downloadError {
+                Text(downloadError)
+            }
+        }
     }
 
     private var enablementSection: some View {
         Section {
-            Toggle(
-                NSLocalizedString("Enable Provider", comment: "Provider enable toggle label"),
-                isOn: Binding(
-                    get: { providersStore.isProviderEnabled(providerSession.provider.id) },
-                    set: { providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: $0) }
+            if let _ = providerSession.provider.downloadURL {
+                if providerSession.provider.isDataDownloaded {
+                    Toggle(
+                        NSLocalizedString("Enable Provider", comment: "Provider enable toggle label"),
+                        isOn: Binding(
+                            get: { providersStore.isProviderEnabled(providerSession.provider.id) },
+                            set: { providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: $0) }
+                        )
+                    )
+                    
+                    Button(role: .destructive) {
+                        providerSession.provider.deleteData()
+                        providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: false)
+                        Task {
+                            // Re-probe so the badge returns to .downloadRequired now the
+                            // package is gone, rather than lingering on .available.
+                            await providersStore.refreshStatus(for: providerSession.provider.id)
+                            providersStore.markConfigurationChanged()
+                        }
+                    } label: {
+                        Text(NSLocalizedString("Delete Data Package", comment: "Button to delete package"))
+                    }
+                } else {
+                    Button {
+                        downloadOfflineData()
+                    } label: {
+                        if isDownloading {
+                            HStack {
+                                ProgressView()
+                                Text(NSLocalizedString("Downloading Data...", comment: "Downloading in progress"))
+                            }
+                        } else {
+                            Text(NSLocalizedString("Download Data Package", comment: "Button to download package"))
+                        }
+                    }
+                    .disabled(isDownloading)
+                }
+            } else {
+                Toggle(
+                    NSLocalizedString("Enable Provider", comment: "Provider enable toggle label"),
+                    isOn: Binding(
+                        get: { providersStore.isProviderEnabled(providerSession.provider.id) },
+                        set: { providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: $0) }
+                    )
                 )
-            )
+            }
         } footer: {
-            Text(NSLocalizedString("Disabled providers do not participate in map rendering or location queries.", comment: "Provider enablement footer"))
+            if let _ = providerSession.provider.downloadURL {
+                if providerSession.provider.isDataDownloaded {
+                    Text(NSLocalizedString("Offline data package downloaded and ready. You can enable or disable the provider.", comment: "Offline data package ready"))
+                } else {
+                    Text(NSLocalizedString("Download this provider's data package to view restrictions. The package will be updated automatically when new data is available.", comment: "Offline data download required"))
+                }
+            } else {
+                Text(NSLocalizedString("Disabled providers do not participate in map rendering or location queries.", comment: "Provider enablement footer"))
+            }
         }
     }
 
@@ -69,31 +132,35 @@ struct ProviderDetailView: View {
             Label(providerSession.statusSnapshot.providerStatus.displayTitle, systemImage: providerSession.statusSnapshot.providerStatus.symbolName)
                 .foregroundStyle(providerSession.statusSnapshot.providerStatus.color)
 
-            Button {
-                refreshStatus()
-            } label: {
-                if isRefreshingStatus {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                        Text(NSLocalizedString("Refreshing Status...", comment: "Provider status refresh in progress"))
+            if providerSession.provider.downloadURL == nil {
+                Button {
+                    refreshStatus()
+                } label: {
+                    if isRefreshingStatus {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text(NSLocalizedString("Refreshing Status...", comment: "Provider status refresh in progress"))
+                        }
+                    } else {
+                        Text(NSLocalizedString("Refresh Provider Status", comment: "Refresh provider status button"))
                     }
-                } else {
-                    Text(NSLocalizedString("Refresh Provider Status", comment: "Refresh provider status button"))
                 }
+                .disabled(isRefreshingStatus)
             }
-            .disabled(isRefreshingStatus)
         } header: {
             Text(NSLocalizedString("Provider Status", comment: "Provider status section title"))
         } footer: {
-            if let refreshedAt = providerSession.statusSnapshot.refreshedAt {
-                Text(
-                    String.localizedStringWithFormat(
-                        NSLocalizedString("Last refreshed at %@.", comment: "Provider status last refreshed footer"),
-                        refreshedAt.formatted(date: .abbreviated, time: .shortened)
+            if providerSession.provider.downloadURL == nil {
+                if let refreshedAt = providerSession.statusSnapshot.refreshedAt {
+                    Text(
+                        String.localizedStringWithFormat(
+                            NSLocalizedString("Last refreshed at %@.", comment: "Provider status last refreshed footer"),
+                            refreshedAt.formatted(date: .abbreviated, time: .shortened)
+                        )
                     )
-                )
-            } else {
-                Text(NSLocalizedString("Provider status has not been refreshed yet.", comment: "Provider status not refreshed footer"))
+                } else {
+                    Text(NSLocalizedString("Provider status has not been refreshed yet.", comment: "Provider status not refreshed footer"))
+                }
             }
         }
     }
@@ -137,6 +204,31 @@ struct ProviderDetailView: View {
             }
         }
     }
+
+    private func downloadOfflineData() {
+        isDownloading = true
+        downloadError = nil
+        
+        Task {
+            do {
+                try await providerSession.provider.downloadData()
+                // Re-probe status so the freshly downloaded package flips the snapshot from
+                // .downloadRequired to .available; otherwise the badge stays stale until the
+                // next status-refresh cooldown.
+                await providersStore.refreshStatus(for: providerSession.provider.id)
+                await MainActor.run {
+                    isDownloading = false
+                    providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: true)
+                    providersStore.markConfigurationChanged()
+                }
+            } catch {
+                await MainActor.run {
+                    isDownloading = false
+                    downloadError = error.localizedDescription
+                }
+            }
+        }
+    }
 }
 
 private struct ProviderDatasetToggleRow: View {
@@ -153,7 +245,7 @@ private struct ProviderDatasetToggleRow: View {
         switch status {
         case .available, .unknown:
             return nil
-        case .degraded, .unavailable:
+        case .degraded, .unavailable, .downloadRequired:
             return status.displayTitle
         }
     }
@@ -225,6 +317,8 @@ extension ProviderAvailabilityStatus {
             return NSLocalizedString("Degraded", comment: "Provider availability degraded")
         case .unavailable:
             return NSLocalizedString("Unavailable", comment: "Provider availability unavailable")
+        case .downloadRequired:
+            return NSLocalizedString("Download Required", comment: "Provider availability download required")
         }
     }
 
@@ -238,6 +332,8 @@ extension ProviderAvailabilityStatus {
             return "exclamationmark.triangle.fill"
         case .unavailable:
             return "xmark.octagon.fill"
+        case .downloadRequired:
+            return "arrow.down.circle.fill"
         }
     }
 
@@ -251,13 +347,15 @@ extension ProviderAvailabilityStatus {
             return .orange
         case .unavailable:
             return .red
+        case .downloadRequired:
+            return .orange
         }
     }
 }
 
 #Preview {
     NavigationStack {
-        ProviderDetailView(providerSession: ProviderSession(provider: DIPULProvider(), normalizer: ZoneFeatureNormalizer(), autoRefreshStatus: false))
+        ProviderDetailView(providerSession: ProviderSession(provider: DIPULProvider(), normalizer: DIPULZoneNormalizer(), autoRefreshStatus: false))
             .environmentObject(ProvidersStore(registrations: BuiltInProviders.all))
     }
 }

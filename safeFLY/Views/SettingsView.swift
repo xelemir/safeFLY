@@ -11,20 +11,28 @@ struct SettingsView: View {
     @EnvironmentObject var droneSettings: DroneSettings
     @EnvironmentObject var providersStore: ProvidersStore
     @Environment(\.dismiss) var dismiss
+    @Environment(\.openURL) private var openURL
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
-    private var supportsProviderReordering: Bool {
-        providersStore.sessions.count > 1
-    }
-    
     var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         return "\(version)"
     }
-    
+
+    var versionText: String {
+        String.localizedStringWithFormat(
+            NSLocalizedString("Version %@", comment: "App version label, e.g. \"Version 1.4.0\""),
+            appVersion
+        )
+    }
+
     var copyrightText: String {
-        let year = Calendar.current.component(.year, from: Date())
-        return "© \(year) Jan Grüttefien and safeFLY contributors"
+        // Plain string, not a number, so the year is never grouped (e.g. "2.026" in de).
+        let year = String(Calendar.current.component(.year, from: Date()))
+        return String.localizedStringWithFormat(
+            NSLocalizedString("© %@ Jan Grüttefien and safeFLY contributors", comment: "Copyright notice with current year"),
+            year
+        )
     }
 
     var body: some View {
@@ -47,45 +55,29 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    if supportsProviderReordering {
-                        ForEach(providersStore.sessions) { providerSession in
-                            NavigationLink {
-                                ProviderDetailView(providerSession: providerSession)
-                            } label: {
-                                ProviderSummaryRow(
-                                    providerSession: providerSession,
-                                    isEnabled: providersStore.isProviderEnabled(providerSession.provider.id)
-                                )
-                            }
-                        }
-                        .onMove(perform: providersStore.moveProviders)
-                    } else {
-                        ForEach(providersStore.sessions) { providerSession in
-                            NavigationLink {
-                                ProviderDetailView(providerSession: providerSession)
-                            } label: {
-                                ProviderSummaryRow(
-                                    providerSession: providerSession,
-                                    isEnabled: providersStore.isProviderEnabled(providerSession.provider.id)
-                                )
-                            }
+                    ForEach(providersStore.sessions) { providerSession in
+                        NavigationLink {
+                            ProviderDetailView(providerSession: providerSession)
+                        } label: {
+                            ProviderSummaryRow(
+                                providerSession: providerSession,
+                                isEnabled: providersStore.isProviderEnabled(providerSession.provider.id)
+                            )
                         }
                     }
                 } header: {
                     Text(NSLocalizedString("Providers", comment: "Providers section title"))
                 } footer: {
                     Text(NSLocalizedString(
-                        supportsProviderReordering
-                        ? "Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets."
-                        : "Manage the built-in geospatial provider and configure its provider-specific datasets.",
+                        "Manage built-in geospatial providers and configure their provider-specific datasets.",
                         comment: "Providers section footer"
                     ))
                 }
-                
+
                 Section {
                     Link("Support the Developer", destination: URL(string: "https://buymeacoffee.com/jan04")!)
                     Link("App Webpage & Status", destination: URL(string: "https://gruettecloud.com/safeFLY")!)
-                    Link("Contact", destination: URL(string: "https://gruettecloud.com/support")!)
+                    Link("Contact", destination: URL(string: "mailto:info@gruettecloud.com")!)
                     Link("GitHub", destination: URL(string: "https://github.com/xelemir/safeFLY")!)
                 } header: {
                     Text("Resources")
@@ -103,33 +95,30 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text(appVersion)
-                            .foregroundStyle(.secondary)
-                    }
-                } header: {
-                    Text("About")
-                } footer: {
-                    Link(destination: URL(string: "https://jan.gruettefien.com")!) {
+                    VStack(spacing: 3) {
+                        Text("safeFLY")
+                            .fontWeight(.semibold)
+
+                        Text(versionText)
+
                         Text(copyrightText)
                             .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 2)
                     }
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .padding(.top, 8)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .listRowBackground(Color.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        openURL(URL(string: "https://jan.gruettefien.com")!)
+                    }
                 }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if supportsProviderReordering {
-                    ToolbarItem(placement: .topBarLeading) {
-                        EditButton()
-                    }
-                }
-
                 ToolbarItem(placement: .confirmationAction) {
                     Button(NSLocalizedString("Done", comment: "")) {
                         dismiss()

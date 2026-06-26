@@ -6,6 +6,16 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		AB000000000000000000000A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D1D6EFC2ECB5B12001017DC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D1D6F032ECB5B12001017DC;
+			remoteInfo = safeFLY;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0D1D6F042ECB5B12001017DC /* safeFLY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = safeFLY.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB0000000000000000000001 /* safeFLYTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = safeFLYTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -163,24 +173,6 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXContainerItemProxy section */
-		AB000000000000000000000A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D1D6EFC2ECB5B12001017DC /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 0D1D6F032ECB5B12001017DC;
-			remoteInfo = safeFLY;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXTargetDependency section */
-		AB000000000000000000000B /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 0D1D6F032ECB5B12001017DC /* safeFLY */;
-			targetProxy = AB000000000000000000000A /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin PBXResourcesBuildPhase section */
 		0D1D6F022ECB5B12001017DC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
@@ -214,6 +206,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AB000000000000000000000B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D1D6F032ECB5B12001017DC /* safeFLY */;
+			targetProxy = AB000000000000000000000A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0D1D6F0D2ECB5B13001017DC /* Debug */ = {
@@ -365,7 +365,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gruettecloud.droneMaps;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -406,7 +406,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gruettecloud.droneMaps;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

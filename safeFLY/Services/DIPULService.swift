@@ -8,14 +8,6 @@
 import Foundation
 import CoreLocation
 import MapKit
-import UIKit
-
-nonisolated private func localizedProviderPresentation(title: String, groupTitle: String) -> ProviderDatasetPresentation {
-    ProviderDatasetPresentation(
-        title: NSLocalizedString(title, comment: "Provider dataset title"),
-        groupTitle: NSLocalizedString(groupTitle, comment: "Provider dataset group title")
-    )
-}
 
 struct DIPULFeatureInfoRecord: ProviderRawRecord {
     let layerName: String
@@ -29,203 +21,87 @@ struct DIPULFeatureInfoRecord: ProviderRawRecord {
     nonisolated var providerID: String { DIPULProvider.providerID }
 }
 
-final class DIPULProvider: GeospatialProvider, @unchecked Sendable {
+final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
     nonisolated static let providerID = "dipul"
 
-    private enum LayerStatus: Equatable {
-        case working
-        case broken
-        case networkError
-    }
-
-    private struct DatasetDefinition {
-        let dataset: ProviderDataset
-        let layerIDs: [String]
-    }
-
     nonisolated let id = DIPULProvider.providerID
-    nonisolated let displayName = "DIPUL"
+    nonisolated var displayName: String {
+        NSLocalizedString("DIPUL (Germany)", comment: "DIPUL provider display name")
+    }
+    nonisolated var attributionName: String {
+        let year = Calendar.current.component(.year, from: Date())
+        return "DFS, BKG \(year)"
+    }
     nonisolated let capabilities = ProviderCapabilities(
         supportsRendering: true,
         supportsQuerying: true,
         supportsStatusRefresh: true
     )
 
-    nonisolated private let baseURL = "https://uas-betrieb.de/geoservices/dipul/wms"
-    nonisolated private let coverageBounds = (
-        minLat: 47.0,
-        maxLat: 55.2,
-        minLon: 5.5,
-        maxLon: 15.6
-    )
-    nonisolated private let datasetDefinitions: [DatasetDefinition] = [
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "aviation.airports",
-                presentation: localizedProviderPresentation(title: "Airports", groupTitle: "Aviation"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:flughaefen"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "aviation.aerodromes",
-                presentation: localizedProviderPresentation(title: "Aerodromes", groupTitle: "Aviation"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:flugplaetze"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "aviation.control-zones",
-                presentation: localizedProviderPresentation(title: "Control Zones", groupTitle: "Aviation"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:kontrollzonen"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "aviation.restricted-areas",
-                presentation: localizedProviderPresentation(title: "Restricted Areas", groupTitle: "Aviation"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:flugbeschraenkungsgebiete"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
+    nonisolated let catalog = WMSDatasetCatalog(
+        baseURL: "https://uas-betrieb.de/geoservices/dipul/wms",
+        definitions: [
+            .make(id: "aviation.airports", title: "Airports", groupTitle: "Aviation", layerIDs: ["dipul:flughaefen"]),
+            .make(id: "aviation.aerodromes", title: "Aerodromes", groupTitle: "Aviation", layerIDs: ["dipul:flugplaetze"]),
+            .make(id: "aviation.control-zones", title: "Control Zones", groupTitle: "Aviation", layerIDs: ["dipul:kontrollzonen"]),
+            .make(id: "aviation.restricted-areas", title: "Restricted Areas", groupTitle: "Aviation", layerIDs: ["dipul:flugbeschraenkungsgebiete"]),
+            .make(
                 id: "aviation.temporary-restrictions",
-                presentation: localizedProviderPresentation(title: "Temporary Restrictions", groupTitle: "Aviation"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
+                title: "Temporary Restrictions",
+                groupTitle: "Aviation",
+                layerIDs: ["dipul:temporaere_betriebseinschraenkungen", "dipul:inaktive_temporaere_betriebseinschraenkungen"]
             ),
-            layerIDs: [
-                "dipul:temporaere_betriebseinschraenkungen",
-                "dipul:inaktive_temporaere_betriebseinschraenkungen"
-            ]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "aviation.model-flying-fields",
-                presentation: localizedProviderPresentation(title: "Model Flying Fields", groupTitle: "Aviation"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:modellflugplaetze"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "infrastructure.motorways",
-                presentation: localizedProviderPresentation(title: "Motorways", groupTitle: "Infrastructure"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:bundesautobahnen"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "infrastructure.highways",
-                presentation: localizedProviderPresentation(title: "Highways", groupTitle: "Infrastructure"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:bundesstrassen"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "infrastructure.railways",
-                presentation: localizedProviderPresentation(title: "Railways", groupTitle: "Infrastructure"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:bahnanlagen"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
+            .make(id: "aviation.model-flying-fields", title: "Model Flying Fields", groupTitle: "Aviation", layerIDs: ["dipul:modellflugplaetze"]),
+            .make(id: "infrastructure.motorways", title: "Motorways", groupTitle: "Infrastructure", layerIDs: ["dipul:bundesautobahnen"]),
+            .make(id: "infrastructure.highways", title: "Highways", groupTitle: "Infrastructure", layerIDs: ["dipul:bundesstrassen"]),
+            .make(id: "infrastructure.railways", title: "Railways", groupTitle: "Infrastructure", layerIDs: ["dipul:bahnanlagen"]),
+            .make(
                 id: "infrastructure.waterways",
-                presentation: localizedProviderPresentation(title: "Waterways", groupTitle: "Infrastructure"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
+                title: "Waterways",
+                groupTitle: "Infrastructure",
+                layerIDs: ["dipul:binnenwasserstrassen", "dipul:seewasserstrassen", "dipul:schifffahrtsanlagen"]
             ),
-            layerIDs: [
-                "dipul:binnenwasserstrassen",
-                "dipul:seewasserstrassen",
-                "dipul:schifffahrtsanlagen"
-            ]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
+            .make(
                 id: "infrastructure.industrial-facilities",
-                presentation: localizedProviderPresentation(title: "Industrial Facilities", groupTitle: "Infrastructure"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
+                title: "Industrial Facilities",
+                groupTitle: "Infrastructure",
+                layerIDs: ["dipul:industrieanlagen", "dipul:kraftwerke", "dipul:umspannwerke", "dipul:stromleitungen", "dipul:windkraftanlagen"]
             ),
-            layerIDs: [
-                "dipul:industrieanlagen",
-                "dipul:kraftwerke",
-                "dipul:umspannwerke",
-                "dipul:stromleitungen",
-                "dipul:windkraftanlagen"
-            ]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "restricted.residential-property",
-                presentation: localizedProviderPresentation(title: "Residential Property", groupTitle: "Restricted Areas"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:wohngrundstuecke"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
-                id: "restricted.recreational-areas",
-                presentation: localizedProviderPresentation(title: "Recreational Areas", groupTitle: "Restricted Areas"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: ["dipul:freibaeder"]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
+            .make(id: "restricted.residential-property", title: "Residential Property", groupTitle: "Restricted Areas", layerIDs: ["dipul:wohngrundstuecke"]),
+            .make(id: "restricted.recreational-areas", title: "Recreational Areas", groupTitle: "Restricted Areas", layerIDs: ["dipul:freibaeder"]),
+            .make(
                 id: "restricted.government-buildings",
-                presentation: localizedProviderPresentation(title: "Government Buildings", groupTitle: "Restricted Areas"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
+                title: "Government Buildings",
+                groupTitle: "Restricted Areas",
+                layerIDs: [
+                    "dipul:justizvollzugsanstalten",
+                    "dipul:militaerische_anlagen",
+                    "dipul:labore",
+                    "dipul:behoerden",
+                    "dipul:diplomatische_vertretungen",
+                    "dipul:internationale_organisationen",
+                    "dipul:polizei",
+                    "dipul:sicherheitsbehoerden",
+                    "dipul:krankenhaeuser"
+                ]
             ),
-            layerIDs: [
-                "dipul:justizvollzugsanstalten",
-                "dipul:militaerische_anlagen",
-                "dipul:labore",
-                "dipul:behoerden",
-                "dipul:diplomatische_vertretungen",
-                "dipul:internationale_organisationen",
-                "dipul:polizei",
-                "dipul:sicherheitsbehoerden",
-                "dipul:krankenhaeuser"
-            ]
-        ),
-        DatasetDefinition(
-            dataset: ProviderDataset(
+            .make(
                 id: "restricted.nature-reserves",
-                presentation: localizedProviderPresentation(title: "Nature Reserves", groupTitle: "Restricted Areas"),
-                capabilities: ProviderDatasetCapabilities(supportsRendering: true, supportsQuerying: true),
-                isSelectedByDefault: true
-            ),
-            layerIDs: [
-                "dipul:nationalparks",
-                "dipul:naturschutzgebiete",
-                "dipul:ffh-gebiete",
-                "dipul:vogelschutzgebiete"
-            ]
-        )
-    ]
+                title: "Nature Reserves",
+                groupTitle: "Restricted Areas",
+                layerIDs: ["dipul:nationalparks", "dipul:naturschutzgebiete", "dipul:ffh-gebiete", "dipul:vogelschutzgebiete"]
+            )
+        ],
+        coverageBounds: WMSDatasetCatalog.CoverageBounds(minLat: 47.0, maxLat: 55.2, minLon: 5.5, maxLon: 15.6),
+        coverage: CountryBoundaries.germany
+    )
 
-    nonisolated var datasets: [ProviderDataset] {
-        datasetDefinitions.map(\.dataset)
+    nonisolated var queryInfoFormat: String { "text/plain" }
+
+    // Show DFS attribution only when the map actually shows German territory — DIPUL's data
+    // is German, so it must not be credited over France or the Netherlands.
+    nonisolated func intersects(_ region: MapRegion) -> Bool {
+        CountryBoundaries.germany.contains(region.center)
     }
 
     nonisolated var referenceLinks: [ProviderReferenceLink] {
@@ -237,261 +113,15 @@ final class DIPULProvider: GeospatialProvider, @unchecked Sendable {
         ]
     }
 
-    nonisolated private func testLayer(_ layer: String) async -> LayerStatus {
-        let urlString = "\(baseURL)?" +
-            "service=WMS&" +
-            "version=1.3.0&" +
-            "request=GetMap&" +
-            "layers=\(layer)&" +
-            "styles=&" +
-            "crs=EPSG:4326&" +
-            "bbox=50.0,8.0,50.1,8.1&" +
-            "width=1&" +
-            "height=1&" +
-            "format=image/png&" +
-            "transparent=true"
-
-        guard let url = URL(string: urlString) else { return .broken }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 10.0
-
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse else { return .broken }
-
-            if httpResponse.statusCode == 200 {
-                let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type") ?? ""
-                if contentType.contains("image/png") && UIImage(data: data) != nil {
-                    return .working
-                }
-
-                if contentType.contains("xml") || contentType.contains("text") {
-                    return .broken
-                }
-            } else if httpResponse.statusCode >= 400 && httpResponse.statusCode < 600 {
-                return .broken
-            }
-
-            return .networkError
-        } catch {
-            let nsError = error as NSError
-            if nsError.domain == NSURLErrorDomain {
-                switch nsError.code {
-                case NSURLErrorNotConnectedToInternet,
-                     NSURLErrorNetworkConnectionLost,
-                     NSURLErrorTimedOut,
-                     NSURLErrorCannotFindHost,
-                     NSURLErrorCannotConnectToHost:
-                    return .networkError
-                default:
-                    break
-                }
-            }
-
-            return .broken
-        }
-    }
-
-    nonisolated func refreshStatus() async -> ProviderStatusSnapshot {
-        let allPossibleLayers = Set(datasetDefinitions.flatMap(\.layerIDs))
-        var brokenLayers = Set<String>()
-        var networkErrorCount = 0
-        var workingCount = 0
-
-        await withTaskGroup(of: (String, LayerStatus).self) { group in
-            for layer in allPossibleLayers {
-                group.addTask {
-                    let status = await self.testLayer(layer)
-                    return (layer, status)
-                }
-            }
-
-            for await (layer, status) in group {
-                switch status {
-                case .working:
-                    workingCount += 1
-                case .broken:
-                    brokenLayers.insert(layer)
-                case .networkError:
-                    networkErrorCount += 1
-                }
-            }
-        }
-
-        if networkErrorCount > 5 || (workingCount == 0 && networkErrorCount > 0) {
-            return ProviderStatusSnapshot(
-                providerStatus: .unavailable,
-                datasetStatuses: Dictionary(uniqueKeysWithValues: datasets.map { ($0.id, .unknown) }),
-                refreshedAt: Date()
-            )
-        }
-
-        let datasetStatuses = Dictionary(uniqueKeysWithValues: datasetDefinitions.map { definition in
-            let availableLayerCount = definition.layerIDs.filter { !brokenLayers.contains($0) }.count
-            let status: ProviderAvailabilityStatus
-
-            if availableLayerCount == definition.layerIDs.count {
-                status = .available
-            } else if availableLayerCount == 0 {
-                status = .unavailable
-            } else {
-                status = .degraded
-            }
-
-            return (definition.dataset.id, status)
-        })
-
-        let providerStatus: ProviderAvailabilityStatus
-        if datasetStatuses.values.allSatisfy({ $0 == .available }) {
-            providerStatus = .available
-        } else if datasetStatuses.values.contains(where: { $0 == .available || $0 == .degraded }) {
-            providerStatus = .degraded
-        } else {
-            providerStatus = .unavailable
-        }
-
-        return ProviderStatusSnapshot(
-            providerStatus: providerStatus,
-            datasetStatuses: datasetStatuses,
-            brokenLayerIDs: brokenLayers,
-            refreshedAt: Date()
-        )
-    }
-
-    nonisolated func renderPayloads(
-        for request: ProviderRenderRequest,
-        selectedDatasetIDs: Set<String>,
-        status: ProviderStatusSnapshot
-    ) async -> [ProviderRenderPayload] {
-        let encodedLayers = encodedLayerList(for: selectedDatasetIDs, status: status, operation: .render)
-        guard !encodedLayers.isEmpty else {
-            return []
-        }
-
-        let minLat = request.region.center.latitude - (request.region.latitudeDelta / 2)
-        let maxLat = request.region.center.latitude + (request.region.latitudeDelta / 2)
-        let minLon = request.region.center.longitude - (request.region.longitudeDelta / 2)
-        let maxLon = request.region.center.longitude + (request.region.longitudeDelta / 2)
-        let urlString = "\(baseURL)?" +
-            "service=WMS&" +
-            "version=1.3.0&" +
-            "request=GetMap&" +
-            "layers=\(encodedLayers)&" +
-            "styles=&" +
-            "crs=EPSG:4326&" +
-            "bbox=\(minLat),\(minLon),\(maxLat),\(maxLon)&" +
-            "width=\(request.viewportSize.width)&" +
-            "height=\(request.viewportSize.height)&" +
-            "format=image/png&" +
-            "transparent=true"
-
-        guard let imageURL = URL(string: urlString) else {
-            return []
-        }
-
-        return [
-            .wmsImage(
-                WMSRenderPayload(
-                    id: "\(id).wms-overlay",
-                    imageURL: imageURL,
-                    region: request.region,
-                    opacity: 0.8
-                )
-            )
-        ]
-    }
-
-    nonisolated func query(
-        for request: ProviderPointQueryRequest,
-        selectedDatasetIDs: Set<String>,
-        status: ProviderStatusSnapshot
-    ) async -> ProviderQueryOutcome {
-        guard isWithinCoverage(request.coordinate) else {
-            return .unavailable(reason: .outsideCoverage)
-        }
-
-        let encodedLayers = encodedLayerList(for: selectedDatasetIDs, status: status, operation: .query)
-        guard !encodedLayers.isEmpty else {
-            return .unavailable(reason: .providerNoData)
-        }
-
-        let minLat = request.region.center.latitude - (request.region.latitudeDelta / 2)
-        let maxLat = request.region.center.latitude + (request.region.latitudeDelta / 2)
-        let minLon = request.region.center.longitude - (request.region.longitudeDelta / 2)
-        let maxLon = request.region.center.longitude + (request.region.longitudeDelta / 2)
-        let x = Int((request.coordinate.longitude - minLon) / (maxLon - minLon) * Double(request.viewportSize.width))
-        let y = Int((maxLat - request.coordinate.latitude) / (maxLat - minLat) * Double(request.viewportSize.height))
-        let urlString = "\(baseURL)?" +
-            "service=WMS&" +
-            "version=1.3.0&" +
-            "request=GetFeatureInfo&" +
-            "layers=\(encodedLayers)&" +
-            "query_layers=\(encodedLayers)&" +
-            "styles=&" +
-            "crs=EPSG:4326&" +
-            "bbox=\(minLat),\(minLon),\(maxLat),\(maxLon)&" +
-            "width=\(request.viewportSize.width)&" +
-            "height=\(request.viewportSize.height)&" +
-            "i=\(x)&" +
-            "j=\(y)&" +
-            "info_format=text/plain&" +
-            "feature_count=10"
-
-        guard let url = URL(string: urlString) else {
+    nonisolated func parseFeatureInfo(_ data: Data) -> ProviderQueryOutcome {
+        guard let responseText = String(data: data, encoding: .utf8) else {
             return .unavailable(reason: .invalidResponse)
         }
 
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let responseText = String(data: data, encoding: .utf8) else {
-                return .unavailable(reason: .invalidResponse)
-            }
-
-            return parseFeatureInfo(responseText)
-        } catch {
-            return .unavailable(reason: .requestFailed(details: error.localizedDescription))
-        }
+        return parseFeatureInfoText(responseText)
     }
 
-    private enum OperationKind {
-        case render
-        case query
-    }
-
-    nonisolated private func encodedLayerList(
-        for selectedDatasetIDs: Set<String>,
-        status: ProviderStatusSnapshot,
-        operation: OperationKind
-    ) -> String {
-        let layers = datasetDefinitions
-            .filter { selectedDatasetIDs.contains($0.dataset.id) }
-            .filter {
-                switch operation {
-                case .render:
-                    return $0.dataset.capabilities.supportsRendering
-                case .query:
-                    return $0.dataset.capabilities.supportsQuerying
-                }
-            }
-            .flatMap { definition -> [String] in
-                if status.status(for: definition.dataset.id) == .unavailable {
-                    return []
-                }
-
-                // Drop individual layers known to be broken so one failing layer does
-                // not take down the rest of the bundled WMS request (the sibling layers
-                // in this dataset and every other selected dataset keep working).
-                return definition.layerIDs.filter { !status.isLayerBroken($0) }
-            }
-
-        return layers
-            .map { $0.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? $0 }
-            .joined(separator: ",")
-    }
-
-    nonisolated private func parseFeatureInfo(_ text: String) -> ProviderQueryOutcome {
+    nonisolated private func parseFeatureInfoText(_ text: String) -> ProviderQueryOutcome {
         let normalizedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if normalizedText.isEmpty {
             return .unavailable(reason: .providerNoData)
@@ -597,13 +227,6 @@ final class DIPULProvider: GeospatialProvider, @unchecked Sendable {
             return nil
         }
         return trimmed
-    }
-
-    nonisolated private func isWithinCoverage(_ coordinate: MapCoordinate) -> Bool {
-        coordinate.latitude >= coverageBounds.minLat &&
-            coordinate.latitude <= coverageBounds.maxLat &&
-            coordinate.longitude >= coverageBounds.minLon &&
-            coordinate.longitude <= coverageBounds.maxLon
     }
 }
 

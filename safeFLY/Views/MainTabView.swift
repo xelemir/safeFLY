@@ -57,6 +57,7 @@ struct MainTabView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.dismissSearch) private var dismissSearch
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         ZStack {
@@ -79,86 +80,18 @@ struct MainTabView: View {
                 Label("Weather", systemImage: "cloud.sun.fill")
             }
             
-            Tab(value: 3, role: .search) {
-                NavigationStack {
-                    VStack {
-                        if searchManager.completions.isEmpty && search.isEmpty {
-                            VStack(spacing: 16) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.largeTitle)
-                                    .foregroundStyle(.secondary)
-                                Text("Search location")
-                                    .font(.headline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.top, 50)
-                        } else if searchManager.completions.isEmpty && !search.isEmpty {
-                            VStack(spacing: 16) {
-                                Image(systemName: "exclamationmark.magnifyingglass")
-                                    .font(.largeTitle)
-                                    .foregroundStyle(.secondary)
-                                Text("No locations found")
-                                    .font(.headline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.top, 50)
-                        } else {
-                            List(searchManager.completions, id: \.hash) { completion in
-                                Button {
-                                    let request = MKLocalSearch.Request(completion: completion)
-                                    let localSearch = MKLocalSearch(request: request)
-                                    localSearch.start { response, error in
-                                        DispatchQueue.main.async {
-                                            if let item = response?.mapItems.first {
-                                                let coord = SearchCoordinate(
-                                                    latitude: item.placemark.coordinate.latitude,
-                                                    longitude: item.placemark.coordinate.longitude
-                                                )
-                                                droneSettings.searchedCoordinate = coord
-                                                search = ""
-                                                dismissSearch()
-                                                droneSettings.activeTab = 0
-                                            }
-                                        }
-                                    }
-                                } label: {
-                                    HStack(spacing: 12) {
-                                        Image(systemName: "location.fill")
-                                            .foregroundStyle(.secondary)
-                                            .font(.title3)
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(completion.title)
-                                                .font(.headline)
-                                            if !completion.subtitle.isEmpty {
-                                                Text(completion.subtitle)
-                                                    .font(.caption)
-                                                    .foregroundStyle(.secondary)
-                                            }
-                                        }
-                                        Spacer()
-                                    }
-                                    .padding(.vertical, 12)
-                                    .padding(.horizontal, 16)
-                                    // No background — results float directly over the map.
-                                    .background(Color.clear)
-                                }
-                                .buttonStyle(.plain)
-                                .listRowBackground(Color.clear)
-                                .listRowInsets(EdgeInsets())
-                            }
-                            .scrollContentBackground(.hidden)
-                        }
-                        Spacer()
-                    }
-                    .toolbarBackground(.hidden, for: .navigationBar)
-                    .searchable(text: $search)
-                    .onChange(of: search) { _, newValue in
-                        searchManager.updateQuery(newValue)
-                    }
+            if #available(iOS 26, *) {
+                Tab(value: 3, role: .search) {
+                    searchTabContent
+                } label: {
+                    Label("Search", systemImage: "magnifyingglass")
                 }
-                .background(Color.clear)
-            } label: {
-                Label("Search", systemImage: "magnifyingglass")
+            } else {
+                Tab(value: 3) {
+                    searchTabContent
+                } label: {
+                    Label("Search", systemImage: "magnifyingglass")
+                }
             }
             }
             
@@ -169,6 +102,96 @@ struct MainTabView: View {
         }
         .environmentObject(droneSettings)
         .environmentObject(providersStore)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task {
+                    await providersStore.refreshAllStatuses(force: true)
+                }
+                // Silently keep downloaded offline datasets (NL, AT) up to date, at most
+                // once a day per provider. Fully in the background; invisible to the user.
+                providersStore.refreshDownloadableDatasetsInBackground()
+            }
+        }
+    }
+
+    private var searchTabContent: some View {
+        NavigationStack {
+            VStack {
+                if searchManager.completions.isEmpty && search.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+                        Text("Search location")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 50)
+                } else if searchManager.completions.isEmpty && !search.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.magnifyingglass")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+                        Text("No locations found")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 50)
+                } else {
+                    List(searchManager.completions, id: \.hash) { completion in
+                        Button {
+                            let request = MKLocalSearch.Request(completion: completion)
+                            let localSearch = MKLocalSearch(request: request)
+                            localSearch.start { response, error in
+                                DispatchQueue.main.async {
+                                    if let item = response?.mapItems.first {
+                                        let coord = SearchCoordinate(
+                                            latitude: item.placemark.coordinate.latitude,
+                                            longitude: item.placemark.coordinate.longitude
+                                        )
+                                        droneSettings.searchedCoordinate = coord
+                                        search = ""
+                                        dismissSearch()
+                                        droneSettings.activeTab = 0
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "location.fill")
+                                    .foregroundStyle(.secondary)
+                                    .font(.title3)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(completion.title)
+                                        .font(.headline)
+                                    if !completion.subtitle.isEmpty {
+                                        Text(completion.subtitle)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                                Spacer()
+                            }
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
+                            // No background — results float directly over the map.
+                            .background(Color.clear)
+                        }
+                        .buttonStyle(.plain)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                    }
+                    .scrollContentBackground(.hidden)
+                }
+                Spacer()
+            }
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .searchable(text: $search)
+            .onChange(of: search) { _, newValue in
+                searchManager.updateQuery(newValue)
+            }
+        }
+        .background(Color.clear)
     }
 }
 

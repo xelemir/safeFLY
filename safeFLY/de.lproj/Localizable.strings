@@ -7,8 +7,9 @@
 "No locations found" = "Keine Orte gefunden";
 "Drone Map" = "Drohnenkarte";
 "Zoom in to see geozones" = "Zoome, um Geozonen zu sehen";
-"Source geodata: %@" = "Datenquelle: %@";
-"Source geodata: No enabled providers" = "Datenquelle: Keine aktiven Anbieter";
+"Source geodata: %@" = "Quelle Geodaten: %@";
+"Source geodata: No enabled providers" = "Quelle Geodaten: Keine aktiven Anbieter";
+"Source geodata: No coverage in this area" = "Quelle Geodaten: Keine Abdeckung in diesem Gebiet";
 "Standard" = "Standard";
 "Hybrid" = "Hybrid";
 "Satellite" = "Satellit";
@@ -121,6 +122,8 @@
 "Resources" = "Ressourcen";
 "DFS DIPUL Datasource" = "DFS DIPUL Datenquelle";
 "Version" = "Version";
+"Version %@" = "Version %@";
+"© %@ Jan Grüttefien and safeFLY contributors" = "© %@ Jan Grüttefien und safeFLY-Mitwirkende";
 "About" = "Über";
 "Airports" = "Flughäfen";
 "Aerodromes" = "Flugplätze";
@@ -264,8 +267,7 @@
 
 /* Provider Management */
 "Providers" = "Anbieter";
-"Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets." = "Verwalte die eingebauten Geodaten-Anbieter, ordne ihre Priorität neu und konfiguriere ihre jeweiligen Datensätze.";
-"Manage the built-in geospatial provider and configure its provider-specific datasets." = "Verwalte den eingebauten Geodaten-Anbieter und konfiguriere seine Datensätze.";
+"Manage built-in geospatial providers and configure their provider-specific datasets." = "Verwalte die eingebauten Geodaten-Anbieter und konfiguriere ihre jeweiligen Datensätze.";
 "Refreshing Status..." = "Status wird aktualisiert...";
 "Refresh Provider Status" = "Anbieter-Status aktualisieren";
 "Provider Status" = "Anbieter-Status";
@@ -293,3 +295,47 @@
 "DIPUL decoding: %@" = "DIPUL-Antwort konnte nicht verarbeitet werden: %@";
 "No DIPUL weather data available" = "Keine DIPUL-Wetterdaten verfügbar";
 "Location outside DIPUL coverage (Central Europe only)" = "Ort liegt außerhalb der DIPUL-Abdeckung (nur Mitteleuropa)";
+/* Netherlands (PDOK) provider */
+"Airspace" = "Luftraum";
+"Restricted Zones" = "Eingeschränkte Zonen";
+"Landing Sites" = "Landeplätze";
+
+/* Translation setting */
+"Translation" = "Übersetzung";
+"Translate provider notes" = "Anbieter-Hinweise übersetzen";
+"Translates foreign-language zone notes (e.g. Dutch) into your language. Common notes are built in; others use on-device translation, which may prompt a one-time language download." = "Übersetzt fremdsprachige Zonen-Hinweise (z. B. Niederländisch) in deine Sprache. Häufige Hinweise sind integriert; andere nutzen die geräteinterne Übersetzung, die ggf. einen einmaligen Sprachdownload erfordert.";
+
+/* Offline Packages & Downloads */
+"Download Required" = "Download erforderlich";
+"Delete Data Package" = "Datenpaket löschen";
+"Downloading Data..." = "Daten werden heruntergeladen...";
+"Download Data Package" = "Datenpaket herunterladen";
+"Offline data package downloaded and ready. You can enable or disable the provider." = "Offline-Datenpaket heruntergeladen und bereit. Du kannst den Anbieter aktivieren oder deaktivieren.";
+"Download this provider's data package to view restrictions. The package will be updated automatically when new data is available." = "Lade das Datenpaket dieses Anbieters herunter, um Einschränkungen anzuzeigen. Das Paket wird automatisch aktualisiert, wenn neue Daten verfügbar sind.";
+"Download Failed" = "Download fehlgeschlagen";
+
+/* Dutch ED-269 JSON Curated Advices */
+"NLD.NOTE.ALL_PROHIBITED" = "Drohnenflüge sind in diesem Bereich generell verboten.";
+"NLD.NOTE.MAY_4" = "Drohnenflüge sind am 4. Mai (Gedenktag) verboten.";
+"NLD.NOTE.MILITARY_ATC" = "Militärischer Luftraum. Drohnenflüge sind verboten, es sei denn, es liegt eine ausdrückliche Genehmigung der militärischen Flugsicherung vor.";
+"NLD.NOTE.LOW_FLY_30M" = "Tiefflugkorridor. Drohnen der Klassen A1 oder A2 (unter 4 kg) dürfen bis maximal 30 Meter Höhe fliegen. Schwerere Drohnen (Klasse A3) sind verboten.";
+"NLD.NOTE.CTR_NO_OPEN" = "Drohnenflüge in der offenen Kategorie sind hier verboten. Der Betrieb ist nur mit einer speziellen Betriebsgenehmigung erlaubt.";
+"NLD.NOTE.NO_OPEN" = "Standard-Drohnenflüge sind in diesem Bereich verboten.";
+
+/* Provider names in Settings */
+"DIPUL (Germany)" = "DIPUL 🇩🇪";
+"LVNL/IenW (Netherlands)" = "LVNL/IenW 🇳🇱";
+
+/* Austria (Austro Control) provider */
+"Austro Control (Austria)" = "Austro Control 🇦🇹";
+"Austro Control Dronespace" = "Austro Control Dronespace";
+
+/* France (DGAC) provider */
+"DGAC (France)" = "DGAC 🇫🇷";
+"Carte des restrictions drones (Géoportail)" = "Carte des restrictions drones (Géoportail)";
+
+/* France (DGAC) drone restriction notes */
+"FRA.RESTRICTION.PROHIBITED" = "Drohnenflüge sind in dieser Zone verboten.";
+"FRA.RESTRICTION.MAX_HEIGHT" = "Maximale Flughöhe: %@ m über Grund.";
+"FRA.NOTE.NOTIFICATION_900G" = "Für Luftfahrzeuge mit einer Masse über 900 g ist eine vorherige Anmeldung erforderlich.";
+"FRA.NOTE.AGGLOMERATION" = "Das Fliegen über öffentlichem Raum in bebauten Gebieten ist ohne präfektorale Genehmigung verboten (offene Kategorie oder Modellflug).";

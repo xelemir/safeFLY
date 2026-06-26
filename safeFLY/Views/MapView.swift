@@ -9,6 +9,7 @@ import SwiftUI
 import MapKit
 import StoreKit
 
+
 struct MapView: View {
     @Environment(\.requestReview) private var requestReview
     @AppStorage("sheetClosedCount") private var sheetClosedCount = 0
@@ -38,14 +39,21 @@ struct MapView: View {
     }
 
     private var providerAttributionText: String {
-        let providerNames = providersStore.enabledSessions.map { $0.provider.displayName }.joined(separator: ", ")
-        guard !providerNames.isEmpty else {
-            return NSLocalizedString("Source geodata: No enabled providers", comment: "Map attribution when no providers are enabled")
+        let visibleProviderNames = providersStore.enabledSessions
+            .filter { $0.provider.intersects(MapRegion(region)) }
+            .map { $0.provider.attributionName }
+            .joined(separator: ", ")
+        guard !visibleProviderNames.isEmpty else {
+            if providersStore.enabledSessions.isEmpty {
+                return NSLocalizedString("Source geodata: No enabled providers", comment: "Map attribution when no providers are enabled")
+            }
+            // Providers are enabled, but none of them cover the area currently in view.
+            return NSLocalizedString("Source geodata: No coverage in this area", comment: "Map attribution when enabled providers don't cover the visible map")
         }
 
         return String.localizedStringWithFormat(
             NSLocalizedString("Source geodata: %@", comment: "Map attribution for enabled providers"),
-            providerNames
+            visibleProviderNames
         )
     }
     
@@ -288,7 +296,9 @@ struct MapView: View {
     }
     
     private var zoneInfoSheet: some View {
-        ZoneInfoSheet(result: providersStore.zoneQueryResult) {
+        ZoneInfoSheet(
+            result: providersStore.zoneQueryResult
+        ) {
             // Setting this false dismisses the sheet, which triggers handleSheetDismiss
             // (the sheet's onDismiss) where the marker and query result are cleared.
             showZoneInfo = false
@@ -597,7 +607,10 @@ struct ZoneInfoSheet: View {
 
     private var zonesListView: some View {
         VStack(spacing: 0) {
-            ForEach(Array(sortedFeatures.enumerated()), id: \.element.id) { index, feature in
+            // Positional identity: overlapping zones can share the same content-derived
+            // feature.id, and a shared identity would make each row's expand state apply
+            // to all of them. The list is a static snapshot, so the index is stable.
+            ForEach(Array(sortedFeatures.enumerated()), id: \.offset) { index, feature in
                 ZoneFeatureRow(feature: feature)
 
                 if index < sortedFeatures.count - 1 {
@@ -614,6 +627,8 @@ struct ZoneFeatureRow: View {
     let feature: ZoneFeature
     @State private var areDetailsExpanded = false
 
+    // Each provider's normalizer already localizes the known advisory strings, so the row
+    // simply shows the source-declared text.
     private var restrictionText: String? {
         ZonePresentation.explanation(for: feature)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
@@ -633,7 +648,7 @@ struct ZoneFeatureRow: View {
             if let restrictionText {
                 Text(restrictionText)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -752,7 +767,8 @@ struct DetailRow: View {
                     .foregroundStyle(.secondary)
             }
             Text(value)
-                .font(.body)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
         }
         .padding(.vertical, 4)
     }

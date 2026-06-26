@@ -9,6 +9,7 @@
 "Zoom in to see geozones" = "Zoom in to see geozones";
 "Source geodata: %@" = "Source geodata: %@";
 "Source geodata: No enabled providers" = "Source geodata: No enabled providers";
+"Source geodata: No coverage in this area" = "Source geodata: No coverage in this area";
 "Standard" = "Standard";
 "Hybrid" = "Hybrid";
 "Satellite" = "Satellite";
@@ -118,6 +119,8 @@
 "Resources" = "Resources";
 "DFS DIPUL Datasource" = "DFS DIPUL Datasource";
 "Version" = "Version";
+"Version %@" = "Version %@";
+"© %@ Jan Grüttefien and safeFLY contributors" = "© %@ Jan Grüttefien and safeFLY contributors";
 "About" = "About";
 "Airports" = "Airports";
 "Aerodromes" = "Aerodromes";
@@ -262,8 +265,7 @@
 
 /* Provider Management */
 "Providers" = "Providers";
-"Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets." = "Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets.";
-"Manage the built-in geospatial provider and configure its provider-specific datasets." = "Manage the built-in geospatial provider and configure its provider-specific datasets.";
+"Manage built-in geospatial providers and configure their provider-specific datasets." = "Manage built-in geospatial providers and configure their provider-specific datasets.";
 "Refreshing Status..." = "Refreshing Status...";
 "Refresh Provider Status" = "Refresh Provider Status";
 "Provider Status" = "Provider Status";
@@ -292,3 +294,47 @@
 "DIPUL decoding: %@" = "DIPUL decoding: %@";
 "No DIPUL weather data available" = "No DIPUL weather data available";
 "Location outside DIPUL coverage (Central Europe only)" = "Location outside DIPUL coverage (Central Europe only)";
+/* Netherlands (PDOK) provider */
+"Airspace" = "Airspace";
+"Restricted Zones" = "Restricted Zones";
+"Landing Sites" = "Landing Sites";
+
+/* Translation setting */
+"Translation" = "Translation";
+"Translate provider notes" = "Translate provider notes";
+"Translates foreign-language zone notes (e.g. Dutch) into your language. Common notes are built in; others use on-device translation, which may prompt a one-time language download." = "Translates foreign-language zone notes (e.g. Dutch) into your language. Common notes are built in; others use on-device translation, which may prompt a one-time language download.";
+
+/* Offline Packages & Downloads */
+"Download Required" = "Download Required";
+"Delete Data Package" = "Delete Data Package";
+"Downloading Data..." = "Downloading Data...";
+"Download Data Package" = "Download Data Package";
+"Offline data package downloaded and ready. You can enable or disable the provider." = "Offline data package downloaded and ready. You can enable or disable the provider.";
+"Download this provider's data package to view restrictions. The package will be updated automatically when new data is available." = "Download this provider's data package to view restrictions. The package will be updated automatically when new data is available.";
+"Download Failed" = "Download Failed";
+
+/* Dutch ED-269 JSON Curated Advices */
+"NLD.NOTE.ALL_PROHIBITED" = "No drone flights are allowed in this area.";
+"NLD.NOTE.MAY_4" = "Drone flights are prohibited on May 4th (Remembrance Day).";
+"NLD.NOTE.MILITARY_ATC" = "Military airspace. Drone flights are prohibited unless you have explicit military air traffic control approval.";
+"NLD.NOTE.LOW_FLY_30M" = "Low-flying route. Drones in the A1 or A2 category (under 4 kg) are allowed to fly up to a maximum height of 30 meters. Heavier A3 drones are prohibited.";
+"NLD.NOTE.CTR_NO_OPEN" = "Drone flights in the open category are prohibited here. Flying is only permitted with a special operating permit.";
+"NLD.NOTE.NO_OPEN" = "Standard open category drone flights are prohibited here.";
+
+/* Provider names in Settings */
+"DIPUL (Germany)" = "DIPUL 🇩🇪";
+"LVNL/IenW (Netherlands)" = "LVNL/IenW 🇳🇱";
+
+/* Austria (Austro Control) provider */
+"Austro Control (Austria)" = "Austro Control 🇦🇹";
+"Austro Control Dronespace" = "Austro Control Dronespace";
+
+/* France (DGAC) provider */
+"DGAC (France)" = "DGAC 🇫🇷";
+"Carte des restrictions drones (Géoportail)" = "Carte des restrictions drones (Géoportail)";
+
+/* France (DGAC) drone restriction notes */
+"FRA.RESTRICTION.PROHIBITED" = "Drone flights are prohibited in this zone.";
+"FRA.RESTRICTION.MAX_HEIGHT" = "Maximum flight height: %@ m above ground level.";
+"FRA.NOTE.NOTIFICATION_900G" = "Prior notification is required for aircraft with a mass over 900 g.";
+"FRA.NOTE.AGGLOMERATION" = "Flying over public space in built-up areas is prohibited without prefectoral authorisation (open category or model aircraft).";
