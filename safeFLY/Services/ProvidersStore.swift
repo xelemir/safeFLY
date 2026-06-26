@@ -13,7 +13,10 @@ struct ProviderRegistration {
 
 enum BuiltInProviders {
     static let all: [ProviderRegistration] = [
-        ProviderRegistration(provider: DIPULProvider(), normalizer: ZoneFeatureNormalizer())
+        ProviderRegistration(provider: DIPULProvider(), normalizer: DIPULZoneNormalizer()),
+        ProviderRegistration(provider: NetherlandsProvider(), normalizer: NetherlandsZoneNormalizer()),
+        ProviderRegistration(provider: FranceProvider(), normalizer: FranceZoneNormalizer()),
+        ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer())
     ]
 }
 
@@ -35,7 +38,6 @@ final class ProvidersStore: ObservableObject {
     }
 
     private let enabledProvidersStorageKey = "providers.enabled"
-    private let providerOrderStorageKey = "providers.order"
     private var renderGeneration = 0
     private var queryGeneration = 0
 
@@ -43,12 +45,11 @@ final class ProvidersStore: ObservableObject {
         let sessions = registrations.map {
             ProviderSession(provider: $0.provider, normalizer: $0.normalizer, autoRefreshStatus: false)
         }
-        let orderedSessions = Self.loadOrderedSessions(from: sessions, storageKey: "providers.order")
 
-        self.sessions = orderedSessions
+        self.sessions = sessions
         self.enabledProviderIDs = Self.loadEnabledProviderIDs(
             storageKey: "providers.enabled",
-            providers: orderedSessions.map { $0.provider }
+            providers: sessions.map { $0.provider }
         )
 
         Task {
@@ -70,27 +71,25 @@ final class ProvidersStore: ObservableObject {
 
     func setProviderEnabled(_ providerID: String, isEnabled: Bool) {
         if isEnabled {
+            let wasEnabled = enabledProviderIDs.contains(providerID)
             enabledProviderIDs.insert(providerID)
+            // Probe a provider the moment it is turned on so its status reflects reality
+            // instead of staying stale until the next app foreground.
+            if !wasEnabled {
+                Task {
+                    await refreshStatus(for: providerID)
+                }
+            }
         } else {
             enabledProviderIDs.remove(providerID)
         }
     }
 
-    func moveProviders(fromOffsets: IndexSet, toOffset: Int) {
-        let movedSessions = fromOffsets.map { sessions[$0] }
-        var reorderedSessions = sessions.enumerated().compactMap { index, session in
-            fromOffsets.contains(index) ? nil : session
-        }
-        let insertionIndex = min(toOffset, reorderedSessions.count)
-        reorderedSessions.insert(contentsOf: movedSessions, at: insertionIndex)
-        sessions = reorderedSessions
-        persistProviderOrder()
-        invalidateRenderGeneration()
-        configurationRevision += 1
-    }
-
     func refreshAllStatuses(force: Bool = false) async {
-        let sessionsToRefresh = force ? sessions : sessions.filter { $0.needsStatusRefresh() }
+        // Only probe enabled providers: a disabled provider is unused, so it must not
+        // reach out to its backend or report a "last tried just now" status.
+        let candidateSessions = enabledSessions
+        let sessionsToRefresh = force ? candidateSessions : candidateSessions.filter { $0.needsStatusRefresh() }
         guard !sessionsToRefresh.isEmpty else {
             return
         }
@@ -124,6 +123,40 @@ final class ProvidersStore: ObservableObject {
         configurationRevision += 1
     }
 
+    // Keeps already-downloaded offline datasets (Netherlands, Austria, …) fresh without the
+    // user noticing. Runs at most once per `datasetRefreshInterval` per provider, fully in
+    // the background: each download is detached, replaces its provider's parsed data
+    // atomically (so the map never flickers or blanks), and touches no published UI state.
+    // Failures are silent and leave the existing local copy in place.
+    static let datasetRefreshInterval: TimeInterval = 24 * 3600
+
+    func refreshDownloadableDatasetsInBackground(now: Date = Date()) {
+        for session in sessions {
+            let provider = session.provider
+
+            // Only providers backed by a downloadable file the user already has locally.
+            guard provider.downloadURL != nil, provider.isDataDownloaded else {
+                continue
+            }
+
+            let storageKey = "provider.dataset.refreshed-at.\(provider.id)"
+            if let lastRefresh = UserDefaults.standard.object(forKey: storageKey) as? Date,
+               now.timeIntervalSince(lastRefresh) < Self.datasetRefreshInterval {
+                continue
+            }
+
+            Task.detached(priority: .background) {
+                do {
+                    try await provider.downloadData()
+                    UserDefaults.standard.set(Date(), forKey: storageKey)
+                } catch {
+                    // Silent: a failed refresh keeps the existing local dataset and is
+                    // retried on the next app open.
+                }
+            }
+        }
+    }
+
     func refreshStatus(for providerID: String) async {
         guard let session = providerSession(for: providerID) else {
             return
@@ -136,9 +169,15 @@ final class ProvidersStore: ObservableObject {
     func refreshRenderPayloads(for request: ProviderRenderRequest) async {
         let generation = nextRenderGeneration()
         let enabledSessions = enabledSessions
+        // Only render providers whose country is actually in view: no point requesting German
+        // WMS tiles while looking at Paris.
         let renderOrderedSessions = Array(enabledSessions.reversed())
+            .filter { $0.provider.intersects(request.region) }
+        let renderingProviderIDs = Set(renderOrderedSessions.map { $0.id })
 
-        for session in sessions where !enabledProviderIDs.contains(session.provider.id) {
+        // Clear payloads for everything not contributing this pass: disabled providers and
+        // enabled-but-out-of-view ones.
+        for session in sessions where !renderingProviderIDs.contains(session.id) {
             session.clearRenderPayloads()
         }
 
@@ -271,6 +310,12 @@ final class ProvidersStore: ObservableObject {
             case .matches(let features, _):
                 matchedFeatures.append(contentsOf: features)
             case .unavailable(let reason):
+                // A provider that simply doesn't cover this location has no jurisdiction
+                // here, so it must not mask another provider's valid result (e.g. DIPUL
+                // outside Germany while the Netherlands provider reports a clear location).
+                if case .outsideCoverage = reason {
+                    continue
+                }
                 if firstUnavailableReason == nil {
                     firstUnavailableReason = reason
                 }
@@ -282,13 +327,7 @@ final class ProvidersStore: ObservableObject {
         }
 
         if !matchedFeatures.isEmpty {
-            let sortedFeatures = matchedFeatures.sorted { lhs, rhs in
-                if lhs.category.displayPriority != rhs.category.displayPriority {
-                    return lhs.category.displayPriority < rhs.category.displayPriority
-                }
-
-                return lhs.id < rhs.id
-            }
+            let sortedFeatures = matchedFeatures.deduplicatedByID().sortedByDisplayPriority()
             return .matches(
                 features: sortedFeatures,
                 assessment: ZoneAssessmentEvaluator.evaluate(features: sortedFeatures)
@@ -308,10 +347,6 @@ final class ProvidersStore: ObservableObject {
 
     private func persistEnabledProviderIDs() {
         UserDefaults.standard.set(Array(enabledProviderIDs).sorted(), forKey: enabledProvidersStorageKey)
-    }
-
-    private func persistProviderOrder() {
-        UserDefaults.standard.set(sessions.map(\.id), forKey: providerOrderStorageKey)
     }
 
     private func nextRenderGeneration() -> Int {
@@ -340,17 +375,9 @@ final class ProvidersStore: ObservableObject {
             return Set(savedProviderIDs)
         }
 
-        return Set(providers.map(\.id))
-    }
-
-    private static func loadOrderedSessions(from sessions: [ProviderSession], storageKey: String) -> [ProviderSession] {
-        guard let savedOrder = UserDefaults.standard.stringArray(forKey: storageKey), !savedOrder.isEmpty else {
-            return sessions
-        }
-
-        let sessionsByID = Dictionary(uniqueKeysWithValues: sessions.map { ($0.id, $0) })
-        let orderedSessions = savedOrder.compactMap { sessionsByID[$0] }
-        let unorderedSessions = sessions.filter { !savedOrder.contains($0.id) }
-        return orderedSessions + unorderedSessions
+        // Only DFS DIPUL is enabled by default; every other provider is opt-in.
+        return providers.map(\.id).contains(DIPULProvider.providerID)
+            ? [DIPULProvider.providerID]
+            : []
     }
 }

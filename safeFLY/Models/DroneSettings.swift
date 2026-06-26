@@ -64,7 +64,8 @@ class DroneSettings: ObservableObject {
             UserDefaults.standard.set(operatorID, forKey: "operatorID")
         }
     }
-    
+
+
     // Map Layer Toggles
     @Published var showAirports: Bool {
         didSet { UserDefaults.standard.set(showAirports, forKey: "showAirports") }
@@ -151,7 +152,8 @@ class DroneSettings: ObservableObject {
         let savedClass = UserDefaults.standard.string(forKey: "droneClass") ?? DroneClass.c0.rawValue
         self.droneClass = DroneClass(rawValue: savedClass) ?? .c0
         self.operatorID = UserDefaults.standard.string(forKey: "operatorID") ?? ""
-        
+
+
         // Initialize layer toggles - default to true if not yet set
         if UserDefaults.standard.object(forKey: "showAirports") == nil {
             self.showAirports = true
