@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		0D1D6F042ECB5B12001017DC /* safeFLY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = safeFLY.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB0000000000000000000001 /* safeFLYTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = safeFLYTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -29,10 +30,22 @@
 			path = safeFLY;
 			sourceTree = "<group>";
 		};
+		AB0000000000000000000002 /* safeFLYTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = safeFLYTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		0D1D6F012ECB5B12001017DC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB0000000000000000000005 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				0D1D6F062ECB5B12001017DC /* safeFLY */,
+				AB0000000000000000000002 /* safeFLYTests */,
 				0D1D6F052ECB5B12001017DC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				0D1D6F042ECB5B12001017DC /* safeFLY.app */,
+				AB0000000000000000000001 /* safeFLYTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +98,29 @@
 			productReference = 0D1D6F042ECB5B12001017DC /* safeFLY.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AB0000000000000000000003 /* safeFLYTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB0000000000000000000007 /* Build configuration list for PBXNativeTarget "safeFLYTests" */;
+			buildPhases = (
+				AB0000000000000000000004 /* Sources */,
+				AB0000000000000000000005 /* Frameworks */,
+				AB0000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AB000000000000000000000B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AB0000000000000000000002 /* safeFLYTests */,
+			);
+			name = safeFLYTests;
+			packageProductDependencies = (
+			);
+			productName = safeFLYTests;
+			productReference = AB0000000000000000000001 /* safeFLYTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -95,6 +133,10 @@
 				TargetAttributes = {
 					0D1D6F032ECB5B12001017DC = {
 						CreatedOnToolsVersion = 26.1.1;
+					};
+					AB0000000000000000000003 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 0D1D6F032ECB5B12001017DC;
 					};
 				};
 			};
@@ -116,12 +158,38 @@
 			projectRoot = "";
 			targets = (
 				0D1D6F032ECB5B12001017DC /* safeFLY */,
+				AB0000000000000000000003 /* safeFLYTests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXContainerItemProxy section */
+		AB000000000000000000000A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D1D6EFC2ECB5B12001017DC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D1D6F032ECB5B12001017DC;
+			remoteInfo = safeFLY;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		AB000000000000000000000B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D1D6F032ECB5B12001017DC /* safeFLY */;
+			targetProxy = AB000000000000000000000A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin PBXResourcesBuildPhase section */
 		0D1D6F022ECB5B12001017DC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB0000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -132,6 +200,13 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		0D1D6F002ECB5B12001017DC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AB0000000000000000000004 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -348,6 +423,48 @@
 			};
 			name = Release;
 		};
+		AB0000000000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9872AGA2NB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gruettecloud.safeFLYTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/safeFLY.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/safeFLY";
+			};
+			name = Debug;
+		};
+		AB0000000000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9872AGA2NB;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gruettecloud.safeFLYTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/safeFLY.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/safeFLY";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -365,6 +482,15 @@
 			buildConfigurations = (
 				0D1D6F102ECB5B13001017DC /* Debug */,
 				0D1D6F112ECB5B13001017DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AB0000000000000000000007 /* Build configuration list for PBXNativeTarget "safeFLYTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AB0000000000000000000008 /* Debug */,
+				AB0000000000000000000009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -28,8 +28,8 @@ enum StepType {
 struct OnboardingView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @EnvironmentObject var droneSettings: DroneSettings
+    @EnvironmentObject var providersStore: ProvidersStore
     @StateObject private var locationManager = LocationManager()
-    @StateObject private var dipulService = DIPULService()
     @State private var currentPage = 0
     @State private var slideDirection: CGFloat = 1 // 1 for forward, -1 for backward
     @State private var showLocationStep: Bool? = nil // Captured on first appear
@@ -90,48 +90,47 @@ struct OnboardingView: View {
                 // MARK: - Step 1: Custom Floating Zone Information Popup Card (Real Data)
                 if activeSteps[currentPage].type == .airspace {
                     Group {
-                        if let zone = dipulService.zoneInfo.sorted(by: { $0.displayPriority < $1.displayPriority }).first, zone.name != "Clear Zone" {
-                            let status = zone.flightStatus
-                            let statusColor: Color = status.allowed ? .green : (status.conditional ? .orange : .red)
-                            
+                        if case .matches(let features, let assessment) = providersStore.zoneQueryResult,
+                           let feature = features.sorted(by: { $0.category.displayPriority < $1.category.displayPriority }).first {
+                            let header = ZoneQueryPresentation.header(for: .matches(features: features, assessment: assessment))
+
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack(spacing: 12) {
                                     ZStack {
                                         Circle()
-                                            .fill(statusColor.opacity(0.15))
+                                            .fill(header.color.opacity(0.15))
                                             .frame(width: 38, height: 38)
-                                        Image(systemName: zone.displayIcon)
+                                        Image(systemName: ZonePresentation.iconName(for: feature.category))
                                             .font(.system(size: 18, weight: .bold))
-                                            .foregroundColor(statusColor)
+                                            .foregroundColor(header.color)
                                     }
-                                    
+
                                     VStack(alignment: .leading, spacing: 2) {
                                         let titleText: String = {
-                                            if let layer = zone.layerName, layer.contains("flugplaetze") {
-                                                return NSLocalizedString("ONBOARDING.HELIPAD_TITLE", comment: "Onboarding specific helipad title")
-                                            }
-                                            return zone.layerName.map { zone.formatLayerName($0) } ?? zone.displayTitle
+                                            return ZonePresentation.title(for: feature)
                                         }()
                                         Text(titleText)
                                             .font(.system(.headline, design: .rounded))
                                             .fontWeight(.bold)
                                             .foregroundColor(.primary)
-                                        if let name = zone.name {
-                                            Text(name)
+                                        if let subtitle = ZonePresentation.subtitle(for: feature) {
+                                            Text(subtitle)
                                                 .font(.system(.subheadline, design: .rounded))
                                                 .foregroundColor(.secondary)
                                         }
                                     }
                                     Spacer()
                                 }
-                                
-                                Text(status.message)
+
+                                if let message = feature.sourceDeclaredRestriction ?? header.message {
+                                    Text(message)
                                     .font(.system(.subheadline, design: .rounded))
                                     .foregroundColor(.secondary)
                                     .lineSpacing(3)
                                     .fixedSize(horizontal: false, vertical: true)
+                                }
                                 
-                                if let legal = zone.legalRef {
+                                if let legal = feature.legalReference {
                                     HStack(spacing: 6) {
                                         Image(systemName: "book.pages")
                                         Text(legal)
@@ -147,9 +146,9 @@ struct OnboardingView: View {
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 18)
-                                    .stroke(statusColor.opacity(0.25), lineWidth: 1.5)
+                                    .stroke(header.color.opacity(0.25), lineWidth: 1.5)
                             )
-                        } else if dipulService.isLoading {
+                        } else if providersStore.isLoading {
                             HStack(spacing: 12) {
                                 ProgressView()
                                     .tint(.white)
@@ -417,12 +416,19 @@ struct OnboardingView: View {
                         span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
                     )
                     let querySize = CGSize(width: 256, height: 256)
-                    dipulService.getFeatureInfo(
-                        at: CLLocationCoordinate2D(latitude: targetLat, longitude: targetLng),
-                        region: queryRegion,
-                        viewSize: querySize,
-                        settings: droneSettings
-                    )
+                    Task {
+                        await providersStore.queryLocation(
+                            for: ProviderPointQueryRequest(
+                                coordinate: MapCoordinate(latitude: targetLat, longitude: targetLng),
+                                region: MapRegion(
+                                    center: MapCoordinate(queryRegion.center),
+                                    latitudeDelta: queryRegion.span.latitudeDelta,
+                                    longitudeDelta: queryRegion.span.longitudeDelta
+                                ),
+                                viewportSize: MapViewportSize(width: Int(querySize.width), height: Int(querySize.height))
+                            )
+                        )
+                    }
                 }
             }
             

@@ -58,11 +58,22 @@ final class DIPULWeatherService {
 
         var errorDescription: String? {
             switch self {
-            case .invalidURL:           return "Invalid DIPUL URL"
-            case .requestFailed(let c): return "DIPUL request failed (HTTP \(c))"
-            case .decodingFailed(let m): return "DIPUL decoding: \(m)"
-            case .noData:               return "No DIPUL weather data available"
-            case .outsideCoverage:      return "Location outside DIPUL coverage (Central Europe only)"
+            case .invalidURL:
+                return NSLocalizedString("Invalid DIPUL URL", comment: "DIPUL weather service invalid URL error")
+            case .requestFailed(let code):
+                return String.localizedStringWithFormat(
+                    NSLocalizedString("DIPUL request failed (HTTP %d)", comment: "DIPUL weather service request failed error"),
+                    code
+                )
+            case .decodingFailed(let message):
+                return String.localizedStringWithFormat(
+                    NSLocalizedString("DIPUL decoding: %@", comment: "DIPUL weather service decoding failed error"),
+                    message
+                )
+            case .noData:
+                return NSLocalizedString("No DIPUL weather data available", comment: "DIPUL weather service no data error")
+            case .outsideCoverage:
+                return NSLocalizedString("Location outside DIPUL coverage (Central Europe only)", comment: "DIPUL weather service outside coverage error")
             }
         }
     }

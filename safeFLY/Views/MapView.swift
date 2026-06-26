@@ -14,14 +14,12 @@ struct MapView: View {
     @AppStorage("sheetClosedCount") private var sheetClosedCount = 0
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("hasShownRatingPrompt") private var hasShownRatingPrompt = false
-    
-    @StateObject private var dipulService = DIPULService()
+
+    @EnvironmentObject private var providersStore: ProvidersStore
     @EnvironmentObject var droneSettings: DroneSettings
     @State private var region = MKCoordinateRegion.germany
     @State private var selectedMapStyle: Int = 0
     @State private var cameraPosition: MapCameraPosition = .region(.germany)
-    @State private var overlayURL: URL?
-    @State private var overlayRegion: MKCoordinateRegion?
     @State private var tappedLocation: CLLocationCoordinate2D?
     @State private var showZoneInfo = false
     @State private var currentViewSize: CGSize = .zero
@@ -38,10 +36,42 @@ struct MapView: View {
         default: return .standard
         }
     }
+
+    private var providerAttributionText: String {
+        let providerNames = providersStore.enabledSessions.map { $0.provider.displayName }.joined(separator: ", ")
+        guard !providerNames.isEmpty else {
+            return NSLocalizedString("Source geodata: No enabled providers", comment: "Map attribution when no providers are enabled")
+        }
+
+        return String.localizedStringWithFormat(
+            NSLocalizedString("Source geodata: %@", comment: "Map attribution for enabled providers"),
+            providerNames
+        )
+    }
     
     // Only show geozones when zoomed in enough
     private var shouldShowGeozones: Bool {
         region.span.latitudeDelta < 0.8 && region.span.longitudeDelta < 0.8
+    }
+
+    private var renderPayloads: [WMSRenderPayload] {
+        providersStore.renderPayloads.compactMap { payload in
+            guard case .wmsImage(let wmsPayload) = payload else {
+                return nil
+            }
+
+            return wmsPayload
+        }
+    }
+
+    private var polygonRenderPayloads: [PolygonRenderPayload] {
+        providersStore.renderPayloads.compactMap { payload in
+            guard case .polygon(let polygonPayload) = payload else {
+                return nil
+            }
+
+            return polygonPayload
+        }
     }
 
 
@@ -76,8 +106,7 @@ struct MapView: View {
             .sheet(isPresented: $showSettings) {
                 SettingsView()
             }
-            .modifier(SettingsChangeModifiers(refreshAction: refreshOverlay))
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("DIPULLayersVerified"))) { _ in
+            .onChange(of: providersStore.configurationRevision) { _, _ in
                 refreshOverlay()
             }
             .onChange(of: droneSettings.simulatedTapCoordinate) { _, newValue in
@@ -105,7 +134,7 @@ struct MapView: View {
                 if newValue {
                     showZoneInfo = false
                     tappedLocation = nil
-                    dipulService.zoneInfo = []
+                    providersStore.clearZoneQueryResult()
                     droneSettings.dismissActiveSheet = false
                 }
             }
@@ -117,12 +146,8 @@ struct MapView: View {
         GeometryReader { geometry in
             ZStack {
                 mapView
-                
-                // Native MKOverlay rendered directly on the map — zero lag
-                WMSNativeOverlay(
-                    overlayURL: shouldShowGeozones ? overlayURL : nil,
-                    overlayRegion: shouldShowGeozones ? overlayRegion : nil
-                )
+
+                WMSNativeOverlay(payloads: shouldShowGeozones ? renderPayloads : [])
                 .allowsHitTesting(false)
                 .ignoresSafeArea()
                 
@@ -130,14 +155,10 @@ struct MapView: View {
                     zoomHintView
                 }
                 
-                if dipulService.isLoading {
+                if providersStore.isLoading {
                     loadingView
                 }
-                
-                if let error = dipulService.errorMessage {
-                    errorView(error: error)
-                }
-                
+
                 attributionView
             }
             .onAppear {
@@ -150,10 +171,16 @@ struct MapView: View {
     }
     
     private var mapView: some View {
-        MapReader { proxy in
+            MapReader { proxy in
             Map(position: $cameraPosition, interactionModes: .all.subtracting(.rotate).subtracting(.pitch)) {
                 UserAnnotation()
-                
+
+                ForEach(shouldShowGeozones ? polygonRenderPayloads : []) { payload in
+                    MapPolygon(coordinates: payload.coordinates.map(\.clLocationCoordinate2D))
+                        .stroke(color(hex: payload.strokeColorHex, opacity: payload.strokeOpacity), lineWidth: payload.lineWidth)
+                        .foregroundStyle(color(hex: payload.fillColorHex, opacity: payload.fillOpacity))
+                }
+                 
                 if let location = tappedLocation {
                     Annotation("", coordinate: location) {
                         if #available(iOS 26.0, *) {
@@ -233,32 +260,20 @@ struct MapView: View {
         }
     }
     
-    private func errorView(error: String) -> some View {
-        VStack {
-            Spacer()
-            Text(error)
-                .font(.caption)
-                .foregroundStyle(.white)
-                .padding()
-                .background(.red, in: RoundedRectangle(cornerRadius: 8))
-                .padding()
-        }
-    }
-    
     private var attributionView: some View {
         VStack {
             Spacer()
             HStack {
                 Spacer()
                 if #available(iOS 26.0, *) {
-                    Text("Source geodata: DFS, BKG 2026")
+                    Text(providerAttributionText)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .glassEffect()
                 } else {
-                    Text("Source geodata: DFS, BKG 2026")
+                    Text(providerAttributionText)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 8)
@@ -273,10 +288,10 @@ struct MapView: View {
     }
     
     private var zoneInfoSheet: some View {
-        ZoneInfoSheet(zones: dipulService.zoneInfo) {
+        ZoneInfoSheet(result: providersStore.zoneQueryResult) {
+            // Setting this false dismisses the sheet, which triggers handleSheetDismiss
+            // (the sheet's onDismiss) where the marker and query result are cleared.
             showZoneInfo = false
-            tappedLocation = nil
-            dipulService.zoneInfo = []
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -316,11 +331,16 @@ struct MapView: View {
     // MARK: - Helper Methods
     
     private func handleSheetDismiss() {
+        // Runs for every dismissal — the X button and an interactive swipe-down — so the
+        // tapped-location marker and query result are always cleared, not just via the X.
+        tappedLocation = nil
+        providersStore.clearZoneQueryResult()
+
         if sheetClosedCount < 2 {
             sheetClosedCount += 1
         }
-        
-if sheetClosedCount == 2 && !hasShownRatingPrompt {
+
+        if sheetClosedCount == 2 && !hasShownRatingPrompt {
             requestReview()
             hasShownRatingPrompt = true
         }
@@ -386,8 +406,7 @@ if sheetClosedCount == 2 && !hasShownRatingPrompt {
         if shouldShowGeozones {
             updateOverlay(size: currentViewSize)
         } else {
-            overlayURL = nil
-            overlayRegion = nil
+            providersStore.clearRenderPayloads()
         }
     }
     
@@ -403,50 +422,38 @@ if sheetClosedCount == 2 && !hasShownRatingPrompt {
     }
     
     func updateOverlay(size: CGSize) {
-        // Cancel any pending update
         updateTask?.cancel()
-        
+
         guard shouldShowGeozones, size.width > 0, size.height > 0 else {
-            overlayURL = nil
-            overlayRegion = nil
+            providersStore.clearRenderPayloads()
             return
         }
-        
-        // Debounce the update to avoid multiple simultaneous requests
+
         updateTask = Task {
-            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 second debounce
-            
+            try? await Task.sleep(nanoseconds: 300_000_000)
+
             guard !Task.isCancelled else { return }
-            
-            if let url = dipulService.getWMSURL(for: region, size: size, settings: droneSettings) {
-                overlayURL = url
-                overlayRegion = region
-            } else {
-                // No layers enabled, clear overlay
-                overlayURL = nil
-                overlayRegion = nil
-            }
+
+            await providersStore.refreshRenderPayloads(for: providerRenderRequest(viewSize: size))
         }
     }
-    
+
     func refreshOverlay() {
         guard hasCompletedInitialSetup, shouldShowGeozones, currentViewSize != .zero else { return }
         updateOverlay(size: currentViewSize)
     }
-    
+
     func handleMapTap(at coordinate: CLLocationCoordinate2D, viewSize: CGSize) {
         guard shouldShowGeozones, viewSize.width > 0, viewSize.height > 0 else { return }
-        
+
         tappedLocation = coordinate
-        
-        // Calculate new camera position to place tapped point at 25% from top
+
         let verticalOffset = region.span.latitudeDelta * (0.5 - 0.25)
         let newCenter = CLLocationCoordinate2D(
             latitude: coordinate.latitude - verticalOffset,
             longitude: coordinate.longitude
         )
-        
-        // Animate camera to new position
+
         withAnimation(.easeInOut(duration: 0.3)) {
             cameraPosition = .camera(
                 MapCamera(
@@ -457,87 +464,50 @@ if sheetClosedCount == 2 && !hasShownRatingPrompt {
                 )
             )
         }
-        
-        // Query feature info
-        dipulService.getFeatureInfo(at: coordinate, region: region, viewSize: viewSize, settings: droneSettings)
+
+        Task {
+            await providersStore.queryLocation(
+                for: ProviderPointQueryRequest(
+                    coordinate: MapCoordinate(coordinate),
+                    region: MapRegion(region),
+                    viewportSize: MapViewportSize(viewSize)
+                )
+            )
+        }
         showZoneInfo = true
     }
-}
 
-// MARK: - Settings Change Modifiers
-
-struct SettingsChangeModifiers: ViewModifier {
-    @EnvironmentObject var droneSettings: DroneSettings
-    let refreshAction: () -> Void
-    
-    func body(content: Content) -> some View {
-        content
-            .onChange(of: droneSettings.showAirports) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showAerodromes) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showControlZones) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showRestrictedAreas) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showMotorways) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showHighways) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showRailways) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showWaterways) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showResidential) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showRecreational) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showIndustrial) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showGovernment) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showNatureReserves) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showTemporaryRestrictions) { _, _ in refreshAction() }
-            .onChange(of: droneSettings.showModelFlyingFields) { _, _ in refreshAction() }
+    private func providerRenderRequest(viewSize: CGSize) -> ProviderRenderRequest {
+        ProviderRenderRequest(region: MapRegion(region), viewportSize: MapViewportSize(viewSize))
     }
 }
 
 // MARK: - Zone Info Sheet
 
 struct ZoneInfoSheet: View {
-    let zones: [ZoneInfo]
+    let result: ZoneQueryResult?
     let onDismiss: () -> Void
-    
-    // Sort zones by priority (most restrictive first)
-    private var sortedZones: [ZoneInfo] {
-        zones.sorted { $0.displayPriority < $1.displayPriority }
+
+    private var sortedFeatures: [ZoneFeature] {
+        guard case .matches(let features, _) = result else {
+            return []
+        }
+
+        return features.sorted { lhs, rhs in
+            if lhs.category.displayPriority != rhs.category.displayPriority {
+                return lhs.category.displayPriority < rhs.category.displayPriority
+            }
+
+            return lhs.id < rhs.id
+        }
     }
-    
-    // Get the most restrictive status from all zones
-    private var combinedStatus: (allowed: Bool, conditional: Bool, message: String) {
-        if zones.isEmpty {
-            return (true, false, NSLocalizedString("FLIGHT_ALLOWED", comment: "Flight allowed default message"))
-        }
-        
-        let statuses = zones.map { $0.flightStatus }
-        
-        // If any zone is completely restricted (not allowed, not conditional), that takes precedence
-        if let restricted = statuses.first(where: { !$0.allowed && !$0.conditional }) {
-            return restricted
-        }
-        
-        // If any zone requires conditions, combine those messages
-        let conditionalZones = statuses.filter { !$0.allowed && $0.conditional }
-        if !conditionalZones.isEmpty {
-            return (false, true, NSLocalizedString("MULTIPLE_RESTRICTIONS", comment: "Multiple restrictions header"))
-        }
-        
-        // If any zone has warnings (allowed but conditional)
-        let warningZones = statuses.filter { $0.allowed && $0.conditional }
-        if !warningZones.isEmpty {
-            return (true, true, NSLocalizedString("FLIGHT_ALLOWED_CAUTION", comment: "Flight allowed with caution header"))
-        }
-        
-        return (true, false, NSLocalizedString("FLIGHT_ALLOWED", comment: "Flight allowed default message"))
-    }
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    if !zones.isEmpty {
-                        if zones.count > 1 || !combinedStatus.allowed {
-                            combinedStatusHeader
-                        }
-                        zonesListView
+                    if let result {
+                        resultContent(result)
                     } else {
                         ProgressView("Checking zone information...")
                             .frame(maxWidth: .infinity)
@@ -560,53 +530,77 @@ struct ZoneInfoSheet: View {
             }
         }
     }
-    
-    private var combinedStatusHeader: some View {
-        let status = combinedStatus
-        let mainColor = status.allowed ? Color.green : (status.conditional ? Color.orange : Color.red)
-        
-        return HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(mainColor)
-                    .frame(width: 44, height: 44)
-                
-                Image(systemName: status.allowed ? "checkmark" : 
-                       (status.conditional ? "exclamationmark.triangle.fill" : "xmark"))
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.white)
+
+    @ViewBuilder
+    private func resultContent(_ result: ZoneQueryResult) -> some View {
+        switch result {
+        case .clear, .nonAssessment, .unavailable:
+            resultHeader(for: result)
+        case .matches:
+            resultHeader(for: result)
+            zonesListView
+        }
+    }
+
+    private func resultHeader(for result: ZoneQueryResult) -> some View {
+        let presentation = ZoneQueryPresentation.header(for: result)
+        let showsZoneCount: Bool = {
+            if case .matches = result, sortedFeatures.count > 1 {
+                return true
             }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(status.allowed ? NSLocalizedString("FLIGHT_PERMITTED", comment: "Header: flight permitted") : 
-                    (status.conditional ? NSLocalizedString("PERMITTED_UNDER_CONDITIONS", comment: "Header: permitted under conditions") : NSLocalizedString("FLIGHT_PROHIBITED", comment: "Header: flight prohibited")))
-                    .font(.system(.headline, design: .rounded))
-                    .fontWeight(.bold)
-                    .foregroundStyle(.primary)
-                
-                if zones.count > 1 {
-                    Text(String.localizedStringWithFormat(NSLocalizedString("%d overlapping zones", comment: "Number of overlapping zones in the zone header"), zones.count))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+            return false
+        }()
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: showsZoneCount ? .top : .center, spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(presentation.color)
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: presentation.iconName)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(.white)
                 }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(presentation.title)
+                        .font(.system(.headline, design: .rounded))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.primary)
+
+                    if showsZoneCount {
+                        Text(String.localizedStringWithFormat(NSLocalizedString("%d overlapping zones", comment: "Number of overlapping zones in the zone header"), sortedFeatures.count))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
             }
-            Spacer()
+
+            if let message = presentation.message {
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .padding(20)
         .background(Color(uiColor: .secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(mainColor.opacity(0.3), lineWidth: 1)
+                .strokeBorder(presentation.color.opacity(0.3), lineWidth: 1)
         )
     }
-    
+
     private var zonesListView: some View {
         VStack(spacing: 0) {
-            ForEach(Array(sortedZones.enumerated()), id: \.element.id) { index, info in
-                CompactZoneRow(info: info)
-                
-                if index < sortedZones.count - 1 {
+            ForEach(Array(sortedFeatures.enumerated()), id: \.element.id) { index, feature in
+                ZoneFeatureRow(feature: feature)
+
+                if index < sortedFeatures.count - 1 {
                     Divider()
                 }
             }
@@ -614,106 +608,128 @@ struct ZoneInfoSheet: View {
     }
 }
 
-// MARK: - Compact Zone Row
+// MARK: - Zone Feature Row
 
-struct CompactZoneRow: View {
-    let info: ZoneInfo
-    
+struct ZoneFeatureRow: View {
+    let feature: ZoneFeature
+    @State private var areDetailsExpanded = false
+
+    private var restrictionText: String? {
+        ZonePresentation.explanation(for: feature)?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var altitudeText: String? {
+        ZonePresentation.formattedAltitude(for: feature)
+    }
+
+    private var hasDetails: Bool {
+        altitudeText != nil || feature.legalReference != nil
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if info.name == "Clear Zone" {
-                clearZoneView
-            } else {
-                zoneDetailsView(status: info.flightStatus)
+        VStack(alignment: .leading, spacing: 12) {
+            topRow
+
+            if let restrictionText {
+                Text(restrictionText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if hasDetails {
+                detailsSection
             }
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
-    private var clearZoneView: some View {
-        HStack(alignment: .top, spacing: 12) {
+
+    private var topRow: some View {
+        let tint = ZonePresentation.tintColor(for: feature.category)
+
+        return HStack(alignment: .center, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color.green.opacity(0.15))
+                    .fill(tint.opacity(0.15))
                     .frame(width: 40, height: 40)
-                
-                Image(systemName: "checkmark")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.green)
+
+                Image(systemName: ZonePresentation.iconName(for: feature.category))
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(tint)
             }
-            
+
             VStack(alignment: .leading, spacing: 4) {
-                Text("No Restrictions")
+                Text(ZonePresentation.title(for: feature))
                     .font(.system(.headline, design: .rounded))
                     .fontWeight(.bold)
-                
-                Text("Drone flight is permitted at this location")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+
+                if let subtitle = ZonePresentation.subtitle(for: feature) {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
             }
+            Spacer(minLength: 0)
         }
     }
-    
-    private func zoneDetailsView(status: (allowed: Bool, conditional: Bool, message: String)) -> some View {
+
+    private var detailsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Top Row: Icon and Title
-            HStack(spacing: 12) {
-                // Circle Background Icon
-                ZStack {
-                    Circle()
-                        .fill(status.allowed ? Color.green.opacity(0.15) : (status.conditional ? Color.orange.opacity(0.15) : Color.red.opacity(0.15)))
-                        .frame(width: 40, height: 40)
-                    
-                    Image(systemName: info.displayIcon)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(status.allowed ? .green : (status.conditional ? .orange : .red))
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    areDetailsExpanded.toggle()
                 }
-                
-                // Title Section
-                VStack(alignment: .leading, spacing: 2) {
-                    if let layer = info.layerName {
-                        Text(info.formatLayerName(layer))
-                            .font(.system(.headline, design: .rounded)) 
-                            .fontWeight(.bold)
-                            .lineLimit(1)
-                    } else if let name = info.name {
-                        Text(name)
-                            .font(.system(.headline, design: .rounded))
-                            .fontWeight(.bold)
-                            .lineLimit(1)
-                    }
-                    
-                    if let name = info.name, info.layerName != nil {
-                        Text(name)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+            } label: {
+                HStack(spacing: 6) {
+                    Text(
+                        areDetailsExpanded
+                            ? NSLocalizedString("Show Less", comment: "Collapse zone details")
+                            : NSLocalizedString("Show More", comment: "Expand zone details")
+                    )
+
+                    Image(systemName: areDetailsExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption.weight(.semibold))
                 }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
             }
-            
-            // Content Row: Message and Legal
-            VStack(alignment: .leading, spacing: 6) {
-                Text(status.message)
-                    .font(.callout)
-                    .foregroundStyle(.primary.opacity(0.9)) 
-                    .fixedSize(horizontal: false, vertical: true)
-                    .lineSpacing(2) 
-                
-                if let legal = info.legalRef {
-                    HStack(alignment: .center, spacing: 6) {
-                        Image(systemName: "book.pages")
-                        Text(legal)
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 2)
+            .buttonStyle(.plain)
+
+            if areDetailsExpanded {
+                if let altitudeText {
+                    DetailRow(
+                        label: NSLocalizedString("ZONE_FEATURE_ALTITUDE", comment: "Altitude label"),
+                        value: altitudeText,
+                        icon: "arrow.up.and.down"
+                    )
+                }
+
+                if let legalReference = feature.legalReference {
+                    DetailRow(
+                        label: NSLocalizedString("ZONE_FEATURE_LEGAL_REFERENCE", comment: "Legal reference label"),
+                        value: legalReference,
+                        icon: "book.pages"
+                    )
                 }
             }
         }
     }
+}
+
+private func color(hex: String, opacity: Double) -> Color {
+    let sanitized = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+    guard sanitized.count == 6, let value = UInt64(sanitized, radix: 16) else {
+        return .red.opacity(opacity)
+    }
+
+    let red = Double((value & 0xFF0000) >> 16) / 255
+    let green = Double((value & 0x00FF00) >> 8) / 255
+    let blue = Double(value & 0x0000FF) / 255
+    return Color(.sRGB, red: red, green: green, blue: blue, opacity: opacity)
 }
 
 // MARK: - Detail Row
@@ -747,4 +763,21 @@ struct DetailRow: View {
 #Preview {
     MapView()
         .environmentObject(DroneSettings())
+        .environmentObject(ProvidersStore(registrations: BuiltInProviders.all))
+}
+
+private extension MapRegion {
+    init(_ region: MKCoordinateRegion) {
+        self.init(
+            center: MapCoordinate(region.center),
+            latitudeDelta: region.span.latitudeDelta,
+            longitudeDelta: region.span.longitudeDelta
+        )
+    }
+}
+
+private extension MapViewportSize {
+    init(_ size: CGSize) {
+        self.init(width: Int(size.width), height: Int(size.height))
+    }
 }

@@ -7,7 +7,8 @@
 "No locations found" = "No locations found";
 "Drone Map" = "Drone Map";
 "Zoom in to see geozones" = "Zoom in to see geozones";
-"Source geodata: DFS, BKG 2026" = "Source geodata: DFS, BKG 2026";
+"Source geodata: %@" = "Source geodata: %@";
+"Source geodata: No enabled providers" = "Source geodata: No enabled providers";
 "Standard" = "Standard";
 "Hybrid" = "Hybrid";
 "Satellite" = "Satellite";
@@ -16,12 +17,7 @@
 "Map" = "Map";
 "Weather" = "Weather";
 "No Restrictions" = "No Restrictions";
-"Drone flight is permitted at this location" = "Drone flight is permitted at this location";
 "Flight allowed" = "Flight allowed";
-"Multiple restrictions apply - see details below" = "Multiple restrictions apply - see details below";
-"Flight allowed with caution - see details below" = "Flight allowed with caution - see details below";
-"FLIGHT_ALLOWED_CAUTION" = "Flight allowed with caution - see details below";
-"MULTIPLE_RESTRICTIONS" = "Multiple restrictions apply - see details below";
 "Zone Information" = "Zone Information";
 "Checking zone information..." = "Checking zone information...";
 "FLIGHT_PERMITTED" = "Flight Permitted";
@@ -31,7 +27,6 @@
 "ALTITUDE_FROM" = "From %@";
 
 "FLIGHT_ALLOWED" = "Flight allowed";
-"FLIGHT_RESTRICTED" = "Flight restricted";
 
 "AERODROME_CONDITIONAL" = "Flight allowed if operated in 'special' category OR with consent from air traffic control, flight management, or aerodrome/helipad operator";
 "AIRPORT_PROHIBITED" = "Flight prohibited - Airport zone. Only allowed if operated in 'special' category with appropriate risk assessment";
@@ -44,13 +39,23 @@
 "INACTIVE_TEMP_RESTRICTION" = "Inactive temporary restriction - Currently not enforced, but verify activation periods";
 "RESTRICTED_ZONE_CHECK" = "Restricted flying zone - Check specific conditions and required permits";
 "MODEL_FLYING_FIELD_CAUTION" = "Model flying field nearby - Exercise caution to avoid collisions, especially for BVLOS operations. Coordinate with local flyers";
-"RESTRICTED_ZONE_DEFAULT" = "Restricted flying zone - Verify specific legal requirements and obtain necessary permits";
-
-"ZONE_INFO_TITLE" = "Zone Information";
 "CONSENT_REQUIRED" = "Flight allowed with explicit consent from competent authority or facility operator";
 "OUTSIDE_OPERATING_HOURS" = "Flight allowed outside operating/bathing hours";
 "NATIONAL_PARK_CONDITIONS" = "Flight allowed with nature authority consent OR if regional regulations permit. Altitude exceptions do NOT apply";
 "QUERY_FAILED" = "Query failed: %@";
+
+"ZONE_RESULT_CLEAR_MESSAGE" = "No restrictions were found in the checked provider data for this location.";
+"ZONE_RESULT_CONDITIONAL_MESSAGE" = "Restrictions or conditions apply at this location. Review the matched zone facts below.";
+"ZONE_RESULT_PROHIBITED_MESSAGE" = "One or more matched zone facts prohibit flight at this location.";
+"ZONE_RESULT_NOT_ASSESSED_TITLE" = "Assessment Not Available";
+"ZONE_RESULT_NO_LAYERS_MESSAGE" = "Enable at least one map layer to assess this location.";
+"ZONE_RESULT_UNAVAILABLE_TITLE" = "Assessment Unavailable";
+"ZONE_RESULT_OUTSIDE_COVERAGE_MESSAGE" = "No DIPUL restriction data is available for this location.";
+"ZONE_RESULT_NO_DATA_MESSAGE" = "No provider data was available to assess this location.";
+"ZONE_RESULT_INVALID_RESPONSE_MESSAGE" = "The provider returned data that could not be assessed.";
+"ZONE_RESULT_REQUEST_FAILED_MESSAGE" = "The restriction query could not be completed.";
+"ZONE_FEATURE_ALTITUDE" = "Altitude";
+"ZONE_FEATURE_LEGAL_REFERENCE" = "Legal Reference";
 
 /* Type labels */
 "TYPE.FLUGPLATZ" = "Aerodrome/Helipad";
@@ -110,14 +115,8 @@
 "Aviation" = "Aviation";
 "Infrastructure" = "Infrastructure";
 "Restricted Areas" = "Restricted Areas";
-"Map Layers" = "Map Layers";
-"Toggle specific layers to customize which restrictions are displayed on the map." = "Toggle specific layers to customize which restrictions are displayed on the map.";
 "Resources" = "Resources";
-"German Geozone Information" = "German Geozone Information";
-"EU Drone Regulations" = "EU Drone Regulations";
-"LBA Account Portal" = "LBA Account Portal";
 "DFS DIPUL Datasource" = "DFS DIPUL Datasource";
-"Developer Website" = "Developer Website";
 "Version" = "Version";
 "About" = "About";
 "Airports" = "Airports";
@@ -135,12 +134,20 @@
 "Government Buildings" = "Government Buildings";
 "Nature Reserves" = "Nature Reserves";
 
+/* Weather - View */
+"Support the Developer" = "Support the Developer";
+"Unknown Location" = "Unknown Location";
+"Fetching Forecast..." = "Fetching Forecast...";
+"Getting the latest drone flight conditions for this area." = "Getting the latest drone flight conditions for this area.";
+"No Weather Data" = "No Weather Data";
+"Move the map to see weather conditions" = "Move the map to see weather conditions";
+"Unable to fetch weather." = "Unable to fetch weather.";
+
 /* Weather - Section Headers */
 "Hourly Forecast" = "Hourly Forecast";
 "Detailed Information" = "Detailed Information";
 
 /* Weather - Info Row Labels */
-"Today" = "Today";
 "Temperature" = "Temperature";
 "Sun" = "Sun";
 "Pressure (QNH)" = "Pressure (QNH)";
@@ -156,6 +163,21 @@
 "Optimal flight conditions" = "Optimal flight conditions";
 "Limited - exercise caution" = "Limited - exercise caution";
 "Flight not recommended" = "Flight not recommended";
+
+/* Weather - Condition Descriptions */
+"Clear" = "Clear";
+"Mainly clear" = "Mainly clear";
+"Partly cloudy" = "Partly cloudy";
+"Overcast" = "Overcast";
+"Fog" = "Fog";
+"Drizzle" = "Drizzle";
+"Freezing Drizzle" = "Freezing Drizzle";
+"Rain" = "Rain";
+"Freezing Rain" = "Freezing Rain";
+"Snow" = "Snow";
+"Showers" = "Showers";
+"Snow Showers" = "Snow Showers";
+"Thunderstorm" = "Thunderstorm";
 
 /* Weather - UV Levels */
 "Low" = "Low";
@@ -173,7 +195,6 @@
 "Limited visibility: %.1f km" = "Limited visibility: %.1f km";
 "Heavy precipitation" = "Heavy precipitation";
 "Active precipitation" = "Active precipitation";
-"High rain probability (%d%%) in next hour" = "High rain probability (%d%%) in next hour";
 "Very high precipitation risk (%d%%) in the next hour" = "Very high precipitation risk (%d%%) in the next hour";
 "Precipitation risk (%d%%) in the next hour" = "Precipitation risk (%d%%) in the next hour";
 "Snow precipitation - avoid flying" = "Snow precipitation - avoid flying";
@@ -186,7 +207,6 @@
 "Snow or snow showers present" = "Snow or snow showers present";
 "Very cold - battery performance affected" = "Very cold - battery performance affected";
 "Very hot - equipment may overheat" = "Very hot - equipment may overheat";
-"Overcast - limited visual reference" = "Overcast - limited visual reference";
 "Nighttime - ensure proper lighting and permissions" = "Nighttime - ensure proper lighting and permissions";
 
 /* Weather - Wind Profile */
@@ -229,22 +249,46 @@
 "ONBOARDING.BUTTON.CONTINUE" = "Continue";
 
 /* Settings & Core App Setup */
+"C0 - <250g" = "C0 - <250g";
+"C1 - <900g" = "C1 - <900g";
+"C2 - <4kg" = "C2 - <4kg";
+"C3 - <25kg" = "C3 - <25kg";
+"C4 - <25kg" = "C4 - <25kg";
 "Play App Introduction Again" = "Play App Introduction Again";
 "App Setup" = "App Setup";
 "Done" = "Done";
 "App Webpage & Status" = "App Webpage & Status";
 "Contact" = "Contact";
 
+/* Provider Management */
+"Providers" = "Providers";
+"Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets." = "Manage built-in geospatial providers, reorder their precedence, and configure their provider-specific datasets.";
+"Manage the built-in geospatial provider and configure its provider-specific datasets." = "Manage the built-in geospatial provider and configure its provider-specific datasets.";
+"Refreshing Status..." = "Refreshing Status...";
+"Refresh Provider Status" = "Refresh Provider Status";
+"Provider Status" = "Provider Status";
+"Last refreshed at %@." = "Last refreshed at %@.";
+"Provider status has not been refreshed yet." = "Provider status has not been refreshed yet.";
+"Enable Provider" = "Enable Provider";
+"Disabled providers do not participate in map rendering or location queries." = "Disabled providers do not participate in map rendering or location queries.";
+"Provider Datasets" = "Provider Datasets";
+"Dataset selection remains editable even when a dataset is temporarily unavailable." = "Dataset selection remains editable even when a dataset is temporarily unavailable.";
+"Provider References" = "Provider References";
+"Disabled" = "Disabled";
+"Unknown" = "Unknown";
+"Available" = "Available";
+"Degraded" = "Degraded";
+"Unavailable" = "Unavailable";
+"Show More" = "Show More";
+"Show Less" = "Show Less";
 
-/* Missing Geozone Type Labels */
-"TYPE.KRANKENHAUS" = "Hospital";
-"TYPE.NATIONALPARK" = "National Park";
-"TYPE.NSG" = "Nature Reserve";
-"TYPE.FFH-GEBIET" = "Habitats Directive Site";
-"TYPE.VOGELSCHUTZGEBIET" = "Bird Sanctuary";
-"RESTRICTED_ZONE_DEFAULT_TITLE" = "Restricted Zone";
-
-/* Onboarding Specific Overrides */
-"ONBOARDING.HELIPAD_TITLE" = "Helipad";
-
-
+/* Service Errors */
+"Invalid request URL" = "Invalid request URL";
+"Request failed" = "Request failed";
+"No current weather in response" = "No current weather in response";
+"Decoding failed: %@" = "Decoding failed: %@";
+"Invalid DIPUL URL" = "Invalid DIPUL URL";
+"DIPUL request failed (HTTP %d)" = "DIPUL request failed (HTTP %d)";
+"DIPUL decoding: %@" = "DIPUL decoding: %@";
+"No DIPUL weather data available" = "No DIPUL weather data available";
+"Location outside DIPUL coverage (Central Europe only)" = "Location outside DIPUL coverage (Central Europe only)";

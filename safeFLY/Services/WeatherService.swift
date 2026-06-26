@@ -79,10 +79,17 @@ final class WeatherService {
 
         var errorDescription: String? {
             switch self {
-            case .invalidURL: return "Invalid request URL"
-            case .requestFailed: return "Request failed"
-            case .missingCurrentWeather: return "No current weather in response"
-            case .decodingFailed(let msg): return "Decoding failed: \(msg)"
+            case .invalidURL:
+                return NSLocalizedString("Invalid request URL", comment: "Weather service invalid URL error")
+            case .requestFailed:
+                return NSLocalizedString("Request failed", comment: "Weather service request failed error")
+            case .missingCurrentWeather:
+                return NSLocalizedString("No current weather in response", comment: "Weather service missing current weather error")
+            case .decodingFailed(let msg):
+                return String.localizedStringWithFormat(
+                    NSLocalizedString("Decoding failed: %@", comment: "Weather service decoding failed error"),
+                    msg
+                )
             }
         }
     }

@@ -31,11 +31,11 @@ enum DroneClass: String, CaseIterable, Codable {
     
     var description: String {
         switch self {
-        case .c0: return "C0 - <250g"
-        case .c1: return "C1 - <900g"
-        case .c2: return "C2 - <4kg"
-        case .c3: return "C3 - <25kg"
-        case .c4: return "C4 - <25kg"
+        case .c0: return NSLocalizedString("C0 - <250g", comment: "Drone class C0 label")
+        case .c1: return NSLocalizedString("C1 - <900g", comment: "Drone class C1 label")
+        case .c2: return NSLocalizedString("C2 - <4kg", comment: "Drone class C2 label")
+        case .c3: return NSLocalizedString("C3 - <25kg", comment: "Drone class C3 label")
+        case .c4: return NSLocalizedString("C4 - <25kg", comment: "Drone class C4 label")
         }
     }
 }
