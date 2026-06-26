@@ -31,6 +31,19 @@ enum FlightAssessmentOutcome: Sendable {
     case allowed
     case conditional
     case prohibited
+
+    // Ordered severity so verdicts from any provider/country can be combined by taking
+    // the most restrictive one, without the combiner needing to know national rules.
+    nonisolated var severityRank: Int {
+        switch self {
+        case .allowed:
+            return 0
+        case .conditional:
+            return 1
+        case .prohibited:
+            return 2
+        }
+    }
 }
 
 struct SourceProvenance: Sendable {
@@ -155,9 +168,33 @@ enum ZoneCategory: Sendable {
     }
 }
 
+extension Array where Element == ZoneFeature {
+    // Stable display order shared by per-provider results and the combined aggregate:
+    // most-significant category first, then by content id for determinism.
+    nonisolated func sortedByDisplayPriority() -> [ZoneFeature] {
+        sorted { lhs, rhs in
+            if lhs.category.displayPriority != rhs.category.displayPriority {
+                return lhs.category.displayPriority < rhs.category.displayPriority
+            }
+            return lhs.id < rhs.id
+        }
+    }
+
+    // Collapses features that are identical to the user. Providers often return several
+    // overlapping polygons that share the same content-derived id, differing only by an
+    // internal feature id — they would otherwise show up as repeated identical rows.
+    nonisolated func deduplicatedByID() -> [ZoneFeature] {
+        var seenFeatureIDs = Set<String>()
+        return filter { seenFeatureIDs.insert($0.id).inserted }
+    }
+}
+
 struct ZoneFeature: Identifiable, Sendable {
     let id: String
     let category: ZoneCategory
+    // The flight verdict this single feature contributes, decided by the originating
+    // provider's normalizer according to that country's regulations.
+    let restrictionLevel: FlightAssessmentOutcome
     let name: String?
     let sourceDeclaredType: String?
     let sourceDeclaredRestriction: String?
@@ -165,18 +202,25 @@ struct ZoneFeature: Identifiable, Sendable {
     let upperLimit: AltitudeLimit?
     let legalReference: String?
     let source: SourceProvenance
+    // BCP-47 language of `sourceDeclaredRestriction` when it is raw text from the provider's
+    // API (e.g. Dutch from PDOK). nil means the text is already in the user's language
+    // (our own localized advisories) and must not be machine-translated.
+    let restrictionSourceLanguage: String?
 
     nonisolated init(
         category: ZoneCategory,
+        restrictionLevel: FlightAssessmentOutcome,
         name: String?,
         sourceDeclaredType: String?,
         sourceDeclaredRestriction: String?,
         lowerLimit: AltitudeLimit?,
         upperLimit: AltitudeLimit?,
         legalReference: String?,
-        source: SourceProvenance
+        source: SourceProvenance,
+        restrictionSourceLanguage: String? = nil
     ) {
         self.category = category
+        self.restrictionLevel = restrictionLevel
         self.name = name
         self.sourceDeclaredType = sourceDeclaredType
         self.sourceDeclaredRestriction = sourceDeclaredRestriction
@@ -184,6 +228,7 @@ struct ZoneFeature: Identifiable, Sendable {
         self.upperLimit = upperLimit
         self.legalReference = legalReference
         self.source = source
+        self.restrictionSourceLanguage = restrictionSourceLanguage
         self.id = ZoneFeature.makeID(
             category: category,
             name: name,

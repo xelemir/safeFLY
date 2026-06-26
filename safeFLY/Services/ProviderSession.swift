@@ -9,9 +9,15 @@ import Combine
 protocol GeospatialProvider: Sendable {
     nonisolated var id: String { get }
     nonisolated var displayName: String { get }
+    nonisolated var attributionName: String { get }
     nonisolated var capabilities: ProviderCapabilities { get }
     nonisolated var datasets: [ProviderDataset] { get }
     nonisolated var referenceLinks: [ProviderReferenceLink] { get }
+    
+    nonisolated var downloadURL: URL? { get }
+    nonisolated var isDataDownloaded: Bool { get }
+    nonisolated func downloadData() async throws
+    nonisolated func deleteData()
 
     nonisolated func refreshStatus() async -> ProviderStatusSnapshot
     nonisolated func renderPayloads(
@@ -24,6 +30,17 @@ protocol GeospatialProvider: Sendable {
         selectedDatasetIDs: Set<String>,
         status: ProviderStatusSnapshot
     ) async -> ProviderQueryOutcome
+
+    nonisolated func intersects(_ region: MapRegion) -> Bool
+}
+
+extension GeospatialProvider {
+    nonisolated var attributionName: String { displayName }
+    nonisolated var downloadURL: URL? { nil }
+    nonisolated var isDataDownloaded: Bool { true }
+    nonisolated func downloadData() async throws {}
+    nonisolated func deleteData() {}
+    nonisolated func intersects(_ region: MapRegion) -> Bool { true }
 }
 
 protocol ZoneFeatureNormalizing: Sendable {
@@ -233,38 +250,6 @@ final class ProviderSession: ObservableObject, Identifiable {
         applyStatusSnapshot(refreshedSnapshot)
     }
 
-    func refreshRenderPayloads(for request: ProviderRenderRequest) async {
-        guard let job = makeRenderJob(for: request) else {
-            renderPayloads = []
-            return
-        }
-
-        renderPayloads = await job.provider.renderPayloads(
-            for: job.request,
-            selectedDatasetIDs: job.selectedDatasetIDs,
-            status: job.statusSnapshot
-        )
-    }
-
-    func queryLocation(for request: ProviderPointQueryRequest) async {
-        guard let job = makeQueryJob(for: request) else {
-            applyNonAssessmentNoEnabledLayers()
-            return
-        }
-
-        isLoading = true
-        zoneQueryResult = nil
-
-        let outcome = await job.provider.query(
-            for: job.request,
-            selectedDatasetIDs: job.selectedDatasetIDs,
-            status: job.statusSnapshot
-        )
-
-        applyQueryOutcome(outcome)
-        isLoading = false
-    }
-
     private func selectedDatasetIDsForRendering() -> Set<String> {
         Set(
             provider.datasets
@@ -288,14 +273,7 @@ final class ProviderSession: ObservableObject, Identifiable {
         case .unavailable(let reason):
             return .unavailable(reason: mapUnavailableReason(reason))
         case .matches(let records):
-            let features = normalizer.normalize(records: records)
-                .sorted { lhs, rhs in
-                    if lhs.category.displayPriority != rhs.category.displayPriority {
-                        return lhs.category.displayPriority < rhs.category.displayPriority
-                    }
-
-                    return lhs.id < rhs.id
-                }
+            let features = normalizer.normalize(records: records).sortedByDisplayPriority()
             let assessment = ZoneAssessmentEvaluator.evaluate(features: features)
             return .matches(features: features, assessment: assessment)
         }

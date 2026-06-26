@@ -28,6 +28,12 @@ struct MapRegion: Equatable, Hashable, Codable, Sendable {
     let center: MapCoordinate
     let latitudeDelta: Double
     let longitudeDelta: Double
+
+    // Whether this region's center falls inside a coarse country outline. See
+    // `GeoMath.contains(_:outline:)` for why the center settles map attribution.
+    nonisolated func centerIsInside(_ outline: [(lat: Double, lon: Double)]) -> Bool {
+        GeoMath.contains(center, outline: outline)
+    }
 }
 
 struct MapViewportSize: Equatable, Hashable, Codable, Sendable {
@@ -78,14 +84,24 @@ struct ProviderDataset: Identifiable, Sendable {
     let isSelectedByDefault: Bool
 }
 
+// Builds a localized dataset presentation from string-table keys. Shared by every provider
+// so dataset titles are localized consistently.
+nonisolated func localizedProviderPresentation(title: String, groupTitle: String) -> ProviderDatasetPresentation {
+    ProviderDatasetPresentation(
+        title: NSLocalizedString(title, comment: "Provider dataset title"),
+        groupTitle: NSLocalizedString(groupTitle, comment: "Provider dataset group title")
+    )
+}
+
 enum ProviderAvailabilityStatus: String, Codable, Sendable {
     case unknown
     case available
     case degraded
     case unavailable
+    case downloadRequired
 }
 
-struct ProviderStatusSnapshot: Equatable, Codable, Sendable {
+nonisolated struct ProviderStatusSnapshot: Equatable, Codable, Sendable {
     let providerStatus: ProviderAvailabilityStatus
     let datasetStatuses: [String: ProviderAvailabilityStatus]
     // Individual source layer IDs known to be broken at the provider. Layers in this
@@ -116,11 +132,11 @@ struct ProviderStatusSnapshot: Equatable, Codable, Sendable {
         refreshedAt = try container.decodeIfPresent(Date.self, forKey: .refreshedAt)
     }
 
-    nonisolated func status(for datasetID: String) -> ProviderAvailabilityStatus {
+    func status(for datasetID: String) -> ProviderAvailabilityStatus {
         datasetStatuses[datasetID] ?? .unknown
     }
 
-    nonisolated func isLayerBroken(_ layerID: String) -> Bool {
+    func isLayerBroken(_ layerID: String) -> Bool {
         brokenLayerIDs.contains(layerID)
     }
 
