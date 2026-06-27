@@ -11,7 +11,7 @@
 import Foundation
 import CoreLocation
 
-struct ED269Geometry: Codable, Sendable {
+nonisolated struct ED269Geometry: Codable, Sendable {
     let upperLimit: Double?
     let lowerLimit: Double?
     let uomDimensions: String?
@@ -20,14 +20,14 @@ struct ED269Geometry: Codable, Sendable {
     let horizontalProjection: ED269HorizontalProjection
 }
 
-struct ED269HorizontalProjection: Codable, Sendable {
+nonisolated struct ED269HorizontalProjection: Codable, Sendable {
     let type: String
     let center: [Double]?           // [lon, lat]
     let radius: Double?             // meters
     let coordinates: [[[Double]]]?  // exterior/interior rings, each point [lon, lat]
 }
 
-extension Array where Element == ED269Geometry {
+nonisolated extension Array where Element == ED269Geometry {
     // Axis-aligned bounds across every geometry, used to cheaply pre-filter a zone before
     // running the more expensive point-in-polygon / geodesic tests.
     var boundingBox: BoundingBox? {

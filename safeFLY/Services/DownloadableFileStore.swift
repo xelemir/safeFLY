@@ -22,6 +22,11 @@ struct DownloadableFileStore: Sendable {
         FileManager.default.fileExists(atPath: localURL.path)
     }
 
+    nonisolated var modificationDate: Date? {
+        let attributes = try? FileManager.default.attributesOfItem(atPath: localURL.path)
+        return attributes?[.modificationDate] as? Date
+    }
+
     // Downloads the remote payload, runs the caller's validation, writes it atomically and
     // returns the bytes. Validation lets the provider reject malformed responses before they
     // overwrite a previously good local copy.

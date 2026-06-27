@@ -123,6 +123,7 @@
 "DFS DIPUL Datasource" = "DFS DIPUL Datenquelle";
 "Version" = "Version";
 "Version %@" = "Version %@";
+"App Version %@" = "App-Version %@";
 "© %@ Jan Grüttefien and safeFLY contributors" = "© %@ Jan Grüttefien und safeFLY-Mitwirkende";
 "About" = "Über";
 "Airports" = "Flughäfen";
@@ -268,10 +269,11 @@
 /* Provider Management */
 "Providers" = "Anbieter";
 "Manage built-in geospatial providers and configure their provider-specific datasets." = "Verwalte die eingebauten Geodaten-Anbieter und konfiguriere ihre jeweiligen Datensätze.";
+"Each provider covers one country's airspace. Only enable providers for countries you plan to fly in." = "Jeder Anbieter deckt den Luftraum eines Landes ab. Aktiviere nur Anbieter für Länder, in denen du fliegen möchtest.";
 "Refreshing Status..." = "Status wird aktualisiert...";
 "Refresh Provider Status" = "Anbieter-Status aktualisieren";
 "Provider Status" = "Anbieter-Status";
-"Last refreshed at %@." = "Zuletzt aktualisiert: %@.";
+"Last refreshed on %@." = "Zuletzt aktualisiert: %@.";
 "Provider status has not been refreshed yet." = "Der Anbieter-Status wurde noch nicht aktualisiert.";
 "Enable Provider" = "Anbieter aktivieren";
 "Disabled providers do not participate in map rendering or location queries." = "Deaktivierte Anbieter werden weder auf der Karte angezeigt noch in Ortsabfragen berücksichtigt.";
@@ -313,6 +315,9 @@
 "Offline data package downloaded and ready. You can enable or disable the provider." = "Offline-Datenpaket heruntergeladen und bereit. Du kannst den Anbieter aktivieren oder deaktivieren.";
 "Download this provider's data package to view restrictions. The package will be updated automatically when new data is available." = "Lade das Datenpaket dieses Anbieters herunter, um Einschränkungen anzuzeigen. Das Paket wird automatisch aktualisiert, wenn neue Daten verfügbar sind.";
 "Download Failed" = "Download fehlgeschlagen";
+"Data Package last updated" = "Datenpaket zuletzt aktualisiert";
+"Update Now" = "Jetzt aktualisieren";
+"Updating Data..." = "Daten werden aktualisiert...";
 
 /* Dutch ED-269 JSON Curated Advices */
 "NLD.NOTE.ALL_PROHIBITED" = "Drohnenflüge sind in diesem Bereich generell verboten.";
@@ -330,6 +335,28 @@
 "Austro Control (Austria)" = "Austro Control 🇦🇹";
 "Austro Control Dronespace" = "Austro Control Dronespace";
 
+/* Switzerland (FOCA) provider */
+"FOCA (Switzerland)" = "BAZL 🇨🇭";
+"Geographical flight restrictions (FOCA)" = "Geografische Flugeinschränkungen (BAZL)";
+
+/* Luxembourg (DAC) provider */
+"DAC (Luxembourg)" = "DAC 🇱🇺";
+"UAS Geographical Zones (DAC)" = "Geografische UAS-Zonen (DAC)";
+
+/* Czech Republic (ŘLP) provider */
+"ŘLP (Czech Republic)" = "ŘLP 🇨🇿";
+"DroneMap (ŘLP ČR)" = "DroneMap (ŘLP ČR)";
+"Airport Zones" = "Flughafenzonen";
+"Military Objects" = "Militärische Objekte";
+"Protected Areas" = "Schutzgebiete";
+"Power Network" = "Stromnetz";
+"Roads" = "Straßen";
+"Water Sources" = "Wasserquellen";
+"Population Height Zones" = "Bevölkerungs-Höhenzonen";
+"Nature" = "Natur";
+"Security" = "Sicherheit";
+"Population" = "Bevölkerung";
+
 /* France (DGAC) provider */
 "DGAC (France)" = "DGAC 🇫🇷";
 "Carte des restrictions drones (Géoportail)" = "Carte des restrictions drones (Géoportail)";
@@ -339,3 +366,16 @@
 "FRA.RESTRICTION.MAX_HEIGHT" = "Maximale Flughöhe: %@ m über Grund.";
 "FRA.NOTE.NOTIFICATION_900G" = "Für Luftfahrzeuge mit einer Masse über 900 g ist eine vorherige Anmeldung erforderlich.";
 "FRA.NOTE.AGGLOMERATION" = "Das Fliegen über öffentlichem Raum in bebauten Gebieten ist ohne präfektorale Genehmigung verboten (offene Kategorie oder Modellflug).";
+
+/* Luxembourg (DAC) fallback regulations */
+"LUX.NOTE.AIRPORT_PROHIBITED" = "Flughafenbereich. Drohnenflüge sind zum Schutz des Flugverkehrs verboten.";
+"LUX.NOTE.AIRPORT_CONDITIONAL" = "Flughafenbereich. Drohnenflüge erfordern die vorherige Genehmigung oder Koordinierung durch den Flughafenbetreiber oder die Flugsicherung.";
+"LUX.NOTE.MILITARY_REQ_AUTHORISATION" = "Militärische Anlage. Drohnenflüge sind verboten, es sei denn, es liegt eine Genehmigung der luxemburgischen Armee vor.";
+"LUX.NOTE.HOSPITAL_HELIPAD" = "Krankenhaus-Hubschrauberlandeplatz. Drohnenflüge erfordern eine vorherige Koordinierung, um Rettungshubschrauber nicht zu gefährden.";
+"LUX.NOTE.STADIUM_PROHIBITED" = "Sportstätte / Fußballstadion. Drohnenflüge sind zum Schutz von Menschenansammlungen verboten.";
+"LUX.NOTE.POLICE_REQ_AUTHORISATION" = "Polizeiliche Einrichtung. Drohnenflüge erfordern eine vorherige Genehmigung der Großherzoglichen Polizei.";
+"LUX.NOTE.SENSITIVE_REQ_AUTHORISATION" = "Sensibler Bereich. Drohnenflüge erfordern eine vorherige Genehmigung der zuständigen Behörde.";
+
+/* Offline Packages Status Footer */
+"Data Package last updated at %@." = "Datenpaket zuletzt aktualisiert am %@.";
+"Data Package has not been downloaded yet." = "Datenpaket wurde noch nicht heruntergeladen.";

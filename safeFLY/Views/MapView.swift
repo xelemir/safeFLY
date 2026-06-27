@@ -8,6 +8,7 @@
 import SwiftUI
 import MapKit
 import StoreKit
+import UIKit
 
 
 struct MapView: View {
@@ -111,6 +112,15 @@ struct MapView: View {
             .sheet(isPresented: $showZoneInfo, onDismiss: handleSheetDismiss) {
                 zoneInfoSheet
             }
+            .onChange(of: showZoneInfo) { _, isPresented in
+                // Clear the tapped-location marker the instant dismissal begins. Doing this
+                // in the sheet's onDismiss instead made the pin linger, because onDismiss
+                // only fires once the slide-down animation has fully finished.
+                if !isPresented {
+                    tappedLocation = nil
+                    providersStore.clearZoneQueryResult()
+                }
+            }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
             }
@@ -140,9 +150,8 @@ struct MapView: View {
             }
             .onChange(of: droneSettings.dismissActiveSheet) { _, newValue in
                 if newValue {
+                    // Marker and query result are cleared by onChange(of: showZoneInfo).
                     showZoneInfo = false
-                    tappedLocation = nil
-                    providersStore.clearZoneQueryResult()
                     droneSettings.dismissActiveSheet = false
                 }
             }
@@ -305,6 +314,15 @@ struct MapView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .background(
+            // Swipe-to-dismiss is interactive: SwiftUI only flips `showZoneInfo` (and runs
+            // onDismiss) once the slide-out animation finishes, so clearing the marker there
+            // makes it linger. presentationControllerWillDismiss fires the moment the swipe
+            // is committed, so the pin clears in step with the gesture.
+            SheetInteractiveDismissDetector {
+                tappedLocation = nil
+            }
+        )
     }
     
     @ToolbarContentBuilder
@@ -341,11 +359,9 @@ struct MapView: View {
     // MARK: - Helper Methods
     
     private func handleSheetDismiss() {
-        // Runs for every dismissal — the X button and an interactive swipe-down — so the
-        // tapped-location marker and query result are always cleared, not just via the X.
-        tappedLocation = nil
-        providersStore.clearZoneQueryResult()
-
+        // Marker/query-result clearing is handled eagerly in onChange(of: showZoneInfo) so
+        // the pin doesn't linger through the dismiss animation; this only runs the
+        // rating-prompt bookkeeping once the sheet has fully closed.
         if sheetClosedCount < 2 {
             sheetClosedCount += 1
         }
@@ -780,6 +796,66 @@ struct DetailRow: View {
     MapView()
         .environmentObject(DroneSettings())
         .environmentObject(ProvidersStore(registrations: BuiltInProviders.all))
+}
+
+// Bridges to UIKit's `presentationControllerWillDismiss`, the only callback that fires when
+// an interactive (swipe-down) sheet dismissal is committed rather than after its animation
+// completes — which is what SwiftUI's `onDismiss` and the isPresented binding report. It
+// installs itself as the sheet's delegate and forwards every other call to SwiftUI's own
+// delegate, so standard dismissal behaviour is preserved.
+private struct SheetInteractiveDismissDetector: UIViewControllerRepresentable {
+    let onWillDismiss: () -> Void
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        UIViewController()
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        context.coordinator.onWillDismiss = onWillDismiss
+
+        // Walk up to the presented controller that actually owns the sheet.
+        var controller: UIViewController = uiViewController
+        while let parent = controller.parent { controller = parent }
+        guard let sheet = controller.sheetPresentationController else { return }
+        if sheet.delegate !== context.coordinator {
+            context.coordinator.forwardee = sheet.delegate
+            sheet.delegate = context.coordinator
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onWillDismiss: onWillDismiss)
+    }
+
+    final class Coordinator: NSObject, UISheetPresentationControllerDelegate {
+        var onWillDismiss: () -> Void
+        // Touched only on the main thread (set during updateUIViewController, read while
+        // forwarding delegate calls), so the nonisolated overrides can reach it safely.
+        nonisolated(unsafe) weak var forwardee: (any UIAdaptivePresentationControllerDelegate)?
+
+        init(onWillDismiss: @escaping () -> Void) {
+            self.onWillDismiss = onWillDismiss
+        }
+
+        func presentationControllerWillDismiss(_ presentationController: UIPresentationController) {
+            onWillDismiss()
+            forwardee?.presentationControllerWillDismiss?(presentationController)
+        }
+
+        // Forward every other delegate call to SwiftUI's original delegate so the sheet's
+        // own dismissal handling (binding sync, onDismiss, interactive-dismiss policy) stays
+        // intact.
+        nonisolated override func responds(to aSelector: Selector!) -> Bool {
+            super.responds(to: aSelector) || (forwardee?.responds(to: aSelector) ?? false)
+        }
+
+        nonisolated override func forwardingTarget(for aSelector: Selector!) -> Any? {
+            if forwardee?.responds(to: aSelector) == true {
+                return forwardee
+            }
+            return super.forwardingTarget(for: aSelector)
+        }
+    }
 }
 
 private extension MapRegion {

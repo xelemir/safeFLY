@@ -15,17 +15,33 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
     
     private var completer = MKLocalSearchCompleter()
     
-    private let germanIndicators = [
-        "Deutschland", "Germany", "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg", 
-        "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen", 
-        "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen", 
-        "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen"
+    // Subtitles for German results usually show the state rather than the country,
+    // so every Bundesland is listed. France, Austria and the Netherlands surface the
+    // country name in the subtitle, so matching the country (local + English) is enough.
+    private let supportedIndicators = [
+        // Germany
+        "Deutschland", "Germany", "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg",
+        "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen",
+        "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen",
+        "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen",
+        // France
+        "Frankreich", "France",
+        // Austria
+        "Österreich", "Austria",
+        // Netherlands
+        "Niederlande", "Netherlands", "Nederland",
+        // Switzerland (+ Liechtenstein, which the Swiss provider also covers)
+        "Schweiz", "Switzerland", "Suisse", "Svizzera", "Svizra", "Liechtenstein",
+        // Luxembourg
+        "Luxemburg", "Luxembourg", "Lëtzebuerg",
+        // Czech Republic
+        "Tschechien", "Tschechische Republik", "Czech Republic", "Czechia", "Česko", "Česká republika"
     ]
-    
+
     override init() {
         super.init()
         completer.delegate = self
-        completer.region = MKCoordinateRegion.germany
+        completer.region = MKCoordinateRegion.supportedCountries
         completer.resultTypes = [.address, .pointOfInterest]
     }
     
@@ -35,7 +51,7 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
     
     func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
         let filtered = completer.results.filter { completion in
-            germanIndicators.contains { indicator in
+            supportedIndicators.contains { indicator in
                 completion.subtitle.contains(indicator)
             }
         }

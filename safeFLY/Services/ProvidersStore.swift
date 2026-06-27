@@ -14,9 +14,12 @@ struct ProviderRegistration {
 enum BuiltInProviders {
     static let all: [ProviderRegistration] = [
         ProviderRegistration(provider: DIPULProvider(), normalizer: DIPULZoneNormalizer()),
-        ProviderRegistration(provider: NetherlandsProvider(), normalizer: NetherlandsZoneNormalizer()),
         ProviderRegistration(provider: FranceProvider(), normalizer: FranceZoneNormalizer()),
-        ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer())
+        ProviderRegistration(provider: SwitzerlandProvider(), normalizer: SwitzerlandZoneNormalizer()),
+        ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer()),
+        ProviderRegistration(provider: CzechProvider(), normalizer: CzechZoneNormalizer()),
+        ProviderRegistration(provider: NetherlandsProvider(), normalizer: NetherlandsZoneNormalizer()),
+        ProviderRegistration(provider: LuxembourgProvider(), normalizer: LuxembourgZoneNormalizer())
     ]
 }
 
@@ -74,9 +77,24 @@ final class ProvidersStore: ObservableObject {
             let wasEnabled = enabledProviderIDs.contains(providerID)
             enabledProviderIDs.insert(providerID)
             // Probe a provider the moment it is turned on so its status reflects reality
-            // instead of staying stale until the next app foreground.
+            // instead of staying stale until the next app foreground. Auto-downloading
+            // providers also fetch their dataset right away, so the first enable doesn't
+            // require a manual download step or wait for the next foreground.
             if !wasEnabled {
+                let session = providerSession(for: providerID)
+                let provider = session?.provider
+                // Live (online) providers have no local data to check, so reflect "available"
+                // immediately rather than leaving the status "unknown" until the real probe
+                // returns. The probe below then corrects it if a layer is actually down.
+                if let session, let provider, provider.downloadURL == nil {
+                    session.applyOptimisticAvailableStatus()
+                    configurationRevision += 1
+                }
                 Task {
+                    if let provider, provider.autoDownloadsDataset, !provider.isDataDownloaded {
+                        try? await provider.downloadData()
+                        markConfigurationChanged()
+                    }
                     await refreshStatus(for: providerID)
                 }
             }
@@ -134,14 +152,17 @@ final class ProvidersStore: ObservableObject {
         for session in sessions {
             let provider = session.provider
 
-            // Only providers backed by a downloadable file the user already has locally.
-            guard provider.downloadURL != nil, provider.isDataDownloaded else {
+            // Only providers backed by a downloadable file. Normally the user must have a
+            // local copy already; auto-downloading providers (small, frequently-updated
+            // feeds) are fetched even on their first foreground.
+            guard provider.downloadURL != nil,
+                  provider.isDataDownloaded || provider.autoDownloadsDataset else {
                 continue
             }
 
             let storageKey = "provider.dataset.refreshed-at.\(provider.id)"
             if let lastRefresh = UserDefaults.standard.object(forKey: storageKey) as? Date,
-               now.timeIntervalSince(lastRefresh) < Self.datasetRefreshInterval {
+               now.timeIntervalSince(lastRefresh) < provider.datasetRefreshInterval {
                 continue
             }
 

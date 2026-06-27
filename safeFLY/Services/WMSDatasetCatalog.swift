@@ -62,6 +62,24 @@ struct WMSDatasetCatalog: Sendable {
     // the rectangular `coverageBounds`) for a query to fire, so taps in neighbouring
     // countries that overlap the bounding box never trigger a pointless GetFeatureInfo call.
     let coverage: CountryCoverage?
+    // The CRS sent to the WMS. Defaults to EPSG:4326 (WMS 1.3.0 lat,lon axis order). Some
+    // servers — e.g. the ArcGIS WMS backing the Czech provider — reject 4326 for GetMap and
+    // require EPSG:3857 (web-mercator metres, x,y axis order).
+    let crs: String
+
+    nonisolated init(
+        baseURL: String,
+        definitions: [DatasetDefinition],
+        coverageBounds: CoverageBounds,
+        coverage: CountryCoverage? = nil,
+        crs: String = "EPSG:4326"
+    ) {
+        self.baseURL = baseURL
+        self.definitions = definitions
+        self.coverageBounds = coverageBounds
+        self.coverage = coverage
+        self.crs = crs
+    }
 
     private enum LayerStatus: Equatable {
         case working
@@ -120,21 +138,40 @@ struct WMSDatasetCatalog: Sendable {
         viewportSize: MapViewportSize,
         encodedLayers: String
     ) -> URL? {
-        let box = boundingBox(for: region)
         let urlString = "\(baseURL)?" +
             "service=WMS&" +
             "version=1.3.0&" +
             "request=GetMap&" +
             "layers=\(encodedLayers)&" +
             "styles=&" +
-            "crs=EPSG:4326&" +
-            "bbox=\(box.minLat),\(box.minLon),\(box.maxLat),\(box.maxLon)&" +
+            "crs=\(crs)&" +
+            "bbox=\(bboxString(for: region))&" +
             "width=\(viewportSize.width)&" +
             "height=\(viewportSize.height)&" +
             "format=image/png&" +
             "transparent=true"
 
         return URL(string: urlString)
+    }
+
+    // WMS 1.3.0 axis order is CRS-dependent: EPSG:4326 is lat,lon (degrees); EPSG:3857 is
+    // x,y (web-mercator metres). The bbox string is formatted accordingly.
+    nonisolated private func bboxString(for region: MapRegion) -> String {
+        let box = boundingBox(for: region)
+        if crs == "EPSG:3857" {
+            let min = Self.mercator(lon: box.minLon, lat: box.minLat)
+            let max = Self.mercator(lon: box.maxLon, lat: box.maxLat)
+            return "\(min.x),\(min.y),\(max.x),\(max.y)"
+        }
+        return "\(box.minLat),\(box.minLon),\(box.maxLat),\(box.maxLon)"
+    }
+
+    nonisolated static func mercator(lon: Double, lat: Double) -> (x: Double, y: Double) {
+        let x = lon * 20_037_508.34 / 180.0
+        let clampedLat = Swift.max(-85.05112878, Swift.min(85.05112878, lat))
+        var y = log(tan((90.0 + clampedLat) * .pi / 360.0)) / (.pi / 180.0)
+        y = y * 20_037_508.34 / 180.0
+        return (x, y)
     }
 
     nonisolated func getFeatureInfoURL(
@@ -156,8 +193,8 @@ struct WMSDatasetCatalog: Sendable {
             "layers=\(encodedLayers)&" +
             "query_layers=\(encodedLayers)&" +
             "styles=&" +
-            "crs=EPSG:4326&" +
-            "bbox=\(box.minLat),\(box.minLon),\(box.maxLat),\(box.maxLon)&" +
+            "crs=\(crs)&" +
+            "bbox=\(bboxString(for: region))&" +
             "width=\(viewportSize.width)&" +
             "height=\(viewportSize.height)&" +
             "i=\(x)&" +
@@ -249,10 +286,18 @@ struct WMSDatasetCatalog: Sendable {
         let encodedLayer = layer.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? layer
         let testLat = (coverageBounds.minLat + coverageBounds.maxLat) / 2
         let testLon = (coverageBounds.minLon + coverageBounds.maxLon) / 2
+        let testBBox: String
+        if crs == "EPSG:3857" {
+            let min = Self.mercator(lon: testLon, lat: testLat)
+            let max = Self.mercator(lon: testLon + 0.1, lat: testLat + 0.1)
+            testBBox = "\(min.x),\(min.y),\(max.x),\(max.y)"
+        } else {
+            testBBox = "\(testLat),\(testLon),\(testLat + 0.1),\(testLon + 0.1)"
+        }
         let urlString = "\(baseURL)?" +
             "service=WMS&version=1.3.0&request=GetMap&" +
-            "layers=\(encodedLayer)&styles=&crs=EPSG:4326&" +
-            "bbox=\(testLat),\(testLon),\(testLat + 0.1),\(testLon + 0.1)&" +
+            "layers=\(encodedLayer)&styles=&crs=\(crs)&" +
+            "bbox=\(testBBox)&" +
             "width=1&height=1&format=image/png&transparent=true"
 
         guard let url = URL(string: urlString) else { return .broken }

@@ -10,7 +10,7 @@
 
 import Foundation
 
-struct ATZone: Codable, Sendable {
+nonisolated struct ATZone: Codable, Sendable {
     let zoneId: String?
     let identifier: String?
     let country: String?
@@ -27,13 +27,13 @@ struct ATZone: Codable, Sendable {
     func contains(_ coordinate: MapCoordinate) -> Bool { geometry.contains(coordinate) }
 }
 
-struct ATExtendedProperties: Codable, Sendable {
+nonisolated struct ATExtendedProperties: Codable, Sendable {
     let legalBasis: String?
     let legalBasisURL: String?
     let localizedMessages: [ATLocalizedMessage]?
 }
 
-struct ATLocalizedMessage: Codable, Sendable {
+nonisolated struct ATLocalizedMessage: Codable, Sendable {
     let language: String?
     let message: String?
 }
@@ -72,7 +72,7 @@ final class AustriaProvider: GeospatialProvider, @unchecked Sendable {
         remoteURL: URL(string: "https://gruettecloud.com/safefly/download-json?country=AT")!
     )
 
-    private static let datasetID = "airspace.restricted-zones"
+    nonisolated private static let datasetID = "airspace.restricted-zones"
 
     nonisolated var datasets: [ProviderDataset] {
         [
@@ -107,6 +107,10 @@ final class AustriaProvider: GeospatialProvider, @unchecked Sendable {
 
     nonisolated var isDataDownloaded: Bool {
         store.isDownloaded
+    }
+
+    nonisolated var datasetLastUpdated: Date? {
+        store.modificationDate
     }
 
     @MainActor private var _parsedZones: [ATZone] = []

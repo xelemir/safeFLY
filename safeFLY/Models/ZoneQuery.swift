@@ -27,7 +27,7 @@ enum UnavailableReason: Sendable {
     case invalidResponse
 }
 
-enum FlightAssessmentOutcome: Sendable {
+nonisolated enum FlightAssessmentOutcome: Sendable {
     case allowed
     case conditional
     case prohibited
@@ -96,7 +96,7 @@ enum ZoneCategory: Sendable {
     case modelFlyingField
     case temporaryRestrictionInactive
 
-    var displayPriority: Int {
+    nonisolated var displayPriority: Int {
         switch self {
         case .airport:
             return 0

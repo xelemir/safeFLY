@@ -16,6 +16,14 @@ protocol GeospatialProvider: Sendable {
     
     nonisolated var downloadURL: URL? { get }
     nonisolated var isDataDownloaded: Bool { get }
+    nonisolated var datasetLastUpdated: Date? { get }
+    // Minimum time between silent background refreshes of a downloadable dataset. Providers
+    // whose feed changes frequently (e.g. Luxembourg) can lower this to refresh every
+    // foreground; the default keeps large datasets to once a day.
+    nonisolated var datasetRefreshInterval: TimeInterval { get }
+    // Whether the dataset should be fetched automatically on foreground even before the user
+    // has explicitly downloaded it. Used for small, frequently-updated feeds.
+    nonisolated var autoDownloadsDataset: Bool { get }
     nonisolated func downloadData() async throws
     nonisolated func deleteData()
 
@@ -38,6 +46,9 @@ extension GeospatialProvider {
     nonisolated var attributionName: String { displayName }
     nonisolated var downloadURL: URL? { nil }
     nonisolated var isDataDownloaded: Bool { true }
+    nonisolated var datasetLastUpdated: Date? { nil }
+    nonisolated var datasetRefreshInterval: TimeInterval { 24 * 3600 }
+    nonisolated var autoDownloadsDataset: Bool { false }
     nonisolated func downloadData() async throws {}
     nonisolated func deleteData() {}
     nonisolated func intersects(_ region: MapRegion) -> Bool { true }
@@ -167,6 +178,20 @@ final class ProviderSession: ObservableObject, Identifiable {
     func applyStatusSnapshot(_ snapshot: ProviderStatusSnapshot) {
         statusSnapshot = snapshot
         persistStatusSnapshot(snapshot)
+    }
+
+    // Optimistically marks every dataset available so the UI reflects an "available" status
+    // the instant a live provider is enabled, instead of showing "unknown" until the real
+    // probe finishes (which can take a moment for a provider that probes several services).
+    // `refreshedAt` is left nil so this placeholder never suppresses the real probe.
+    func applyOptimisticAvailableStatus() {
+        applyStatusSnapshot(
+            ProviderStatusSnapshot(
+                providerStatus: .available,
+                datasetStatuses: Dictionary(uniqueKeysWithValues: provider.datasets.map { ($0.id, .available) }),
+                refreshedAt: nil
+            )
+        )
     }
 
     func makeRenderJob(for request: ProviderRenderRequest) -> ProviderRenderJob? {

@@ -146,6 +146,20 @@ struct ProviderDetailView: View {
                     }
                 }
                 .disabled(isRefreshingStatus)
+            } else {
+                Button {
+                    downloadOfflineData()
+                } label: {
+                    if isDownloading {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text(NSLocalizedString("Updating Data...", comment: "Offline data package update in progress"))
+                        }
+                    } else {
+                        Text(NSLocalizedString("Update Now", comment: "Update now button for offline data package"))
+                    }
+                }
+                .disabled(isDownloading)
             }
         } header: {
             Text(NSLocalizedString("Provider Status", comment: "Provider status section title"))
@@ -154,12 +168,23 @@ struct ProviderDetailView: View {
                 if let refreshedAt = providerSession.statusSnapshot.refreshedAt {
                     Text(
                         String.localizedStringWithFormat(
-                            NSLocalizedString("Last refreshed at %@.", comment: "Provider status last refreshed footer"),
+                            NSLocalizedString("Last refreshed on %@.", comment: "Provider status last refreshed footer"),
                             refreshedAt.formatted(date: .abbreviated, time: .shortened)
                         )
                     )
                 } else {
                     Text(NSLocalizedString("Provider status has not been refreshed yet.", comment: "Provider status not refreshed footer"))
+                }
+            } else {
+                if let lastUpdated = providerSession.provider.datasetLastUpdated {
+                    Text(
+                        String.localizedStringWithFormat(
+                            NSLocalizedString("Data Package last updated at %@.", comment: "Offline data package last updated footer"),
+                            lastUpdated.formatted(date: .abbreviated, time: .shortened)
+                        )
+                    )
+                } else {
+                    Text(NSLocalizedString("Data Package has not been downloaded yet.", comment: "Offline data package not downloaded footer"))
                 }
             }
         }

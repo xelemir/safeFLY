@@ -10,7 +10,7 @@ struct MapCoordinate: Equatable, Hashable, Codable, Sendable {
     let latitude: Double
     let longitude: Double
 
-    init(latitude: Double, longitude: Double) {
+    nonisolated init(latitude: Double, longitude: Double) {
         self.latitude = latitude
         self.longitude = longitude
     }

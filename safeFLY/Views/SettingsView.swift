@@ -21,7 +21,7 @@ struct SettingsView: View {
 
     var versionText: String {
         String.localizedStringWithFormat(
-            NSLocalizedString("Version %@", comment: "App version label, e.g. \"Version 1.4.0\""),
+            NSLocalizedString("App Version %@", comment: "App version label, e.g. \"App Version 1.4.0\""),
             appVersion
         )
     }
@@ -69,7 +69,7 @@ struct SettingsView: View {
                     Text(NSLocalizedString("Providers", comment: "Providers section title"))
                 } footer: {
                     Text(NSLocalizedString(
-                        "Manage built-in geospatial providers and configure their provider-specific datasets.",
+                        "Each provider covers one country's airspace. Only enable providers for countries you plan to fly in.",
                         comment: "Providers section footer"
                     ))
                 }
@@ -95,20 +95,18 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    VStack(spacing: 3) {
-                        Text("safeFLY")
-                            .fontWeight(.semibold)
+                    VStack(spacing: 6) {
+                        Text(copyrightText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
 
                         Text(versionText)
-
-                        Text(copyrightText)
-                            .multilineTextAlignment(.center)
-                            .padding(.top, 2)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
                     }
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 8)
                     .listRowBackground(Color.clear)
                     .contentShape(Rectangle())
                     .onTapGesture {

@@ -120,6 +120,7 @@
 "DFS DIPUL Datasource" = "DFS DIPUL Datasource";
 "Version" = "Version";
 "Version %@" = "Version %@";
+"App Version %@" = "App Version %@";
 "© %@ Jan Grüttefien and safeFLY contributors" = "© %@ Jan Grüttefien and safeFLY contributors";
 "About" = "About";
 "Airports" = "Airports";
@@ -266,10 +267,11 @@
 /* Provider Management */
 "Providers" = "Providers";
 "Manage built-in geospatial providers and configure their provider-specific datasets." = "Manage built-in geospatial providers and configure their provider-specific datasets.";
+"Each provider covers one country's airspace. Only enable providers for countries you plan to fly in." = "Each provider covers one country's airspace. Only enable providers for countries you plan to fly in.";
 "Refreshing Status..." = "Refreshing Status...";
 "Refresh Provider Status" = "Refresh Provider Status";
 "Provider Status" = "Provider Status";
-"Last refreshed at %@." = "Last refreshed at %@.";
+"Last refreshed on %@." = "Last refreshed on %@.";
 "Provider status has not been refreshed yet." = "Provider status has not been refreshed yet.";
 "Enable Provider" = "Enable Provider";
 "Disabled providers do not participate in map rendering or location queries." = "Disabled providers do not participate in map rendering or location queries.";
@@ -312,6 +314,9 @@
 "Offline data package downloaded and ready. You can enable or disable the provider." = "Offline data package downloaded and ready. You can enable or disable the provider.";
 "Download this provider's data package to view restrictions. The package will be updated automatically when new data is available." = "Download this provider's data package to view restrictions. The package will be updated automatically when new data is available.";
 "Download Failed" = "Download Failed";
+"Data Package last updated" = "Data Package last updated";
+"Update Now" = "Update Now";
+"Updating Data..." = "Updating Data...";
 
 /* Dutch ED-269 JSON Curated Advices */
 "NLD.NOTE.ALL_PROHIBITED" = "No drone flights are allowed in this area.";
@@ -329,6 +334,28 @@
 "Austro Control (Austria)" = "Austro Control 🇦🇹";
 "Austro Control Dronespace" = "Austro Control Dronespace";
 
+/* Switzerland (FOCA) provider */
+"FOCA (Switzerland)" = "FOCA 🇨🇭";
+"Geographical flight restrictions (FOCA)" = "Geographical flight restrictions (FOCA)";
+
+/* Luxembourg (DAC) provider */
+"DAC (Luxembourg)" = "DAC 🇱🇺";
+"UAS Geographical Zones (DAC)" = "UAS Geographical Zones (DAC)";
+
+/* Czech Republic (ŘLP) provider */
+"ŘLP (Czech Republic)" = "ŘLP 🇨🇿";
+"DroneMap (ŘLP ČR)" = "DroneMap (ŘLP ČR)";
+"Airport Zones" = "Airport Zones";
+"Military Objects" = "Military Objects";
+"Protected Areas" = "Protected Areas";
+"Power Network" = "Power Network";
+"Roads" = "Roads";
+"Water Sources" = "Water Sources";
+"Population Height Zones" = "Population Height Zones";
+"Nature" = "Nature";
+"Security" = "Security";
+"Population" = "Population";
+
 /* France (DGAC) provider */
 "DGAC (France)" = "DGAC 🇫🇷";
 "Carte des restrictions drones (Géoportail)" = "Carte des restrictions drones (Géoportail)";
@@ -338,3 +365,16 @@
 "FRA.RESTRICTION.MAX_HEIGHT" = "Maximum flight height: %@ m above ground level.";
 "FRA.NOTE.NOTIFICATION_900G" = "Prior notification is required for aircraft with a mass over 900 g.";
 "FRA.NOTE.AGGLOMERATION" = "Flying over public space in built-up areas is prohibited without prefectoral authorisation (open category or model aircraft).";
+
+/* Luxembourg (DAC) fallback regulations */
+"LUX.NOTE.AIRPORT_PROHIBITED" = "Airport zone. Drone flights are prohibited to ensure air traffic safety.";
+"LUX.NOTE.AIRPORT_CONDITIONAL" = "Airport zone. Drone flights require prior authorization or coordination from the airport operator or air traffic control.";
+"LUX.NOTE.MILITARY_REQ_AUTHORISATION" = "Military facility. Drone flights are prohibited unless explicit authorization from the Luxembourg Army is obtained.";
+"LUX.NOTE.HOSPITAL_HELIPAD" = "Hospital helipad. Drone flights require prior coordination or notification to avoid interfering with emergency medical helicopters.";
+"LUX.NOTE.STADIUM_PROHIBITED" = "Sports venue / football stadium. Drone flights are prohibited for safety and crowd protection.";
+"LUX.NOTE.POLICE_REQ_AUTHORISATION" = "Police facility. Drone flights require prior authorization from the Grand Ducal Police.";
+"LUX.NOTE.SENSITIVE_REQ_AUTHORISATION" = "Sensitive zone. Drone flights require prior authorization from the competent authority.";
+
+/* Offline Packages Status Footer */
+"Data Package last updated at %@." = "Data Package last updated at %@.";
+"Data Package has not been downloaded yet." = "Data Package has not been downloaded yet.";

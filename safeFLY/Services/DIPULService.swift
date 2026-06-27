@@ -237,4 +237,15 @@ extension MKCoordinateRegion {
             span: MKCoordinateSpan(latitudeDelta: 8.0, longitudeDelta: 8.0)
         )
     }
+
+    // Biases location search across every country safeFLY ships providers for:
+    // Germany, France, Austria and the Netherlands.
+    static var supportedCountries: MKCoordinateRegion {
+        // Centre/​span biases search completions toward the covered countries. Widened east so
+        // Czechia's eastern edge (~18.9° E) is comfortably inside the bias window.
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 48.5, longitude: 8.0),
+            span: MKCoordinateSpan(latitudeDelta: 17.0, longitudeDelta: 28.0)
+        )
+    }
 }

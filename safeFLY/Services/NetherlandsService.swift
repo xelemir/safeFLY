@@ -11,13 +11,13 @@ import Foundation
 import CoreLocation
 import MapKit
 
-struct NLDDroneZoneFile: Codable, Sendable {
+nonisolated struct NLDDroneZoneFile: Codable, Sendable {
     let title: String
     let description: String
     let features: [NLDZoneFeature]
 }
 
-struct NLDZoneFeature: Codable, Sendable {
+nonisolated struct NLDZoneFeature: Codable, Sendable {
     let identifier: String
     let country: String
     let name: String
@@ -100,6 +100,10 @@ final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
 
     nonisolated var isDataDownloaded: Bool {
         store.isDownloaded
+    }
+
+    nonisolated var datasetLastUpdated: Date? {
+        store.modificationDate
     }
 
     @MainActor private var _parsedFeatures: [NLDZoneFeature] = []
