@@ -13,6 +13,11 @@ protocol GeospatialProvider: Sendable {
     nonisolated var capabilities: ProviderCapabilities { get }
     nonisolated var datasets: [ProviderDataset] { get }
     nonisolated var referenceLinks: [ProviderReferenceLink] { get }
+    // The real country outline this provider serves drone data for. Used to draw the map
+    // coverage mask (areas with no provider are dimmed; covered-but-disabled providers are
+    // dimmed more lightly). `nil` means the provider declares no spatial coverage and is
+    // excluded from the mask.
+    nonisolated var coverage: CountryCoverage? { get }
     
     nonisolated var downloadURL: URL? { get }
     nonisolated var isDataDownloaded: Bool { get }
@@ -49,6 +54,7 @@ extension GeospatialProvider {
     nonisolated var datasetLastUpdated: Date? { nil }
     nonisolated var datasetRefreshInterval: TimeInterval { 24 * 3600 }
     nonisolated var autoDownloadsDataset: Bool { false }
+    nonisolated var coverage: CountryCoverage? { nil }
     nonisolated func downloadData() async throws {}
     nonisolated func deleteData() {}
     nonisolated func intersects(_ region: MapRegion) -> Bool { true }

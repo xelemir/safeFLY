@@ -201,7 +201,10 @@ enum ZonePresentation {
     }
 
     static func formattedAltitude(for feature: ZoneFeature) -> String? {
-        let lower = formatted(limit: feature.lowerLimit)
+        // A 0 m lower bound just means "from the ground up" and reads oddly (e.g. "Ab 0.0 m
+        // AGL"), so drop it and show only the upper limit, if any.
+        let lowerLimit = isZero(feature.lowerLimit) ? nil : feature.lowerLimit
+        let lower = formatted(limit: lowerLimit)
         let upper = formatted(limit: feature.upperLimit)
 
         if let lower, let upper {
@@ -250,6 +253,13 @@ enum ZonePresentation {
         return [limit.value, limit.unit, limit.reference ?? ""]
             .filter { !$0.isEmpty }
             .joined(separator: " ")
+    }
+
+    // Whether a limit's value is numerically zero (handling both "." and "," decimals).
+    private static func isZero(_ limit: AltitudeLimit?) -> Bool {
+        guard let limit else { return false }
+        let normalized = limit.value.replacingOccurrences(of: ",", with: ".")
+        return Double(normalized) == 0
     }
 }
 

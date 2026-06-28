@@ -35,10 +35,16 @@ struct ProviderDetailView: View {
         return sections
     }
 
+    // DIPUL underpins the whole app and carries the app-wide disclaimer elsewhere; every other
+    // provider is opt-in and gets its own legal notice on its settings page.
+    private var isDIPUL: Bool {
+        providerSession.provider.id == DIPULProvider.providerID
+    }
+
     var body: some View {
         Form {
             enablementSection
-            
+
             let isDownloaded = providerSession.provider.downloadURL == nil || providerSession.provider.isDataDownloaded
             if isDownloaded {
                 statusSection
@@ -46,6 +52,12 @@ struct ProviderDetailView: View {
 
                 if !providerSession.provider.referenceLinks.isEmpty {
                     referencesSection
+                }
+
+                // Offline providers gate the rest of the page behind a download; keep the legal
+                // notice with it so it doesn't show before the provider's data even exists.
+                if !isDIPUL {
+                    disclaimerSection
                 }
             }
         }
@@ -206,6 +218,18 @@ struct ProviderDetailView: View {
                     Text(NSLocalizedString("Dataset selection remains editable even when a dataset is temporarily unavailable.", comment: "Provider datasets section footer"))
                 }
             }
+        }
+    }
+
+    private var disclaimerSection: some View {
+        Section {
+            Text(NSLocalizedString("PROVIDER_LEGAL_DISCLAIMER", comment: "Legal disclaimer shown on every non-DIPUL provider settings page"))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 4)
+        } header: {
+            Text(NSLocalizedString("Legal Notice", comment: "Provider legal disclaimer section title"))
         }
     }
 

@@ -87,6 +87,8 @@ final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
 
     // Show attribution only over Luxembourg: it shares borders with Belgium, France and
     // Germany that a bounding box would spill into.
+    nonisolated var coverage: CountryCoverage? { CountryBoundaries.luxembourg }
+
     nonisolated func intersects(_ region: MapRegion) -> Bool {
         CountryBoundaries.luxembourg.contains(region.center)
     }

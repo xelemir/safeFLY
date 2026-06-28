@@ -379,3 +379,8 @@
 /* Offline Packages Status Footer */
 "Data Package last updated at %@." = "Datenpaket zuletzt aktualisiert am %@.";
 "Data Package has not been downloaded yet." = "Datenpaket wurde noch nicht heruntergeladen.";
+
+/* Non-DIPUL provider legal disclaimer */
+"Legal Notice" = "Rechtlicher Hinweis";
+"PROVIDER_LEGAL_DISCLAIMER" = "safeFLY ist keine Rechtsberatung. Die hier angezeigten Zonen können unvollständig oder fehlerhaft sein, und safeFLY kann sich irren. Prüfe vor jedem Flug stets selbst die aktuellen örtlichen Vorschriften und halte sie ein. Du allein bist für deine Flüge verantwortlich – safeFLY übernimmt keine Haftung für etwaige Gesetzesverstöße oder daraus resultierende Schäden.";
+"Drone rules (Civil Aviation Authority)" = "Drohnenregeln (Tschechische Luftfahrtbehörde)";

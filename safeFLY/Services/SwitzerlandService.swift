@@ -69,6 +69,8 @@ final class SwitzerlandProvider: WMSBackedProvider, @unchecked Sendable {
     // Show this provider's map attribution only over actual Swiss territory. A bounding box
     // reached into France, Germany, Italy and Austria; the real outline keeps it to
     // Switzerland along the diagonal borders.
+    nonisolated var coverage: CountryCoverage? { CountryBoundaries.switzerland }
+
     nonisolated func intersects(_ region: MapRegion) -> Bool {
         CountryBoundaries.switzerland.contains(region.center)
     }

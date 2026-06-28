@@ -100,6 +100,8 @@ final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
 
     // Show DFS attribution only when the map actually shows German territory — DIPUL's data
     // is German, so it must not be credited over France or the Netherlands.
+    nonisolated var coverage: CountryCoverage? { CountryBoundaries.germany }
+
     nonisolated func intersects(_ region: MapRegion) -> Bool {
         CountryBoundaries.germany.contains(region.center)
     }

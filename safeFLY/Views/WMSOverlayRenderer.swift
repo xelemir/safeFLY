@@ -62,6 +62,27 @@ class MapDelegateProxy: NSObject, MKMapViewDelegate {
     weak var originalDelegate: MKMapViewDelegate?
     var rendererProvider: ((MKOverlay) -> MKOverlayRenderer?)?
 
+    @discardableResult
+    static func installShared(on mapView: MKMapView) -> MapDelegateProxy {
+        if let existing = mapView.delegate as? MapDelegateProxy {
+            return existing
+        }
+
+        let proxy = MapDelegateProxy()
+        proxy.originalDelegate = mapView.delegate
+        proxy.rendererProvider = { overlay in
+            if let wmsOverlay = overlay as? WMSImageOverlay {
+                let renderer = WMSImageRenderer(overlay: wmsOverlay)
+                renderer.alpha = CGFloat(wmsOverlay.opacity)
+                renderer.overlayImage = wmsOverlay.image
+                return renderer
+            }
+            return nil
+        }
+        mapView.delegate = proxy
+        return proxy
+    }
+
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         if let renderer = rendererProvider?(overlay) {
             return renderer
@@ -112,6 +133,8 @@ struct WMSNativeOverlay: UIViewRepresentable {
     class Coordinator: NSObject {
         var currentPayloads: [WMSRenderPayload] = []
         var pendingPayloads: [WMSRenderPayload] = []
+        // Strong reference to the delegate proxy. MKMapView.delegate is weak, so without this
+        // the proxy deallocates the moment it's installed and overlays render with no renderer.
         private var delegateProxy: MapDelegateProxy?
         private var downloadTasks: [String: URLSessionDataTask] = [:]
         private var downloadedImages: [String: UIImage] = [:]
@@ -167,7 +190,7 @@ struct WMSNativeOverlay: UIViewRepresentable {
                         return
                     }
 
-                    self.installDelegateProxy(on: mapView)
+                    self.delegateProxy = MapDelegateProxy.installShared(on: mapView)
                     self.removeCurrentOverlays(from: mapView)
 
                     for overlay in replacementOverlays {
@@ -204,26 +227,6 @@ struct WMSNativeOverlay: UIViewRepresentable {
             }
         }
 
-        func installDelegateProxy(on mapView: MKMapView) {
-            if mapView.delegate is MapDelegateProxy {
-                return
-            }
-
-            let proxy = MapDelegateProxy()
-            proxy.originalDelegate = mapView.delegate
-            proxy.rendererProvider = { overlay in
-                if let wmsOverlay = overlay as? WMSImageOverlay {
-                    let renderer = WMSImageRenderer(overlay: wmsOverlay)
-                    renderer.alpha = CGFloat(wmsOverlay.opacity)
-                    renderer.overlayImage = wmsOverlay.image
-                    return renderer
-                }
-                return nil
-            }
-
-            self.delegateProxy = proxy
-            mapView.delegate = proxy
-        }
     }
 }
 

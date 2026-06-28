@@ -156,12 +156,18 @@ final class CzechProvider: GeospatialProvider, @unchecked Sendable {
 
     // Show attribution and run queries only over real Czech territory: it shares diagonal
     // borders with Germany, Poland, Slovakia and Austria that a bounding box would spill into.
+    nonisolated var coverage: CountryCoverage? { CountryBoundaries.czechia }
+
     nonisolated func intersects(_ region: MapRegion) -> Bool {
         CountryBoundaries.czechia.contains(region.center)
     }
 
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
+            ProviderReferenceLink(
+                title: NSLocalizedString("Drone rules (Civil Aviation Authority)", comment: "Czech drone rules link title"),
+                url: URL(string: "https://www.caa.gov.cz/en/flight-operations/unmanned-aircraft/")!
+            ),
             ProviderReferenceLink(
                 title: NSLocalizedString("DroneMap (ŘLP ČR)", comment: "Czech provider data source link title"),
                 url: URL(string: "https://dronemap.gov.cz/")!

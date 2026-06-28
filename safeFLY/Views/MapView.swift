@@ -29,8 +29,12 @@ struct MapView: View {
     @State private var isInitialLoad = true
     @State private var hasCompletedInitialSetup = false
     @State private var showSettings = false
-    
-    
+    // Coverage dim mask, rebuilt only when the enabled set or the settled region changes so it
+    // stays a stable instance across the continuous region updates that re-run body.
+    @State private var coverageMaskPolygon: MKPolygon?
+    @State private var inactiveCoverageRings: [InactiveCoverageRing] = []
+
+
     private var mapStyle: MapStyle {
         switch selectedMapStyle {
         case 1: return .hybrid
@@ -71,6 +75,44 @@ struct MapView: View {
 
             return wmsPayload
         }
+    }
+
+    // Coverage state for the dim mask: every provider that declares a country outline, tagged
+    // with whether the user has it enabled. Recomputed when the enabled set changes.
+    private var coverageMasks: [ProviderCoverageMask] {
+        providersStore.sessions.compactMap { session in
+            guard let coverage = session.provider.coverage else { return nil }
+            return ProviderCoverageMask(
+                providerID: session.provider.id,
+                isActive: providersStore.isProviderEnabled(session.provider.id),
+                polygons: coverage.polygons
+            )
+        }
+    }
+
+    // Rebuilds the dim mask from the current enabled set and region. Called on settled camera
+    // moves and provider toggles — not on every continuous frame — so the polygon stays a
+    // stable instance and doesn't churn during panning.
+    private func rebuildCoverageMask() {
+        // The mask is a country-overview layer; it owns a middle zoom band and yields at both ends:
+        //
+        //  • Zoomed IN (geozones shown): hidden. Two reasons — the buffered country outlines
+        //    overlap at shared borders and would draw messy dark zig-zags up close, and the mask
+        //    is SwiftUI MapContent whose churn makes the Map reassert its delegate, wiping the
+        //    native WMS geozone overlays. Keeping the two systems in separate zoom bands avoids both.
+        //  • Zoomed OUT past country scale: hidden, because the viewport outgrows the (capped)
+        //    exterior and it would show as a floating dimmed rectangle.
+        let span = region.span
+        let zoomedOut = span.latitudeDelta > 48 || span.longitudeDelta > 66
+        guard !shouldShowGeozones, !zoomedOut else {
+            coverageMaskPolygon = nil
+            inactiveCoverageRings = []
+            return
+        }
+
+        let masks = coverageMasks
+        coverageMaskPolygon = CoverageMask.notCoveredPolygon(masks: masks, region: region)
+        inactiveCoverageRings = CoverageMask.inactiveRings(masks: masks)
     }
 
     private var polygonRenderPayloads: [PolygonRenderPayload] {
@@ -126,6 +168,7 @@ struct MapView: View {
             }
             .onChange(of: providersStore.configurationRevision) { _, _ in
                 refreshOverlay()
+                rebuildCoverageMask()
             }
             .onChange(of: droneSettings.simulatedTapCoordinate) { _, newValue in
                 if let searchCoord = newValue {
@@ -190,6 +233,19 @@ struct MapView: View {
     private var mapView: some View {
             MapReader { proxy in
             Map(position: $cameraPosition, interactionModes: .all.subtracting(.rotate).subtracting(.pitch)) {
+                // Coverage dim mask. Kept below labels (.aboveRoads) so city names and borders
+                // stay crisp over the dim, and drawn first so geozones/annotations sit above it.
+                if let coverageMaskPolygon {
+                    MapPolygon(coverageMaskPolygon)
+                        .foregroundStyle(CoverageMask.notCoveredFill)
+                        .mapOverlayLevel(level: .aboveRoads)
+                }
+                ForEach(inactiveCoverageRings) { ring in
+                    MapPolygon(coordinates: ring.coordinates)
+                        .foregroundStyle(CoverageMask.coveredInactiveFill)
+                        .mapOverlayLevel(level: .aboveRoads)
+                }
+
                 UserAnnotation()
 
                 ForEach(shouldShowGeozones ? polygonRenderPayloads : []) { payload in
@@ -394,6 +450,12 @@ struct MapView: View {
             )
         )
 
+        region = MKCoordinateRegion(
+            center: savedCoordinate,
+            span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+        )
+        rebuildCoverageMask()
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             hasCompletedInitialSetup = true
 
@@ -420,7 +482,8 @@ struct MapView: View {
     
     private func handleCameraChangeEnd(_ context: MapCameraUpdateContext) {
         region = context.region
-        
+        rebuildCoverageMask()
+
         droneSettings.lastCameraLatitude = context.camera.centerCoordinate.latitude
         droneSettings.lastCameraLongitude = context.camera.centerCoordinate.longitude
         droneSettings.lastCameraDistance = context.camera.distance

@@ -88,6 +88,8 @@ final class AustriaProvider: GeospatialProvider, @unchecked Sendable {
     // Show attribution only over real Austrian territory: it shares diagonal borders with
     // Germany, Czechia, Slovakia, Hungary, Slovenia, Italy and Switzerland that a bounding
     // box would spill into.
+    nonisolated var coverage: CountryCoverage? { CountryBoundaries.austria }
+
     nonisolated func intersects(_ region: MapRegion) -> Bool {
         CountryBoundaries.austria.contains(region.center)
     }

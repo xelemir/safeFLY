@@ -81,6 +81,8 @@ final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
 
     // Show attribution only over the real European Netherlands: a bounding box spilled into
     // Belgium and the German Rhineland along the diagonal borders it shares with them.
+    nonisolated var coverage: CountryCoverage? { CountryBoundaries.netherlands }
+
     nonisolated func intersects(_ region: MapRegion) -> Bool {
         CountryBoundaries.netherlands.contains(region.center)
     }
