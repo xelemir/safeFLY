@@ -41,7 +41,7 @@ struct NetherlandsFeatureInfoRecord: ProviderRawRecord {
     nonisolated var providerID: String { NetherlandsProvider.providerID }
 }
 
-final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
+final class NetherlandsProvider: ED269DownloadableProvider, @unchecked Sendable {
     nonisolated static let providerID = "netherlands"
 
     nonisolated let id = NetherlandsProvider.providerID
@@ -57,9 +57,10 @@ final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
         supportsStatusRefresh: true
     )
 
-    private let store = DownloadableFileStore(
+    let dataset = ED269DownloadableDataset<NLDZoneFeature>(
         fileName: "nld_uas_zones.json",
-        remoteURL: URL(string: "https://gruettecloud.com/safefly/download-json?country=NL")!
+        remoteURL: URL(string: "https://gruettecloud.com/safefly/download-json?country=NL")!,
+        parse: NetherlandsProvider.parse
     )
 
     nonisolated var datasets: [ProviderDataset] {
@@ -96,57 +97,12 @@ final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
         ]
     }
 
-    nonisolated var downloadURL: URL? {
-        store.remoteURL
-    }
-
-    nonisolated var isDataDownloaded: Bool {
-        store.isDownloaded
-    }
-
-    nonisolated var datasetLastUpdated: Date? {
-        store.modificationDate
-    }
-
-    @MainActor private var _parsedFeatures: [NLDZoneFeature] = []
-
-    @MainActor var parsedFeatures: [NLDZoneFeature] {
-        _parsedFeatures
-    }
-
-    init() {
-        Task {
-            try? await reloadData()
-        }
-    }
-
-    @MainActor func reloadData() async throws {
-        guard store.isDownloaded else { return }
-        _parsedFeatures = try Self.parse(store.read())
-    }
-
     nonisolated private static func parse(_ data: Data) throws -> [NLDZoneFeature] {
         try JSONDecoder().decode(NLDDroneZoneFile.self, from: ed269StrippedJSONData(data)).features
     }
 
-    nonisolated func downloadData() async throws {
-        // Validate by fully parsing the payload before it is allowed to replace the local
-        // copy, so a malformed response never overwrites a previously good dataset.
-        _ = try await store.download { data in
-            _ = try Self.parse(data)
-        }
-        try await reloadData()
-    }
-
-    nonisolated func deleteData() {
-        store.delete()
-        Task { @MainActor in
-            self._parsedFeatures = []
-        }
-    }
-
     nonisolated func refreshStatus() async -> ProviderStatusSnapshot {
-        let status: ProviderAvailabilityStatus = store.isDownloaded ? .available : .downloadRequired
+        let status: ProviderAvailabilityStatus = dataset.isDownloaded ? .available : .downloadRequired
         return ProviderStatusSnapshot(
             providerStatus: status,
             datasetStatuses: [
@@ -163,7 +119,7 @@ final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
         selectedDatasetIDs: Set<String>,
         status: ProviderStatusSnapshot
     ) async -> [ProviderRenderPayload] {
-        guard store.isDownloaded else { return [] }
+        guard dataset.isDownloaded else { return [] }
 
         let features = await selectedFeatures(in: selectedDatasetIDs)
         var payloads: [ProviderRenderPayload] = []
@@ -196,7 +152,7 @@ final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
         selectedDatasetIDs: Set<String>,
         status: ProviderStatusSnapshot
     ) async -> ProviderQueryOutcome {
-        guard store.isDownloaded else {
+        guard dataset.isDownloaded else {
             return .unavailable(reason: .providerNoData)
         }
 
@@ -231,30 +187,16 @@ final class NetherlandsProvider: GeospatialProvider, @unchecked Sendable {
     // Features whose derived dataset is among the selected ones. Shared by render and query
     // so category → dataset mapping lives in exactly one place.
     @MainActor private func selectedFeatures(in selectedDatasetIDs: Set<String>) -> [NLDZoneFeature] {
-        parsedFeatures.filter { feature in
+        dataset.features.filter { feature in
             let category = NetherlandsZoneNormalizer.determineCategory(name: feature.name, message: feature.message ?? "")
             return selectedDatasetIDs.contains(NetherlandsZoneNormalizer.datasetID(for: category))
         }
     }
 
-    private struct RenderStyle {
-        let fillColor: String
-        let fillOpacity: Double
-        let strokeColor: String
-        let strokeOpacity: Double
-        let lineWidth: Double
-    }
-
-    nonisolated private static func style(for feature: NLDZoneFeature) -> RenderStyle {
-        let isLowFlyZone = NetherlandsZoneNormalizer.isLowFlyZone(message: feature.message ?? "")
-        let isProhibited = !isLowFlyZone
-        return RenderStyle(
-            fillColor: isProhibited ? "EF4444" : "F59E0B",
-            fillOpacity: 0.25,
-            strokeColor: isProhibited ? "EF4444" : "D97706",
-            strokeOpacity: 0.8,
-            lineWidth: isProhibited ? 2.0 : 1.5
-        )
+    // The Netherlands styles by low-fly vs prohibited rather than by the ED-269 verdict, so it
+    // maps onto the shared palette directly instead of using `ED269RenderStyle.forVerdict`.
+    nonisolated private static func style(for feature: NLDZoneFeature) -> ED269RenderStyle {
+        NetherlandsZoneNormalizer.isLowFlyZone(message: feature.message ?? "") ? .conditional : .prohibited
     }
 }
 

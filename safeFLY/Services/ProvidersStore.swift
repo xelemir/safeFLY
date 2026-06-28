@@ -142,12 +142,10 @@ final class ProvidersStore: ObservableObject {
     }
 
     // Keeps already-downloaded offline datasets (Netherlands, Austria, …) fresh without the
-    // user noticing. Runs at most once per `datasetRefreshInterval` per provider, fully in
-    // the background: each download is detached, replaces its provider's parsed data
-    // atomically (so the map never flickers or blanks), and touches no published UI state.
-    // Failures are silent and leave the existing local copy in place.
-    static let datasetRefreshInterval: TimeInterval = 24 * 3600
-
+    // user noticing. Runs at most once per the provider's refresh interval, fully in the
+    // background: each download is detached, replaces its provider's parsed data atomically
+    // (so the map never flickers or blanks), and touches no published UI state. Failures are
+    // silent and leave the existing local copy in place.
     func refreshDownloadableDatasetsInBackground(now: Date = Date()) {
         for session in sessions {
             let provider = session.provider
@@ -160,20 +158,19 @@ final class ProvidersStore: ObservableObject {
                 continue
             }
 
-            let storageKey = "provider.dataset.refreshed-at.\(provider.id)"
-            if let lastRefresh = UserDefaults.standard.object(forKey: storageKey) as? Date,
-               now.timeIntervalSince(lastRefresh) < provider.datasetRefreshInterval {
+            // Throttle on the local dataset's own modification date, which every successful
+            // download — manual "Update Now" or silent background refresh — updates atomically.
+            // Keeping a single source of truth means a manual update correctly suppresses the
+            // next background refresh, with no separate timestamp to drift out of sync.
+            if let lastUpdated = provider.datasetLastUpdated,
+               now.timeIntervalSince(lastUpdated) < provider.datasetRefreshInterval {
                 continue
             }
 
             Task.detached(priority: .background) {
-                do {
-                    try await provider.downloadData()
-                    UserDefaults.standard.set(Date(), forKey: storageKey)
-                } catch {
-                    // Silent: a failed refresh keeps the existing local dataset and is
-                    // retried on the next app open.
-                }
+                // Silent: a failed refresh keeps the existing local dataset and is retried on
+                // the next app open.
+                try? await provider.downloadData()
             }
         }
     }

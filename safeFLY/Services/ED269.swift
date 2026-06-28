@@ -114,6 +114,54 @@ nonisolated extension Array where Element == ED269Geometry {
     }
 }
 
+// Map style for an ED-269 zone. Most national providers map the standard ED-269 restriction
+// verdict to the same red (prohibited) / amber (conditional) palette; providers with bespoke
+// styling (e.g. the Netherlands' low-fly zones) build their own values directly.
+nonisolated struct ED269RenderStyle {
+    let fillColor: String
+    let fillOpacity: Double
+    let strokeColor: String
+    let strokeOpacity: Double
+    let lineWidth: Double
+
+    static let prohibited = ED269RenderStyle(fillColor: "EF4444", fillOpacity: 0.25, strokeColor: "EF4444", strokeOpacity: 0.8, lineWidth: 2.0)
+    static let conditional = ED269RenderStyle(fillColor: "F59E0B", fillOpacity: 0.25, strokeColor: "D97706", strokeOpacity: 0.8, lineWidth: 1.5)
+
+    // Standard verdict → style. `nil` for `.allowed`: unrestricted zones carry no flight
+    // limitation, so drawing them would only clutter the map.
+    static func forVerdict(_ verdict: FlightAssessmentOutcome) -> ED269RenderStyle? {
+        switch verdict {
+        case .prohibited: return prohibited
+        case .conditional: return conditional
+        case .allowed: return nil
+        }
+    }
+}
+
+nonisolated extension Array where Element == ED269Geometry {
+    // Vertical extent of the zone, read from its first geometry. ED-269 uses 99999 m as a
+    // sentinel for "no ceiling", so only real limits are surfaced.
+    func altitudeLimits() -> (upper: AltitudeLimit?, lower: AltitudeLimit?) {
+        guard let geometry = first else { return (nil, nil) }
+
+        let upper: AltitudeLimit?
+        if let value = geometry.upperLimit, value > 0, value < 99_999 {
+            upper = AltitudeLimit(value: String(Int(value)), unit: "m", reference: geometry.upperVerticalReference ?? "AGL")
+        } else {
+            upper = nil
+        }
+
+        let lower: AltitudeLimit?
+        if let value = geometry.lowerLimit, value > 0 {
+            lower = AltitudeLimit(value: String(Int(value)), unit: "m", reference: geometry.lowerVerticalReference ?? "AGL")
+        } else {
+            lower = nil
+        }
+
+        return (upper, lower)
+    }
+}
+
 // Strips a UTF-8 BOM and any leading junk before the first JSON token, then returns the
 // remaining bytes. ED-269 downloads from several authorities are prefixed this way.
 nonisolated func ed269StrippedJSONData(_ data: Data) throws -> Data {

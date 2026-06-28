@@ -22,12 +22,7 @@ struct WMSOverlayView: View {
                             .resizable()
                             .frame(width: geometry.size.width, height: geometry.size.height)
                             .opacity(0.8)
-                    case .failure(let error):
-                        Color.clear
-                            .onAppear {
-                                print("WMS image load failed: \(error)")
-                            }
-                    case .empty:
+                    case .failure, .empty:
                         Color.clear
                     @unknown default:
                         Color.clear

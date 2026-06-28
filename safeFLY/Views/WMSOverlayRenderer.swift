@@ -77,6 +77,9 @@ class MapDelegateProxy: NSObject, MKMapViewDelegate {
                 renderer.overlayImage = wmsOverlay.image
                 return renderer
             }
+            if let maskOverlay = overlay as? CoverageMaskOverlay {
+                return CoverageMaskRenderer(overlay: maskOverlay)
+            }
             return nil
         }
         mapView.delegate = proxy

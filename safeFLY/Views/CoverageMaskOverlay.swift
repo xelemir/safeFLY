@@ -2,22 +2,24 @@
 //  CoverageMaskOverlay.swift
 //  safeFLY
 //
-//  Dims the map by coverage state so users see at a glance where safeFLY has data and which
-//  of those areas are switched on:
+//  Dims the map by coverage state so users see at a glance where safeFLY has data and which of
+//  those areas are switched on:
 //
 //   • Areas no provider covers at all are dimmed with a slightly darker gray.
-//   • Areas a provider covers but that the user hasn't enabled are dimmed with a lighter gray.
+//   • Areas a provider covers but the user hasn't enabled are dimmed with a lighter gray.
 //   • Areas an enabled provider covers stay fully clear.
 //
-//  Rendered with SwiftUI's own MapPolygon inside the Map content (the same path the geozone
-//  polygons use) rather than by injecting overlays into the underlying MKMapView, which the
-//  SwiftUI Map doesn't render reliably. The "not covered" shape is a single MKPolygon whose
-//  exterior is the current viewport (sized generously) with every supported country punched
-//  out as an interior hole.
+//  Rendered as a single native MKOverlay on the map's underlying MKMapView (the same path the
+//  WMS geozone tiles use). A custom renderer fills the whole world dark, then punches every
+//  covered country *clear* using the `.clear` blend mode — so adjacent or overlapping countries
+//  union seamlessly with no dark seam along their shared border — and finally repaints the
+//  covered-but-disabled countries with the lighter dim. Because it is a world-anchored native
+//  overlay it pans and zooms with the map for free, with no per-frame geometry to rebuild.
 //
 
-import SwiftUI
 import MapKit
+import SwiftUI
+import UIKit
 
 // Lightweight, value-type description of one provider's coverage and whether it's active.
 struct ProviderCoverageMask: Equatable {
@@ -27,93 +29,142 @@ struct ProviderCoverageMask: Equatable {
     let polygons: [[[Double]]]
 }
 
-// One filled ring for a covered-but-disabled country.
-struct InactiveCoverageRing: Identifiable, Equatable {
-    let id: String
-    let coordinates: [CLLocationCoordinate2D]
+nonisolated enum CoverageMask {
+    // Areas with no provider coverage at all: the heaviest dim.
+    static let notCoveredFill = UIColor(white: 0.08, alpha: 0.52)
+    // Areas covered by a provider the user hasn't enabled: a clearly lighter gray, but still
+    // distinct from the fully-clear enabled areas.
+    static let coveredInactiveFill = UIColor(white: 0.45, alpha: 0.30)
 
-    static func == (lhs: InactiveCoverageRing, rhs: InactiveCoverageRing) -> Bool {
-        lhs.id == rhs.id
+    // Stable identity of a mask set, so the host only rebuilds the overlay when it changes.
+    static func key(for masks: [ProviderCoverageMask]) -> String {
+        masks.map { "\($0.providerID):\($0.isActive)" }.joined(separator: "|")
+    }
+
+    static func hasCoverage(_ masks: [ProviderCoverageMask]) -> Bool {
+        masks.contains { !$0.polygons.isEmpty }
     }
 }
 
-enum CoverageMask {
-    // Areas with no provider coverage at all: the heaviest dim.
-    static let notCoveredFill = Color(.sRGB, white: 0.08, opacity: 0.52)
-    // Areas covered by a provider the user hasn't enabled: a clearly lighter gray, but still
-    // distinct from the fully-clear enabled areas.
-    static let coveredInactiveFill = Color(.sRGB, white: 0.45, opacity: 0.30)
+nonisolated final class CoverageMaskOverlay: NSObject, MKOverlay {
+    let coordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+    let boundingMapRect = MKMapRect.world
 
-    // The "not covered" polygon: a rectangle with every supported country (active or not) cut
-    // out as a hole. A single globe-spanning exterior won't tessellate in MapKit, so the
-    // exterior tracks the visible region with margin — but it's always grown to also enclose
-    // every country, because an MKPolygon whose interior holes spill outside its exterior
-    // renders inverted (the holes fill instead of cut out). `nil` when no provider declares
-    // coverage.
-    static func notCoveredPolygon(masks: [ProviderCoverageMask], region: MKCoordinateRegion) -> MKPolygon? {
-        let holes = masks.flatMap { $0.polygons.map(polygon) }
-        guard !holes.isEmpty, let holesBox = boundingBox(of: masks) else { return nil }
-        let exterior = exteriorRing(for: region, enclosing: holesBox)
-        return MKPolygon(coordinates: exterior, count: exterior.count, interiorPolygons: holes)
+    // Every covered country (active or inactive): punched clear so the map shows through.
+    let coveredRings: [[CLLocationCoordinate2D]]
+    // Covered-but-disabled countries: repainted with the lighter dim over the clear punch.
+    let inactiveRings: [[CLLocationCoordinate2D]]
+
+    init(masks: [ProviderCoverageMask]) {
+        coveredRings = masks.flatMap { $0.polygons.map(Self.ring) }
+        inactiveRings = masks.filter { !$0.isActive }.flatMap { $0.polygons.map(Self.ring) }
+        super.init()
     }
 
-    // Bounding box of every country ring, padded slightly so the holes sit strictly inside the
-    // exterior built around it.
-    private static func boundingBox(of masks: [ProviderCoverageMask]) -> (minLat: Double, maxLat: Double, minLon: Double, maxLon: Double)? {
-        var minLat = 90.0, maxLat = -90.0, minLon = 180.0, maxLon = -180.0
-        var sawPoint = false
-        for mask in masks {
-            for ring in mask.polygons {
-                for point in ring {
-                    sawPoint = true
-                    minLon = min(minLon, point[0]); maxLon = max(maxLon, point[0])
-                    minLat = min(minLat, point[1]); maxLat = max(maxLat, point[1])
-                }
-            }
-        }
-        guard sawPoint else { return nil }
-        return (minLat - 1, maxLat + 1, minLon - 1, maxLon + 1)
-    }
-
-    // Filled rings for every provider the user hasn't enabled.
-    static func inactiveRings(masks: [ProviderCoverageMask]) -> [InactiveCoverageRing] {
-        masks.filter { !$0.isActive }.flatMap { mask in
-            mask.polygons.enumerated().map { index, ring in
-                InactiveCoverageRing(id: "\(mask.providerID)-\(index)", coordinates: coordinates(ring))
-            }
-        }
-    }
-
-    static func coordinates(_ ring: [[Double]]) -> [CLLocationCoordinate2D] {
+    private static func ring(_ ring: [[Double]]) -> [CLLocationCoordinate2D] {
         ring.map { CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) }
     }
+}
 
-    private static func polygon(_ ring: [[Double]]) -> MKPolygon {
-        let coords = coordinates(ring)
-        return MKPolygon(coordinates: coords, count: coords.count)
+nonisolated final class CoverageMaskRenderer: MKOverlayRenderer {
+    override func draw(_ mapRect: MKMapRect, zoomScale: MKZoomScale, in context: CGContext) {
+        guard let mask = overlay as? CoverageMaskOverlay else { return }
+
+        // 1. Dark dim across the whole tile.
+        context.setFillColor(CoverageMask.notCoveredFill.cgColor)
+        context.fill(rect(for: mapRect))
+
+        // 2. Punch every covered country clear. Filling each polygon on its own with the
+        //    .clear blend mode means overlapping or adjacent countries union seamlessly, instead
+        //    of leaving the dark even-odd seam a single multi-hole polygon would produce.
+        context.setBlendMode(.clear)
+        for ring in mask.coveredRings {
+            fill(ring, in: context)
+        }
+
+        // 3. Repaint the covered-but-disabled countries with the lighter dim.
+        context.setBlendMode(.normal)
+        context.setFillColor(CoverageMask.coveredInactiveFill.cgColor)
+        for ring in mask.inactiveRings {
+            fill(ring, in: context)
+        }
     }
 
-    // A rectangle around the region center, extended one full span beyond the visible edges so
-    // a moderate pan stays covered before the next rebuild, then grown to also enclose every
-    // country (`enclosing`). The viewport reach is capped so the ring never approaches the
-    // antimeridian or the whole globe: a wrapped or world-sized exterior flips MapKit's winding
-    // and won't tessellate. Enclosing the holes guarantees they sit inside the exterior even
-    // when the region is tiny or stale, which otherwise renders the mask inverted.
-    private static func exteriorRing(
-        for region: MKCoordinateRegion,
-        enclosing box: (minLat: Double, maxLat: Double, minLon: Double, maxLon: Double)
-    ) -> [CLLocationCoordinate2D] {
-        let latReach = min(max(region.span.latitudeDelta, 0.2) * 1.5, 30)
-        let lonReach = min(max(region.span.longitudeDelta, 0.2) * 1.5, 40)
-        let north = min(max(region.center.latitude + latReach, box.maxLat), 89)
-        let south = max(min(region.center.latitude - latReach, box.minLat), -89)
-        let west = max(min(region.center.longitude - lonReach, box.minLon), -179)
-        let east = min(max(region.center.longitude + lonReach, box.maxLon), 179)
-        return [
-            CLLocationCoordinate2D(latitude: north, longitude: west),
-            CLLocationCoordinate2D(latitude: north, longitude: east),
-            CLLocationCoordinate2D(latitude: south, longitude: east),
-            CLLocationCoordinate2D(latitude: south, longitude: west)
-        ]
+    private func fill(_ ring: [CLLocationCoordinate2D], in context: CGContext) {
+        guard ring.count > 2 else { return }
+        context.beginPath()
+        context.move(to: point(for: MKMapPoint(ring[0])))
+        for coordinate in ring.dropFirst() {
+            context.addLine(to: point(for: MKMapPoint(coordinate)))
+        }
+        context.closePath()
+        context.fillPath()
+    }
+}
+
+// Hosts the coverage overlay on the SwiftUI Map's underlying MKMapView, drawn beneath the WMS
+// geozone tiles. Re-adds itself whenever the Map reasserts its own delegate and wipes the
+// native overlays — the same resilience the WMS host relies on.
+struct CoverageMaskNativeOverlay: UIViewRepresentable {
+    let masks: [ProviderCoverageMask]
+    let isVisible: Bool
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> WMSOverlayHostView {
+        let view = WMSOverlayHostView()
+        view.onLayout = { [weak coordinator = context.coordinator] hostView in
+            coordinator?.sync(in: hostView)
+        }
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = false
+        return view
+    }
+
+    func updateUIView(_ uiView: WMSOverlayHostView, context: Context) {
+        context.coordinator.masks = masks
+        context.coordinator.isVisible = isVisible
+        context.coordinator.sync(in: uiView)
+    }
+
+    final class Coordinator: NSObject {
+        var masks: [ProviderCoverageMask] = []
+        var isVisible = false
+
+        // Strong reference to the shared delegate proxy. MKMapView.delegate is weak, so without
+        // this the proxy deallocates the moment it's installed and the overlay renders with no
+        // renderer — i.e. no dim shows at all.
+        private var delegateProxy: MapDelegateProxy?
+        private weak var currentOverlay: CoverageMaskOverlay?
+        private var appliedKey: String?
+
+        func sync(in host: WMSOverlayHostView) {
+            guard let mapView = host.findMKMapView() else { return }
+            delegateProxy = MapDelegateProxy.installShared(on: mapView)
+
+            let key = (isVisible && CoverageMask.hasCoverage(masks)) ? CoverageMask.key(for: masks) : "hidden"
+            let overlayMissing = currentOverlay.map { overlay in
+                !mapView.overlays.contains { $0 === overlay }
+            } ?? true
+
+            guard key != appliedKey || overlayMissing else { return }
+            appliedKey = key
+
+            removeCurrentOverlay(from: mapView)
+            guard isVisible, CoverageMask.hasCoverage(masks) else { return }
+
+            let overlay = CoverageMaskOverlay(masks: masks)
+            currentOverlay = overlay
+            // Below the labels so city names stay crisp over the dim.
+            mapView.addOverlay(overlay, level: .aboveRoads)
+        }
+
+        private func removeCurrentOverlay(from mapView: MKMapView) {
+            let existing = mapView.overlays.compactMap { $0 as? CoverageMaskOverlay }
+            if !existing.isEmpty {
+                mapView.removeOverlays(existing)
+            }
+            currentOverlay = nil
+        }
     }
 }

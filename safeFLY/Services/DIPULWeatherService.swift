@@ -33,9 +33,7 @@ struct DIPULWeatherData {
         var qnhHPa: Double? { qnhPa.map { $0 / 100.0 } }
 
         var wind10m:  WindAtHeight? { winds.first(where: { $0.heightMeters == 10  }) }
-        var wind50m:  WindAtHeight? { winds.first(where: { $0.heightMeters == 50  }) }
         var wind100m: WindAtHeight? { winds.first(where: { $0.heightMeters == 100 }) }
-        var wind150m: WindAtHeight? { winds.first(where: { $0.heightMeters == 150 }) }
     }
 
     let calculationTime: Date

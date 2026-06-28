@@ -597,7 +597,7 @@ final class WeatherViewModel: ObservableObject {
     }
     
     func retry() {
-        guard let _ = lastCoordinate else { return }
+        guard lastCoordinate != nil else { return }
         fetchTask?.cancel()
         fetchTask = Task { @MainActor in
             await fetchWeatherAndLocation()
@@ -605,7 +605,7 @@ final class WeatherViewModel: ObservableObject {
     }
     
     func refresh() async {
-        guard let _ = lastCoordinate else { return }
+        guard lastCoordinate != nil else { return }
         fetchTask?.cancel()
         await fetchWeatherAndLocation(isRefresh: true)
     }
@@ -638,12 +638,10 @@ final class WeatherViewModel: ObservableObject {
             self.errorMessage = nil
         } catch let err as WeatherService.WeatherError {
             self.errorMessage = err.localizedDescription
-            print("Weather fetch error: \(err)")
             self.currentWeather = nil
             dipulTask.cancel()
         } catch {
             self.errorMessage = NSLocalizedString("Unable to fetch weather.", comment: "Weather fetch error")
-            print("Weather fetch error: \(error)")
             self.currentWeather = nil
             dipulTask.cancel()
         }

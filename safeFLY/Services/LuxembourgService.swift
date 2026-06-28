@@ -51,7 +51,7 @@ struct LuxembourgFeatureInfoRecord: ProviderRawRecord {
     nonisolated var providerID: String { LuxembourgProvider.providerID }
 }
 
-final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
+final class LuxembourgProvider: ED269DownloadableProvider, @unchecked Sendable {
     nonisolated static let providerID = "luxembourg"
 
     nonisolated let id = LuxembourgProvider.providerID
@@ -67,9 +67,10 @@ final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
         supportsStatusRefresh: true
     )
 
-    private let store = DownloadableFileStore(
+    let dataset = ED269DownloadableDataset<LUXZoneFeature>(
         fileName: "lux_uas_zones_v2.json",
-        remoteURL: URL(string: "https://drones.geoportail.lu/zones")!
+        remoteURL: URL(string: "https://drones.geoportail.lu/zones")!,
+        parse: LuxembourgProvider.parse
     )
 
     nonisolated private static let datasetID = "airspace.restricted-zones"
@@ -102,57 +103,12 @@ final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
         ]
     }
 
-    nonisolated var downloadURL: URL? {
-        store.remoteURL
-    }
-
-    nonisolated var isDataDownloaded: Bool {
-        store.isDownloaded
-    }
-
-    nonisolated var datasetLastUpdated: Date? {
-        store.modificationDate
-    }
-
-    @MainActor private var _parsedFeatures: [LUXZoneFeature] = []
-
-    @MainActor var parsedFeatures: [LUXZoneFeature] {
-        _parsedFeatures
-    }
-
-    init() {
-        Task {
-            try? await reloadData()
-        }
-    }
-
-    @MainActor func reloadData() async throws {
-        guard store.isDownloaded else { return }
-        _parsedFeatures = try Self.parse(store.read())
-    }
-
     nonisolated private static func parse(_ data: Data) throws -> [LUXZoneFeature] {
         try JSONDecoder().decode(LUXDroneZoneFile.self, from: ed269StrippedJSONData(data)).features
     }
 
-    nonisolated func downloadData() async throws {
-        // Validate by fully parsing before the payload may replace the local copy, so a
-        // malformed response never overwrites a previously good dataset.
-        _ = try await store.download { data in
-            _ = try Self.parse(data)
-        }
-        try await reloadData()
-    }
-
-    nonisolated func deleteData() {
-        store.delete()
-        Task { @MainActor in
-            self._parsedFeatures = []
-        }
-    }
-
     nonisolated func refreshStatus() async -> ProviderStatusSnapshot {
-        let status: ProviderAvailabilityStatus = store.isDownloaded ? .available : .downloadRequired
+        let status: ProviderAvailabilityStatus = dataset.isDownloaded ? .available : .downloadRequired
         return ProviderStatusSnapshot(
             providerStatus: status,
             datasetStatuses: [LuxembourgProvider.datasetID: status],
@@ -166,14 +122,14 @@ final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
         selectedDatasetIDs: Set<String>,
         status: ProviderStatusSnapshot
     ) async -> [ProviderRenderPayload] {
-        guard store.isDownloaded, selectedDatasetIDs.contains(LuxembourgProvider.datasetID) else { return [] }
+        guard dataset.isDownloaded, selectedDatasetIDs.contains(LuxembourgProvider.datasetID) else { return [] }
 
-        let features = await parsedFeatures
+        let features = await dataset.features
         var payloads: [ProviderRenderPayload] = []
 
         for feature in features {
             let verdict = LuxembourgZoneNormalizer.verdict(for: feature.restriction)
-            guard let style = LuxembourgProvider.style(for: verdict) else { continue }
+            guard let style = ED269RenderStyle.forVerdict(verdict) else { continue }
 
             if let bbox = feature.boundingBox, !bbox.intersects(request.region) {
                 continue
@@ -200,12 +156,12 @@ final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
         selectedDatasetIDs: Set<String>,
         status: ProviderStatusSnapshot
     ) async -> ProviderQueryOutcome {
-        guard store.isDownloaded, selectedDatasetIDs.contains(LuxembourgProvider.datasetID) else {
+        guard dataset.isDownloaded, selectedDatasetIDs.contains(LuxembourgProvider.datasetID) else {
             return .unavailable(reason: .providerNoData)
         }
 
         let coordinate = request.coordinate
-        let matches = await parsedFeatures
+        let matches = await dataset.features
             .filter { feature in
                 if let bbox = feature.boundingBox, !bbox.contains(coordinate) {
                     return false
@@ -213,7 +169,7 @@ final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
                 return feature.contains(coordinate)
             }
             .map { feature -> LuxembourgFeatureInfoRecord in
-                let limits = LuxembourgProvider.altitudeLimits(for: feature)
+                let limits = feature.geometry.altitudeLimits()
                 return LuxembourgFeatureInfoRecord(
                     identifier: feature.identifier,
                     name: feature.name,
@@ -234,45 +190,6 @@ final class LuxembourgProvider: GeospatialProvider, @unchecked Sendable {
         return .matches(records: matches.map { $0 as any ProviderRawRecord })
     }
 
-    private struct RenderStyle {
-        let fillColor: String
-        let fillOpacity: Double
-        let strokeColor: String
-        let strokeOpacity: Double
-        let lineWidth: Double
-    }
-
-    nonisolated private static func style(for verdict: FlightAssessmentOutcome) -> RenderStyle? {
-        switch verdict {
-        case .prohibited:
-            return RenderStyle(fillColor: "EF4444", fillOpacity: 0.25, strokeColor: "EF4444", strokeOpacity: 0.8, lineWidth: 2.0)
-        case .conditional:
-            return RenderStyle(fillColor: "F59E0B", fillOpacity: 0.25, strokeColor: "D97706", strokeOpacity: 0.8, lineWidth: 1.5)
-        case .allowed:
-            return nil
-        }
-    }
-
-    // ED-269 uses 99999 m as a sentinel for "no ceiling"; surface only real limits.
-    nonisolated private static func altitudeLimits(for feature: LUXZoneFeature) -> (upper: AltitudeLimit?, lower: AltitudeLimit?) {
-        guard let geometry = feature.geometry.first else { return (nil, nil) }
-
-        let upper: AltitudeLimit?
-        if let value = geometry.upperLimit, value > 0, value < 99_999 {
-            upper = AltitudeLimit(value: String(Int(value)), unit: "m", reference: geometry.upperVerticalReference ?? "AGL")
-        } else {
-            upper = nil
-        }
-
-        let lower: AltitudeLimit?
-        if let value = geometry.lowerLimit, value > 0 {
-            lower = AltitudeLimit(value: String(Int(value)), unit: "m", reference: geometry.lowerVerticalReference ?? "AGL")
-        } else {
-            lower = nil
-        }
-
-        return (upper, lower)
-    }
 }
 
 struct LuxembourgZoneNormalizer: ZoneFeatureNormalizing, Sendable {

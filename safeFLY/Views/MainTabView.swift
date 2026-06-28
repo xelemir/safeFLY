@@ -59,7 +59,6 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
     }
     
     func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
-        print("Completer error: \(error)")
         completions = []
     }
 }

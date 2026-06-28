@@ -96,36 +96,6 @@ enum ZonePresentation {
         }
     }
 
-    static func formattedTypeCode(_ typeCode: String) -> String {
-        let typeMap: [String: String] = [
-            "FLUGPLATZ": NSLocalizedString("TYPE.FLUGPLATZ", comment: "Aerodrome"),
-            "FLUGHAFEN": NSLocalizedString("TYPE.FLUGHAFEN", comment: "Airport"),
-            "KONTROLLZONE": NSLocalizedString("TYPE.KONTROLLZONE", comment: "Control zone"),
-            "ED-R": NSLocalizedString("TYPE.ED-R", comment: "Restricted area"),
-            "WOHNGRUNDSTÜCK": NSLocalizedString("TYPE.WOHNGRUNDSTUECK", comment: "Residential property"),
-            "WOHNGRUNDSTUECK": NSLocalizedString("TYPE.WOHNGRUNDSTUECK", comment: "Residential property"),
-            "FREIBAD": NSLocalizedString("TYPE.FREIBAD", comment: "Outdoor pool"),
-            "INDUSTRIEANLAGE": NSLocalizedString("TYPE.INDUSTRIEANLAGE", comment: "Industrial installation"),
-            "KRAFTWERK": NSLocalizedString("TYPE.KRAFTWERK", comment: "Power plant"),
-            "UMSPANNWERK": NSLocalizedString("TYPE.UMSPANNWERK", comment: "Substation"),
-            "STROMLEITUNG": NSLocalizedString("TYPE.STROMLEITUNG", comment: "Power line"),
-            "WINDKRAFTANLAGE": NSLocalizedString("TYPE.WINDKRAFTANLAGE", comment: "Wind farm"),
-            "JVA": NSLocalizedString("TYPE.JVA", comment: "Prison"),
-            "MILITÄRANLAGE": NSLocalizedString("TYPE.MILITAERANLAGE", comment: "Military installation"),
-            "MILITAERANLAGE": NSLocalizedString("TYPE.MILITAERANLAGE", comment: "Military installation"),
-            "LABOR": NSLocalizedString("TYPE.LABOR", comment: "BSL-4 facility"),
-            "BEHÖRDE": NSLocalizedString("TYPE.BEHORDE", comment: "Authority"),
-            "BEHOERDE": NSLocalizedString("TYPE.BEHORDE", comment: "Authority"),
-            "KRANKENHAUS": NSLocalizedString("LAYER.krankenhaeuser", comment: "Hospital"),
-            "NATIONALPARK": NSLocalizedString("LAYER.nationalparks", comment: "National park"),
-            "NSG": NSLocalizedString("LAYER.naturschutzgebiete", comment: "Nature reserve"),
-            "FFH-GEBIET": NSLocalizedString("LAYER.ffh-gebiete", comment: "Habitat site"),
-            "VOGELSCHUTZGEBIET": NSLocalizedString("LAYER.vogelschutzgebiete", comment: "Bird sanctuary")
-        ]
-
-        return typeMap[typeCode.uppercased()] ?? typeCode
-    }
-
     static func iconName(for category: ZoneCategory) -> String {
         switch category {
         case .airport, .aerodrome:
@@ -217,18 +187,6 @@ enum ZonePresentation {
 
         if let lower {
             return String(format: NSLocalizedString("ALTITUDE_FROM", comment: "Altitude lower limit"), lower)
-        }
-
-        return nil
-    }
-
-    static func detailSummary(for feature: ZoneFeature) -> String? {
-        if let explanation = explanation(for: feature) {
-            return explanation
-        }
-
-        if let altitude = formattedAltitude(for: feature) {
-            return altitude
         }
 
         return nil
