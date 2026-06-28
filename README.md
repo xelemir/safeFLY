@@ -6,7 +6,8 @@
 
 **safeFLY** is the essential iOS map companion for drone pilots in Germany —
 real-time air traffic control zones, nature reserves, wind profiles, and
-instant flight validation, built on **official DFS mapping data**.
+instant flight checks, built on **official DFS mapping data**. Optional
+providers extend zone coverage to six neighbouring countries.
 
 [![App Store version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fitunes.apple.com%2Flookup%3Fid%3D6755426394%26country%3Dde&query=%24.results%5B0%5D.version&label=App%20Store&prefix=v&logo=apple&color=0D96F6)](https://apps.apple.com/de/app/safefly/id6755426394)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -31,8 +32,8 @@ instant flight validation, built on **official DFS mapping data**.
 
 ### 🗺️ Drone map
 Interactive MapKit view with the official **DIPUL / DFS** geozone overlay
-rendered live as a WMS layer. Tap anywhere to check that location. Toggle the
-layers you care about:
+(plus any enabled neighbouring-country providers) rendered live. Tap anywhere
+to check that location. Toggle the layers you care about:
 
 - Airports & aerodromes
 - Control zones & restricted areas
@@ -41,6 +42,14 @@ layers you care about:
 - Residential, industrial & government areas
 - Motorways, highways, railways & waterways
 - Model flying fields
+
+### 🇪🇺 Coverage beyond Germany
+Germany (DIPUL / DFS) is the core. You can additionally enable official
+drone-zone providers for **France, Switzerland, Austria, the Czech Republic,
+the Netherlands and Luxembourg** in Settings — each pulling from that
+country's own aviation authority. A coverage layer dims areas without data,
+with a lighter shade for providers you haven't switched on yet, so availability
+is clear at a glance.
 
 ### 📍 Zone details & flight validation
 Tap a point to see the geozones affecting it — zone **name**, **type**,
@@ -71,7 +80,13 @@ safeFLY only queries public endpoints; it does not redistribute their data.
 
 | Source | Used for |
 | --- | --- |
-| **DIPUL** (Digitale Plattform Unbemannte Luftfahrt) | geozone WMS overlay |
+| **DIPUL** (Digitale Plattform Unbemannte Luftfahrt) | geozones — Germany 🇩🇪 |
+| **DGAC / Géoportail** | geozones — France 🇫🇷 |
+| **FOCA (BAZL) / swisstopo** | geozones — Switzerland 🇨🇭 |
+| **Austro Control** (Dronespace) | geozones — Austria 🇦🇹 |
+| **ŘLP ČR** (DroneMap) | geozones — Czech Republic 🇨🇿 |
+| **Rijksoverheid / LVNL** | geozones — Netherlands 🇳🇱 |
+| **DAC** (Direction de l'Aviation Civile) | geozones — Luxembourg 🇱🇺 |
 | **DFS Deutsche Flugsicherung** | aeronautical weather (UTM weather service, ICON-D2) |
 | **Open-Meteo** ([open-meteo.com](https://open-meteo.com)) | general weather forecast |
 
