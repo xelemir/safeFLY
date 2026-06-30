@@ -29,6 +29,44 @@ struct CountryCoverage: Sendable {
         }
         return false
     }
+
+    // Whether any of this country's territory is visible in `region`, used to decide which
+    // providers' overlays to render. A center-in-country test alone fails the common border
+    // view (e.g. 60% Germany / 40% Switzerland) where the center sits in one country while a
+    // neighbour fills the rest of the screen — both should render. We treat the country as
+    // visible when its real outline overlaps the viewport rectangle.
+    nonisolated func intersects(_ region: MapRegion) -> Bool {
+        guard boundingBox.intersects(region) else { return false }
+
+        let minLat = region.center.latitude - region.latitudeDelta / 2
+        let maxLat = region.center.latitude + region.latitudeDelta / 2
+        let minLon = region.center.longitude - region.longitudeDelta / 2
+        let maxLon = region.center.longitude + region.longitudeDelta / 2
+
+        // Any viewport corner (or its center) sitting on this country's territory.
+        let probes = [
+            region.center,
+            MapCoordinate(latitude: minLat, longitude: minLon),
+            MapCoordinate(latitude: minLat, longitude: maxLon),
+            MapCoordinate(latitude: maxLat, longitude: minLon),
+            MapCoordinate(latitude: maxLat, longitude: maxLon)
+        ]
+        for probe in probes where contains(probe) {
+            return true
+        }
+
+        // Or any outline vertex falling inside the viewport — catches a small country fully
+        // contained in a zoomed-out view, where no corner happens to land on its territory.
+        for polygon in polygons {
+            for point in polygon where point.count >= 2 {
+                if point[1] >= minLat && point[1] <= maxLat &&
+                    point[0] >= minLon && point[0] <= maxLon {
+                    return true
+                }
+            }
+        }
+        return false
+    }
 }
 
 nonisolated enum CountryBoundaries {

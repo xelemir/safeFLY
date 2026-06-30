@@ -59,7 +59,7 @@ final class FranceProvider: WMSBackedProvider, @unchecked Sendable {
     nonisolated var coverage: CountryCoverage? { CountryBoundaries.france }
 
     nonisolated func intersects(_ region: MapRegion) -> Bool {
-        CountryBoundaries.france.contains(region.center)
+        CountryBoundaries.france.intersects(region)
     }
 
     nonisolated var referenceLinks: [ProviderReferenceLink] {

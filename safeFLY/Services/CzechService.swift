@@ -159,7 +159,7 @@ final class CzechProvider: GeospatialProvider, @unchecked Sendable {
     nonisolated var coverage: CountryCoverage? { CountryBoundaries.czechia }
 
     nonisolated func intersects(_ region: MapRegion) -> Bool {
-        CountryBoundaries.czechia.contains(region.center)
+        CountryBoundaries.czechia.intersects(region)
     }
 
     nonisolated var referenceLinks: [ProviderReferenceLink] {

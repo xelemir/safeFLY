@@ -85,7 +85,7 @@ final class NetherlandsProvider: ED269DownloadableProvider, @unchecked Sendable 
     nonisolated var coverage: CountryCoverage? { CountryBoundaries.netherlands }
 
     nonisolated func intersects(_ region: MapRegion) -> Bool {
-        CountryBoundaries.netherlands.contains(region.center)
+        CountryBoundaries.netherlands.intersects(region)
     }
 
     nonisolated var referenceLinks: [ProviderReferenceLink] {

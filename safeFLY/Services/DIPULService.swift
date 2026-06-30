@@ -103,7 +103,7 @@ final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
     nonisolated var coverage: CountryCoverage? { CountryBoundaries.germany }
 
     nonisolated func intersects(_ region: MapRegion) -> Bool {
-        CountryBoundaries.germany.contains(region.center)
+        CountryBoundaries.germany.intersects(region)
     }
 
     nonisolated var referenceLinks: [ProviderReferenceLink] {
