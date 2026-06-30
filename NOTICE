@@ -4,8 +4,25 @@ Copyright 2026 Jan Grüttefien and safeFLY contributors
 This product includes icons from Google Material Symbols
 (https://fonts.google.com/icons), licensed under the Apache License, Version 2.0.
 
-This product retrieves drone geozone and aeronautical weather data from
-the German "Digitale Plattform Unbemannte Luftfahrt" (DIPUL) and DFS
-Deutsche Flugsicherung GmbH services, and general weather data from
-Open-Meteo (https://open-meteo.com). These services are not affiliated
-with this project and retain all rights to their respective data.
+safeFLY queries the following third-party services at runtime to display drone
+geozones and weather. It does not bundle or redistribute their data. These
+services are not affiliated with this project and retain all rights to their
+respective data, which remains subject to each provider's own terms of use.
+
+Drone geozone data:
+  - Germany — Digitale Plattform Unbemannte Luftfahrt (DIPUL) and DFS Deutsche
+    Flugsicherung GmbH (data: DFS, BKG)
+  - France — Direction générale de l'Aviation civile (DGAC) via Géoportail
+    (data: DGAC, IGN)
+  - Switzerland — Federal Office of Civil Aviation (FOCA / BAZL) (data: FOCA,
+    swisstopo)
+  - Austria — Austro Control GmbH (Dronespace)
+  - Czech Republic — Řízení letového provozu ČR (ŘLP ČR / ANS CR), DroneMap
+  - Netherlands — Rijksoverheid, LVNL and the Ministry of Infrastructure and
+    Water Management (IenW)
+  - Luxembourg — Direction de l'Aviation Civile (DAC)
+
+Weather data:
+  - DFS Deutsche Flugsicherung GmbH — aeronautical weather (UTM weather
+    service, ICON-D2 model)
+  - Open-Meteo (https://open-meteo.com) — general weather forecast
