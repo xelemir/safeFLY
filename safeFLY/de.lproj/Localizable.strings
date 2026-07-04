@@ -277,6 +277,7 @@
 "Provider status has not been refreshed yet." = "Der Anbieter-Status wurde noch nicht aktualisiert.";
 "Enable Provider" = "Anbieter aktivieren";
 "Disabled providers do not participate in map rendering or location queries." = "Deaktivierte Anbieter werden weder auf der Karte angezeigt noch in Ortsabfragen berücksichtigt.";
+"Enable this provider to show status and dataset options." = "Aktiviere diesen Anbieter, um Status- und Datensatzoptionen anzuzeigen.";
 "Provider Datasets" = "Anbieter-Datensätze";
 "Dataset selection remains editable even when a dataset is temporarily unavailable." = "Du kannst die Datensätze weiter auswählen, auch wenn ein Datensatz gerade vorübergehend nicht verfügbar ist.";
 "Provider References" = "Anbieter-Referenzen";

@@ -32,9 +32,9 @@ struct ProviderCoverageMask: Equatable {
 nonisolated enum CoverageMask {
     // Areas with no provider coverage at all: the heaviest dim.
     static let notCoveredFill = UIColor(white: 0.08, alpha: 0.52)
-    // Areas covered by a provider the user hasn't enabled: a clearly lighter gray, but still
-    // distinct from the fully-clear enabled areas.
-    static let coveredInactiveFill = UIColor(white: 0.45, alpha: 0.30)
+    // Areas covered by a provider the user hasn't enabled: visibly dimmed, but still
+    // lighter than the "not covered" mask so users can tell the two states apart.
+    static let coveredInactiveFill = UIColor(white: 0.18, alpha: 0.45)
 
     // Stable identity of a mask set, so the host only rebuilds the overlay when it changes.
     static func key(for masks: [ProviderCoverageMask]) -> String {

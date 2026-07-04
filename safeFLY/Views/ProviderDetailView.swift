@@ -45,8 +45,9 @@ struct ProviderDetailView: View {
         Form {
             enablementSection
 
+            let isEnabled = providersStore.isProviderEnabled(providerSession.provider.id)
             let isDownloaded = providerSession.provider.downloadURL == nil || providerSession.provider.isDataDownloaded
-            if isDownloaded {
+            if isDownloaded, isEnabled {
                 statusSection
                 datasetSectionsView
 
@@ -82,6 +83,7 @@ struct ProviderDetailView: View {
         Section {
             if let _ = providerSession.provider.downloadURL {
                 if providerSession.provider.isDataDownloaded {
+                    let isEnabled = providersStore.isProviderEnabled(providerSession.provider.id)
                     Toggle(
                         NSLocalizedString("Enable Provider", comment: "Provider enable toggle label"),
                         isOn: Binding(
@@ -89,18 +91,20 @@ struct ProviderDetailView: View {
                             set: { providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: $0) }
                         )
                     )
-                    
-                    Button(role: .destructive) {
-                        providerSession.provider.deleteData()
-                        providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: false)
-                        Task {
-                            // Re-probe so the badge returns to .downloadRequired now the
-                            // package is gone, rather than lingering on .available.
-                            await providersStore.refreshStatus(for: providerSession.provider.id)
-                            providersStore.markConfigurationChanged()
+
+                    if isEnabled {
+                        Button(role: .destructive) {
+                            providerSession.provider.deleteData()
+                            providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: false)
+                            Task {
+                                // Re-probe so the badge returns to .downloadRequired now the
+                                // package is gone, rather than lingering on .available.
+                                await providersStore.refreshStatus(for: providerSession.provider.id)
+                                providersStore.markConfigurationChanged()
+                            }
+                        } label: {
+                            Text(NSLocalizedString("Delete Data Package", comment: "Button to delete package"))
                         }
-                    } label: {
-                        Text(NSLocalizedString("Delete Data Package", comment: "Button to delete package"))
                     }
                 } else {
                     Button {
@@ -129,12 +133,20 @@ struct ProviderDetailView: View {
         } footer: {
             if let _ = providerSession.provider.downloadURL {
                 if providerSession.provider.isDataDownloaded {
-                    Text(NSLocalizedString("Offline data package downloaded and ready. You can enable or disable the provider.", comment: "Offline data package ready"))
+                    if providersStore.isProviderEnabled(providerSession.provider.id) {
+                        Text(NSLocalizedString("Offline data package downloaded and ready. You can enable or disable the provider.", comment: "Offline data package ready"))
+                    } else {
+                        Text(NSLocalizedString("Enable this provider to show status and dataset options.", comment: "Provider disabled footer prompting enablement"))
+                    }
                 } else {
                     Text(NSLocalizedString("Download this provider's data package to view restrictions. The package will be updated automatically when new data is available.", comment: "Offline data download required"))
                 }
             } else {
-                Text(NSLocalizedString("Disabled providers do not participate in map rendering or location queries.", comment: "Provider enablement footer"))
+                if providersStore.isProviderEnabled(providerSession.provider.id) {
+                    Text(NSLocalizedString("Disabled providers do not participate in map rendering or location queries.", comment: "Provider enablement footer"))
+                } else {
+                    Text(NSLocalizedString("Enable this provider to show status and dataset options.", comment: "Provider disabled footer prompting enablement"))
+                }
             }
         }
     }

@@ -77,9 +77,8 @@ final class ProvidersStore: ObservableObject {
             let wasEnabled = enabledProviderIDs.contains(providerID)
             enabledProviderIDs.insert(providerID)
             // Probe a provider the moment it is turned on so its status reflects reality
-            // instead of staying stale until the next app foreground. Auto-downloading
-            // providers also fetch their dataset right away, so the first enable doesn't
-            // require a manual download step or wait for the next foreground.
+            // instead of staying stale until the next app foreground. Download-backed
+            // providers also refresh their local package immediately when it is due.
             if !wasEnabled {
                 let session = providerSession(for: providerID)
                 let provider = session?.provider
@@ -91,7 +90,7 @@ final class ProvidersStore: ObservableObject {
                     configurationRevision += 1
                 }
                 Task {
-                    if let provider, provider.autoDownloadsDataset, !provider.isDataDownloaded {
+                    if let provider, shouldRefreshDownloadableDataset(provider) {
                         try? await provider.downloadData()
                         markConfigurationChanged()
                     }
@@ -147,23 +146,11 @@ final class ProvidersStore: ObservableObject {
     // (so the map never flickers or blanks), and touches no published UI state. Failures are
     // silent and leave the existing local copy in place.
     func refreshDownloadableDatasetsInBackground(now: Date = Date()) {
-        for session in sessions {
+        // Respect provider enablement: disabled providers stay completely idle.
+        for session in enabledSessions {
             let provider = session.provider
 
-            // Only providers backed by a downloadable file. Normally the user must have a
-            // local copy already; auto-downloading providers (small, frequently-updated
-            // feeds) are fetched even on their first foreground.
-            guard provider.downloadURL != nil,
-                  provider.isDataDownloaded || provider.autoDownloadsDataset else {
-                continue
-            }
-
-            // Throttle on the local dataset's own modification date, which every successful
-            // download — manual "Update Now" or silent background refresh — updates atomically.
-            // Keeping a single source of truth means a manual update correctly suppresses the
-            // next background refresh, with no separate timestamp to drift out of sync.
-            if let lastUpdated = provider.datasetLastUpdated,
-               now.timeIntervalSince(lastUpdated) < provider.datasetRefreshInterval {
+            if !shouldRefreshDownloadableDataset(provider, now: now) {
                 continue
             }
 
@@ -173,6 +160,24 @@ final class ProvidersStore: ObservableObject {
                 try? await provider.downloadData()
             }
         }
+    }
+
+    // Eligibility + staleness gate for silent package refreshes (foreground re-enable and
+    // app-activation background pass share the exact same policy).
+    private func shouldRefreshDownloadableDataset(_ provider: any GeospatialProvider, now: Date = Date()) -> Bool {
+        guard provider.downloadURL != nil,
+              provider.isDataDownloaded || provider.autoDownloadsDataset else {
+            return false
+        }
+
+        // Throttle on the local dataset timestamp itself so manual updates and silent updates
+        // naturally share one source of truth.
+        if let lastUpdated = provider.datasetLastUpdated,
+           now.timeIntervalSince(lastUpdated) < provider.datasetRefreshInterval {
+            return false
+        }
+
+        return true
     }
 
     func refreshStatus(for providerID: String) async {

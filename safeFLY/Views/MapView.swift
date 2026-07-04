@@ -200,7 +200,9 @@ struct MapView: View {
                     loadingView
                 }
 
-                attributionView
+                if shouldShowGeozones {
+                    attributionView
+                }
             }
             .onAppear {
                 currentViewSize = geometry.size

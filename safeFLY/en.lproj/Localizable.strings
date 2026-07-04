@@ -275,6 +275,7 @@
 "Provider status has not been refreshed yet." = "Provider status has not been refreshed yet.";
 "Enable Provider" = "Enable Provider";
 "Disabled providers do not participate in map rendering or location queries." = "Disabled providers do not participate in map rendering or location queries.";
+"Enable this provider to show status and dataset options." = "Enable this provider to show status and dataset options.";
 "Provider Datasets" = "Provider Datasets";
 "Dataset selection remains editable even when a dataset is temporarily unavailable." = "Dataset selection remains editable even when a dataset is temporarily unavailable.";
 "Provider References" = "Provider References";
