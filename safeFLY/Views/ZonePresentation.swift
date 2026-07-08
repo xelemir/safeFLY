@@ -89,6 +89,8 @@ enum ZonePresentation {
             return NSLocalizedString("LAYER.freibaeder", comment: "Recreational area")
         case .residentialProperty:
             return NSLocalizedString("LAYER.wohngrundstuecke", comment: "Residential property")
+        case .populatedArea:
+            return NSLocalizedString("LAYER.populated_area", comment: "Populated area (population-density classification)")
         case .modelFlyingField:
             return NSLocalizedString("LAYER.modellflugplaetze", comment: "Model flying field")
         case .temporaryRestrictionInactive:
@@ -132,6 +134,8 @@ enum ZonePresentation {
             return "cross.case.fill"
         case .residentialProperty:
             return "house.fill"
+        case .populatedArea:
+            return "building.2.crop.circle"
         case .recreationalArea:
             return "figure.pool.swim"
         case .temporaryRestrictionActive, .temporaryRestrictionInactive:
@@ -162,6 +166,8 @@ enum ZonePresentation {
         case .hospital:
             return .red
         case .residentialProperty:
+            return .brown
+        case .populatedArea:
             return .brown
         case .policeProperty:
             return .indigo

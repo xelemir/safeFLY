@@ -93,6 +93,10 @@ enum ZoneCategory: Sendable {
     case hospital
     case recreationalArea
     case residentialProperty
+    // A population-density classification of the terrain (e.g. the Czech nationwide HOP
+    // A1/A2/A3 zones), not a specific "keep away from these houses" restriction. Kept
+    // distinct from `residentialProperty` so it isn't mislabelled as a residential no-fly.
+    case populatedArea
     case modelFlyingField
     case temporaryRestrictionInactive
 
@@ -160,6 +164,8 @@ enum ZoneCategory: Sendable {
             return 61
         case .residentialProperty:
             return 70
+        case .populatedArea:
+            return 71
         case .modelFlyingField:
             return 80
         case .temporaryRestrictionInactive:

@@ -54,10 +54,15 @@ nonisolated final class CoverageMaskOverlay: NSObject, MKOverlay {
     let coveredRings: [[CLLocationCoordinate2D]]
     // Covered-but-disabled countries: repainted with the lighter dim over the clear punch.
     let inactiveRings: [[CLLocationCoordinate2D]]
+    // Enabled-provider countries: re-punched clear last so that where an active and an inactive
+    // provider overlap (e.g. Austro Control + the disabled EU nature layer both cover Austria),
+    // the active provider wins and the area is not left dimmed.
+    let activeRings: [[CLLocationCoordinate2D]]
 
     init(masks: [ProviderCoverageMask]) {
         coveredRings = masks.flatMap { $0.polygons.map(Self.ring) }
         inactiveRings = masks.filter { !$0.isActive }.flatMap { $0.polygons.map(Self.ring) }
+        activeRings = masks.filter { $0.isActive }.flatMap { $0.polygons.map(Self.ring) }
         super.init()
     }
 
@@ -86,6 +91,13 @@ nonisolated final class CoverageMaskRenderer: MKOverlayRenderer {
         context.setBlendMode(.normal)
         context.setFillColor(CoverageMask.coveredInactiveFill.cgColor)
         for ring in mask.inactiveRings {
+            fill(ring, in: context)
+        }
+
+        // 4. Punch the enabled-provider countries clear again, so a country an active provider
+        //    covers is never left dimmed just because a disabled provider also overlaps it.
+        context.setBlendMode(.clear)
+        for ring in mask.activeRings {
             fill(ring, in: context)
         }
     }

@@ -177,6 +177,18 @@ struct WMSRenderPayload: Identifiable, Equatable, Sendable {
     let imageURL: URL
     let region: MapRegion
     let opacity: Double
+    // Optional coverage outline the rendered image is clipped to, as rings of country
+    // polygons. Used by EU-wide layers (e.g. the EEA nature overlay) whose GetMap image spans
+    // neighbouring countries: without this the layer would paint across borders it doesn't serve.
+    let clipPolygons: [[MapCoordinate]]?
+
+    nonisolated init(id: String, imageURL: URL, region: MapRegion, opacity: Double, clipPolygons: [[MapCoordinate]]? = nil) {
+        self.id = id
+        self.imageURL = imageURL
+        self.region = region
+        self.opacity = opacity
+        self.clipPolygons = clipPolygons
+    }
 }
 
 struct PolygonRenderPayload: Identifiable, Equatable, Sendable {

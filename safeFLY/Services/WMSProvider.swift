@@ -25,6 +25,11 @@ protocol WMSBackedProvider: GeospatialProvider {
 
     // Opacity applied to the rendered WMS overlay image.
     nonisolated var renderOverlayOpacity: Double { get }
+
+    // Optional country outline the rendered overlay is clipped to. Only needed for layers whose
+    // WMS image spans more than the countries the provider serves (e.g. the EU-wide EEA nature
+    // layer); country-scoped WMS layers leave this nil and render unclipped.
+    nonisolated var renderClipPolygons: [[MapCoordinate]]? { get }
 }
 
 extension WMSBackedProvider {
@@ -34,6 +39,7 @@ extension WMSBackedProvider {
 
     nonisolated var attributionOutline: [(lat: Double, lon: Double)]? { nil }
     nonisolated var renderOverlayOpacity: Double { 0.8 }
+    nonisolated var renderClipPolygons: [[MapCoordinate]]? { nil }
 
     nonisolated func intersects(_ region: MapRegion) -> Bool {
         guard let attributionOutline else {
@@ -70,7 +76,8 @@ extension WMSBackedProvider {
                     id: "\(id).wms-overlay",
                     imageURL: imageURL,
                     region: request.region,
-                    opacity: renderOverlayOpacity
+                    opacity: renderOverlayOpacity,
+                    clipPolygons: renderClipPolygons
                 )
             )
         ]

@@ -87,6 +87,7 @@
 "LAYER.seewasserstrassen" = "Maritime Waterway";
 "LAYER.schifffahrtsanlagen" = "Shipping Installation";
 "LAYER.wohngrundstuecke" = "Residential Property";
+"LAYER.populated_area" = "Populated Area";
 "LAYER.freibaeder" = "Outdoor Pool/Beach";
 "LAYER.industrieanlagen" = "Industrial Installation";
 "LAYER.kraftwerke" = "Power Plant";
@@ -267,7 +268,7 @@
 /* Provider Management */
 "Providers" = "Providers";
 "Manage built-in geospatial providers and configure their provider-specific datasets." = "Manage built-in geospatial providers and configure their provider-specific datasets.";
-"Each provider covers one country's airspace. Only enable providers for countries you plan to fly in." = "Each provider covers one country's airspace. Only enable providers for countries you plan to fly in.";
+"Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly." = "Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly.";
 "Refreshing Status..." = "Refreshing Status...";
 "Refresh Provider Status" = "Refresh Provider Status";
 "Provider Status" = "Provider Status";
@@ -279,6 +280,9 @@
 "Provider Datasets" = "Provider Datasets";
 "Dataset selection remains editable even when a dataset is temporarily unavailable." = "Dataset selection remains editable even when a dataset is temporarily unavailable.";
 "Provider References" = "Provider References";
+"Protected Areas (Europe)" = "Nature Reserves 🇦🇹🇳🇱🇱🇺";
+"Natura 2000 network (EEA)" = "Natura 2000 network (EEA)";
+"EU.NOTE.PROTECTED_AREA" = "Protected area (Natura 2000). Drone flight is restricted under national nature-protection law — usually a permit is required and it is often prohibited. Check the local rules before flying.";
 "Disabled" = "Disabled";
 "Unknown" = "Unknown";
 "Available" = "Available";

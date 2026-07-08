@@ -16,10 +16,13 @@ enum BuiltInProviders {
         ProviderRegistration(provider: DIPULProvider(), normalizer: DIPULZoneNormalizer()),
         ProviderRegistration(provider: FranceProvider(), normalizer: FranceZoneNormalizer()),
         ProviderRegistration(provider: SwitzerlandProvider(), normalizer: SwitzerlandZoneNormalizer()),
-        ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer()),
         ProviderRegistration(provider: CzechProvider(), normalizer: CzechZoneNormalizer()),
+        // The three countries whose national feed carries no nature reserves, grouped at the
+        // bottom, with the EU nature-reserve layer that backfills them placed last of all.
+        ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer()),
         ProviderRegistration(provider: NetherlandsProvider(), normalizer: NetherlandsZoneNormalizer()),
-        ProviderRegistration(provider: LuxembourgProvider(), normalizer: LuxembourgZoneNormalizer())
+        ProviderRegistration(provider: LuxembourgProvider(), normalizer: LuxembourgZoneNormalizer()),
+        ProviderRegistration(provider: ProtectedAreasProvider(), normalizer: ProtectedAreasZoneNormalizer())
     ]
 }
 

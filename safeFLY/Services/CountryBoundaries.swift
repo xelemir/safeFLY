@@ -69,7 +69,28 @@ struct CountryCoverage: Sendable {
     }
 }
 
+extension CountryCoverage {
+    // Merges several country outlines into one coverage: the union of their polygons and a
+    // bounding box spanning all of them. Used by cross-border providers such as the EU
+    // protected-areas overlay, which serves more than one country from a single source.
+    nonisolated static func union(_ coverages: [CountryCoverage]) -> CountryCoverage {
+        let boxes = coverages.map(\.boundingBox)
+        let box = BoundingBox(
+            minLat: boxes.map(\.minLat).min() ?? 0,
+            maxLat: boxes.map(\.maxLat).max() ?? 0,
+            minLon: boxes.map(\.minLon).min() ?? 0,
+            maxLon: boxes.map(\.maxLon).max() ?? 0
+        )
+        return CountryCoverage(boundingBox: box, polygons: coverages.flatMap(\.polygons))
+    }
+}
+
 nonisolated enum CountryBoundaries {
+
+    // Coverage for the EU protected-areas overlay: exactly the countries whose national feed
+    // does NOT publish nature reserves (Austria, Luxembourg, Netherlands), so the layer never
+    // duplicates reserves the native providers already ship (Germany, Switzerland, Czechia).
+    static let protectedAreas = CountryCoverage.union([austria, luxembourg, netherlands])
 
     // Germany — DIPUL coverage. Mainland + North Sea/Baltic islands.
     static let germany = CountryCoverage(

@@ -15,12 +15,17 @@ class WMSImageOverlay: NSObject, MKOverlay {
     let boundingMapRect: MKMapRect
     let imageURL: URL
     let opacity: Double
+    // Country outline rings the image is clipped to; empty means draw the whole image.
+    let clipRings: [[CLLocationCoordinate2D]]
     var image: UIImage?
 
     init(payload: WMSRenderPayload) {
         self.payloadID = payload.id
         self.imageURL = payload.imageURL
         self.opacity = payload.opacity
+        self.clipRings = (payload.clipPolygons ?? []).map { ring in
+            ring.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+        }
 
         let region = MKCoordinateRegion(payload.region)
         self.coordinate = region.center
@@ -51,6 +56,22 @@ class WMSImageRenderer: MKOverlayRenderer {
         let rect = self.rect(for: overlay.boundingMapRect)
 
         context.saveGState()
+
+        // Clip to the provider's country outline before drawing, so an EU-wide WMS image never
+        // paints across borders the provider doesn't serve. Built in the untransformed renderer
+        // space (same space as `rect`), so it stays aligned with the image below.
+        if let wms = overlay as? WMSImageOverlay, !wms.clipRings.isEmpty {
+            context.beginPath()
+            for ring in wms.clipRings where ring.count > 2 {
+                context.move(to: point(for: MKMapPoint(ring[0])))
+                for coordinate in ring.dropFirst() {
+                    context.addLine(to: point(for: MKMapPoint(coordinate)))
+                }
+                context.closePath()
+            }
+            context.clip()
+        }
+
         context.translateBy(x: rect.origin.x, y: rect.origin.y + rect.size.height)
         context.scaleBy(x: 1.0, y: -1.0)
         context.draw(image, in: CGRect(origin: .zero, size: rect.size))

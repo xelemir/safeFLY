@@ -112,7 +112,7 @@ final class CzechProvider: GeospatialProvider, @unchecked Sendable {
         CzechProvider.makeService(serviceName:"zdroje_vody", layerIDs: ["0"], datasetID: "infrastructure.water",
                     title: "Water Sources", groupTitle: "Infrastructure", category: .restrictedArea, verdict: .conditional),
         CzechProvider.makeService(serviceName:"HOPs", layerIDs: ["0", "1", "2"], datasetID: "population.height-zones",
-                    title: "Population Height Zones", groupTitle: "Population", category: .residentialProperty, verdict: .conditional)
+                    title: "Population Height Zones", groupTitle: "Population", category: .populatedArea, verdict: .conditional)
     ]
 
     // Per-layer flight verdict + category from the actual ŘLP / CAA rules (OOP LKR310–320,
@@ -143,9 +143,10 @@ final class CzechProvider: GeospatialProvider, @unchecked Sendable {
         // Drinking-water reservoirs/sources: only with the water authority's consent.
         case "nadzemni_zdroje_pitne_vody": return (.restrictedArea, .conditional)
         // Densely populated areas (A1/A2): conditions apply (flight plan, distance to people).
-        case "CZ_HOP_A1A2": return (.residentialProperty, .conditional)
+        // A population-density class of the terrain, not a residential no-fly zone.
+        case "CZ_HOP_A1A2": return (.populatedArea, .conditional)
         // Sparsely populated (A3) and the raw population grid are informational only.
-        case "EU_HOP_A3", "GHS_POP_period_2025": return (.residentialProperty, .allowed)
+        case "EU_HOP_A3", "GHS_POP_period_2025": return (.populatedArea, .allowed)
         default: return fallback
         }
     }

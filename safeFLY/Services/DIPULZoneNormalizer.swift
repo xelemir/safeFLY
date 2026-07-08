@@ -129,7 +129,9 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
             return NSLocalizedString("TEMP_NO_FLY_PROHIBITED", comment: "Temporary no-fly zone")
         case .temporaryRestrictionInactive:
             return NSLocalizedString("INACTIVE_TEMP_RESTRICTION", comment: "Inactive temporary restriction")
-        case .restrictedArea:
+        // .populatedArea is a non-German (Czech HOP) category and never reached here, but the
+        // switch must stay exhaustive; fall back to the generic "check the zone" advisory.
+        case .restrictedArea, .populatedArea:
             return NSLocalizedString("RESTRICTED_ZONE_CHECK", comment: "Restricted zone check message")
         case .modelFlyingField:
             return NSLocalizedString("MODEL_FLYING_FIELD_CAUTION", comment: "Model flying field caution message")

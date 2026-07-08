@@ -69,7 +69,7 @@ struct SettingsView: View {
                     Text(NSLocalizedString("Providers", comment: "Providers section title"))
                 } footer: {
                     Text(NSLocalizedString(
-                        "Each provider covers one country's airspace. Only enable providers for countries you plan to fly in.",
+                        "Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly.",
                         comment: "Providers section footer"
                     ))
                 }
