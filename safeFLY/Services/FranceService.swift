@@ -20,7 +20,7 @@ final class FranceProvider: WMSBackedProvider, @unchecked Sendable {
 
     nonisolated let id = FranceProvider.providerID
     nonisolated var displayName: String {
-        NSLocalizedString("DGAC (France)", comment: "France provider display name")
+        NSLocalizedString("DGAC", comment: "France provider display name")
     }
     nonisolated var attributionName: String {
         "DGAC, IGN"

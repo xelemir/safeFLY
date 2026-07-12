@@ -41,6 +41,12 @@ struct ProviderDetailView: View {
         providerSession.provider.id == DIPULProvider.providerID
     }
 
+    // The offline German package is deliberately stripped to flight-critical layers to keep it
+    // small; this page spells out what it does and doesn't contain.
+    private var isDIPULOffline: Bool {
+        providerSession.provider.id == DIPULOfflineProvider.providerID
+    }
+
     var body: some View {
         Form {
             enablementSection
@@ -50,6 +56,10 @@ struct ProviderDetailView: View {
             if isDownloaded, isEnabled {
                 statusSection
                 datasetSectionsView
+
+                if isDIPULOffline {
+                    offlineContentsSection
+                }
 
                 if !providerSession.provider.referenceLinks.isEmpty {
                     referencesSection
@@ -230,6 +240,22 @@ struct ProviderDetailView: View {
                     Text(NSLocalizedString("Dataset selection remains editable even when a dataset is temporarily unavailable.", comment: "Provider datasets section footer"))
                 }
             }
+        }
+    }
+
+    // Makes the flight-critical-only scope of the offline package explicit, and points users to
+    // the online DIPUL provider for the bulk layers that were stripped out to keep it small.
+    private var offlineContentsSection: some View {
+        Section {
+            Text(NSLocalizedString("DIPUL_OFFLINE_INCLUDED", comment: "Offline DIPUL package: included layers"))
+                .font(.footnote)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(NSLocalizedString("DIPUL_OFFLINE_EXCLUDED", comment: "Offline DIPUL package: excluded layers"))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        } header: {
+            Text(NSLocalizedString("Offline Package Contents", comment: "Offline DIPUL package contents section title"))
         }
     }
 

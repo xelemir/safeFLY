@@ -29,7 +29,7 @@ final class SwitzerlandProvider: WMSBackedProvider, @unchecked Sendable {
 
     nonisolated let id = SwitzerlandProvider.providerID
     nonisolated var displayName: String {
-        NSLocalizedString("FOCA (Switzerland)", comment: "Switzerland provider display name")
+        NSLocalizedString("FOCA", comment: "Switzerland provider display name")
     }
     nonisolated var attributionName: String {
         "FOCA, swisstopo"

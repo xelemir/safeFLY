@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var droneSettings: DroneSettings
     @EnvironmentObject var providersStore: ProvidersStore
+    @EnvironmentObject private var offlineMapStore: OfflineMapStore
     @Environment(\.dismiss) var dismiss
     @Environment(\.openURL) private var openURL
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -51,27 +52,51 @@ struct SettingsView: View {
                 } header: {
                     Text("Drone Information")
                 } footer: {
-                    Text("Save your UAV e-ID (e.g., DEU3otef849kry8h)")                    
+                    Text("Save your UAV e-ID (e.g., DEU3otef849kry8h)")
                 }
-                
+
                 Section {
-                    ForEach(providersStore.sessions) { providerSession in
+                    ForEach(ProviderCountries.all) { country in
                         NavigationLink {
-                            ProviderDetailView(providerSession: providerSession)
+                            CountrySettingsView(country: country)
                         } label: {
-                            ProviderSummaryRow(
-                                providerSession: providerSession,
-                                isEnabled: providersStore.isProviderEnabled(providerSession.provider.id)
+                            CountrySummaryRow(
+                                country: country,
+                                status: providersStore.countryStatus(for: country)
                             )
                         }
                     }
                 } header: {
-                    Text(NSLocalizedString("Providers", comment: "Providers section title"))
+                    Text(NSLocalizedString("Countries", comment: "Countries section title"))
                 } footer: {
                     Text(NSLocalizedString(
-                        "Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly.",
-                        comment: "Providers section footer"
+                        "Pick a country to manage the providers that cover it. Enable the ones you need for where you plan to fly.",
+                        comment: "Countries section footer"
                     ))
+                }
+
+                Section {
+                    NavigationLink {
+                        OfflineMapsSettingsView()
+                    } label: {
+                        HStack {
+                            Text(
+                                NSLocalizedString("Offline Maps", comment: "Offline maps navigation label")
+                            )
+                            Spacer()
+                            if offlineMapStore.totalStorageBytes > 0 {
+                                Text(ByteCountFormatter.string(
+                                    fromByteCount: offlineMapStore.totalStorageBytes,
+                                    countStyle: .file
+                                ))
+                                .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text(NSLocalizedString("Maps", comment: "Maps section title"))
+                } footer: {
+                    Text(NSLocalizedString("OFFLINE_MAPS_FOOTER", comment: "Offline maps section footer"))
                 }
 
                 Section {
@@ -131,4 +156,5 @@ struct SettingsView: View {
     SettingsView()
         .environmentObject(DroneSettings())
         .environmentObject(ProvidersStore(registrations: BuiltInProviders.all))
+        .environmentObject(OfflineMapStore())
 }

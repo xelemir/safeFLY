@@ -87,12 +87,15 @@ nonisolated final class CoverageMaskRenderer: MKOverlayRenderer {
             fill(ring, in: context)
         }
 
-        // 3. Repaint the covered-but-disabled countries with the lighter dim.
+        // 3. Repaint the covered-but-disabled countries with the lighter dim, as a single
+        //    unioned fill. Painting each ring on its own would compound the translucent colour
+        //    wherever polygons overlap — two providers over the same country (e.g. the
+        //    Netherlands + the EU nature layer), or two neighbours' outward-buffered borders —
+        //    darkening those areas toward the "not covered" shade and drawing a zig-zag seam
+        //    along shared borders. One fill path paints the union with a single coat.
         context.setBlendMode(.normal)
         context.setFillColor(CoverageMask.coveredInactiveFill.cgColor)
-        for ring in mask.inactiveRings {
-            fill(ring, in: context)
-        }
+        fillUnion(mask.inactiveRings, in: context)
 
         // 4. Punch the enabled-provider countries clear again, so a country an active provider
         //    covers is never left dimmed just because a disabled provider also overlaps it.
@@ -111,6 +114,35 @@ nonisolated final class CoverageMaskRenderer: MKOverlayRenderer {
         }
         context.closePath()
         context.fillPath()
+    }
+
+    // Fills every ring as one path so overlapping polygons are painted with a single coat of a
+    // translucent colour rather than compounding. All rings are normalised to the same winding
+    // first, so the nonzero-winding fill unions overlaps (they never cancel into a gap).
+    private func fillUnion(_ rings: [[CLLocationCoordinate2D]], in context: CGContext) {
+        context.beginPath()
+        for ring in rings where ring.count > 2 {
+            var points = ring.map { point(for: MKMapPoint($0)) }
+            if Self.signedArea(points) < 0 { points.reverse() }
+            context.move(to: points[0])
+            for p in points.dropFirst() {
+                context.addLine(to: p)
+            }
+            context.closePath()
+        }
+        context.fillPath()
+    }
+
+    // Shoelace signed area in the renderer's point space (no reflection in the map→point
+    // transform, so orientation is preserved). Only the sign is used, to make winding uniform.
+    private static func signedArea(_ points: [CGPoint]) -> CGFloat {
+        var sum: CGFloat = 0
+        for i in 0..<points.count {
+            let a = points[i]
+            let b = points[(i + 1) % points.count]
+            sum += a.x * b.y - b.x * a.y
+        }
+        return sum / 2
     }
 }
 

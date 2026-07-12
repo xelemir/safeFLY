@@ -46,7 +46,7 @@ final class NetherlandsProvider: ED269DownloadableProvider, @unchecked Sendable 
 
     nonisolated let id = NetherlandsProvider.providerID
     nonisolated var displayName: String {
-        NSLocalizedString("LVNL/IenW (Netherlands)", comment: "Netherlands provider display name")
+        NSLocalizedString("LVNL/IenW", comment: "Netherlands provider display name")
     }
     nonisolated var attributionName: String {
         "LVNL/IenW"

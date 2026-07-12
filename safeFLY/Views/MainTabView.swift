@@ -12,31 +12,34 @@ import MapKit
 
 class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate {
     @Published var completions: [MKLocalSearchCompletion] = []
-    
+
     private var completer = MKLocalSearchCompleter()
-    
-    // Subtitles for German results usually show the state rather than the country,
-    // so every Bundesland is listed. France, Austria and the Netherlands surface the
-    // country name in the subtitle, so matching the country (local + English) is enough.
-    private let supportedIndicators = [
-        // Germany
-        "Deutschland", "Germany", "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg",
-        "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen",
-        "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen",
-        "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen",
-        // France
-        "Frankreich", "France",
-        // Austria
-        "Österreich", "Austria",
-        // Netherlands
-        "Niederlande", "Netherlands", "Nederland",
+
+    // Subtitle indicators per covered country (keyed by `ProviderCountry.id`). Subtitles for
+    // German results usually show the state rather than the country, so every Bundesland is
+    // listed; everywhere else the country name (German + English + local) is enough.
+    private static let indicatorsByCountry: [String: [String]] = [
+        "DE": ["Deutschland", "Germany", "Baden-Württemberg", "Bayern", "Berlin", "Brandenburg",
+               "Bremen", "Hamburg", "Hessen", "Mecklenburg-Vorpommern", "Niedersachsen",
+               "Nordrhein-Westfalen", "Rheinland-Pfalz", "Saarland", "Sachsen",
+               "Sachsen-Anhalt", "Schleswig-Holstein", "Thüringen"],
+        "FR": ["Frankreich", "France"],
+        "AT": ["Österreich", "Austria"],
+        "NL": ["Niederlande", "Netherlands", "Nederland"],
         // Switzerland (+ Liechtenstein, which the Swiss provider also covers)
-        "Schweiz", "Switzerland", "Suisse", "Svizzera", "Svizra", "Liechtenstein",
-        // Luxembourg
-        "Luxemburg", "Luxembourg", "Lëtzebuerg",
-        // Czech Republic
-        "Tschechien", "Tschechische Republik", "Czech Republic", "Czechia", "Česko", "Česká republika"
+        "CH": ["Schweiz", "Switzerland", "Suisse", "Svizzera", "Svizra", "Liechtenstein"],
+        "LU": ["Luxemburg", "Luxembourg", "Lëtzebuerg"],
+        "CZ": ["Tschechien", "Tschechische Republik", "Czech Republic", "Czechia", "Česko", "Česká republika"],
+        "BE": ["Belgien", "Belgium", "België", "Belgique"],
+        "DK": ["Dänemark", "Denmark", "Danmark"],
+        "SE": ["Schweden", "Sweden", "Sverige"],
+        "FI": ["Finnland", "Finland", "Suomi", "Åland"]
     ]
+
+    // Countries the search currently accepts results from. Kept in sync with the countries
+    // that have at least one enabled provider, so search availability always matches the
+    // countries turned on in Settings.
+    private var activeIndicators: [String] = SearchManager.indicators(for: nil)
 
     override init() {
         super.init()
@@ -44,20 +47,36 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
         completer.region = MKCoordinateRegion.supportedCountries
         completer.resultTypes = [.address, .pointOfInterest]
     }
-    
+
+    // `nil` or an empty set falls back to every covered country, so search never goes
+    // completely dead while the user is still setting providers up.
+    private static func indicators(for countryIDs: Set<String>?) -> [String] {
+        let ids: [String]
+        if let countryIDs, !countryIDs.isEmpty {
+            ids = ProviderCountries.all.map(\.id).filter { countryIDs.contains($0) }
+        } else {
+            ids = ProviderCountries.all.map(\.id)
+        }
+        return ids.flatMap { indicatorsByCountry[$0] ?? [] }
+    }
+
+    func updateEnabledCountries(_ countryIDs: Set<String>) {
+        activeIndicators = SearchManager.indicators(for: countryIDs)
+    }
+
     func updateQuery(_ query: String) {
         completer.queryFragment = query
     }
-    
+
     func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
         let filtered = completer.results.filter { completion in
-            supportedIndicators.contains { indicator in
+            activeIndicators.contains { indicator in
                 completion.subtitle.contains(indicator)
             }
         }
         completions = Array(filtered.prefix(14))
     }
-    
+
     func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
         completions = []
     }
@@ -68,6 +87,7 @@ struct MainTabView: View {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var searchManager = SearchManager()
     @StateObject private var providersStore = ProvidersStore(registrations: BuiltInProviders.all)
+    @StateObject private var offlineMapStore = OfflineMapStore()
     @State private var search: String = ""
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.dismissSearch) private var dismissSearch
@@ -117,6 +137,13 @@ struct MainTabView: View {
         }
         .environmentObject(droneSettings)
         .environmentObject(providersStore)
+        .environmentObject(offlineMapStore)
+        // Keep place search scoped to the countries that actually have a provider turned on,
+        // so every enabled country is searchable (and newly enabled ones become so instantly).
+        .onAppear { searchManager.updateEnabledCountries(enabledCountryIDs) }
+        .onChange(of: providersStore.enabledProviderIDs) { _, _ in
+            searchManager.updateEnabledCountries(enabledCountryIDs)
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 Task {
@@ -127,6 +154,13 @@ struct MainTabView: View {
                 providersStore.refreshDownloadableDatasetsInBackground()
             }
         }
+    }
+
+    // Countries with at least one enabled provider — the set place search accepts results from.
+    private var enabledCountryIDs: Set<String> {
+        Set(ProviderCountries.all
+            .filter { country in country.providerIDs.contains { providersStore.isProviderEnabled($0) } }
+            .map(\.id))
     }
 
     private var searchTabContent: some View {

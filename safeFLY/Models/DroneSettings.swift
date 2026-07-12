@@ -145,6 +145,19 @@ class DroneSettings: ObservableObject {
         }
     }
 
+    @Published var lastCameraLatitudeDelta: Double {
+        didSet {
+            UserDefaults.standard.set(lastCameraLatitudeDelta, forKey: "lastCameraLatitudeDelta")
+        }
+    }
+    
+    @Published var lastCameraLongitudeDelta: Double {
+        didSet {
+            UserDefaults.standard.set(lastCameraLongitudeDelta, forKey: "lastCameraLongitudeDelta")
+        }
+    }
+
+
     
     @Published var searchedCoordinate: SearchCoordinate?
     
@@ -249,12 +262,23 @@ class DroneSettings: ObservableObject {
         self.lastCameraLatitude = UserDefaults.standard.double(forKey: "lastCameraLatitude")
         self.lastCameraLongitude = UserDefaults.standard.double(forKey: "lastCameraLongitude")
         self.lastCameraDistance = UserDefaults.standard.double(forKey: "lastCameraDistance")
+        self.lastCameraLatitudeDelta = UserDefaults.standard.double(forKey: "lastCameraLatitudeDelta")
+        self.lastCameraLongitudeDelta = UserDefaults.standard.double(forKey: "lastCameraLongitudeDelta")
         
         // If no saved position, use default Germany center
         if lastCameraLatitude == 0 && lastCameraLongitude == 0 {
             lastCameraLatitude = 51.1657
             lastCameraLongitude = 10.4515
             lastCameraDistance = 1000000
+            lastCameraLatitudeDelta = 0.5
+            lastCameraLongitudeDelta = 0.5
+        }
+        
+        if lastCameraLatitudeDelta == 0 {
+            lastCameraLatitudeDelta = 0.5
+        }
+        if lastCameraLongitudeDelta == 0 {
+            lastCameraLongitudeDelta = 0.5
         }
     }
 }

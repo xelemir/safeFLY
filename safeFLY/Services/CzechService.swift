@@ -27,7 +27,7 @@ final class CzechProvider: GeospatialProvider, @unchecked Sendable {
 
     nonisolated let id = CzechProvider.providerID
     nonisolated var displayName: String {
-        NSLocalizedString("ŘLP (Czech Republic)", comment: "Czech provider display name")
+        NSLocalizedString("ŘLP", comment: "Czech provider display name")
     }
     nonisolated var attributionName: String {
         "ŘLP ČR / ANS CR"

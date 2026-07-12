@@ -14,6 +14,7 @@ enum ZoneQueryResult: Sendable {
 
 enum ClearReason: Sendable {
     case noMatchingRestrictions
+    case offlineOnlyNoMatchingRestrictions
 }
 
 enum NonAssessmentReason: Sendable {

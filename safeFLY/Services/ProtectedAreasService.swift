@@ -3,10 +3,18 @@
 //  safeFLY
 //
 //  EU-wide nature-reserve overlay via the European Environment Agency's Natura 2000 WMS on
-//  geo.discomap.eea.europa.eu. It fills a real gap: Austria, Luxembourg and the Netherlands
-//  do NOT publish nature reserves in their national drone feeds (verified against the live
-//  data), so this dedicated, EEA-attributed provider covers exactly those three countries —
-//  Germany, Switzerland and Czechia already ship reserves and are excluded to avoid overlap.
+//  geo.discomap.eea.europa.eu. It fills a real gap: Austria, Luxembourg, the Netherlands and
+//  Sweden do NOT publish nature reserves in their national drone feeds (verified against the
+//  live data — Sweden's AIP carries only 8 of its ~30 national parks as R-areas and none of
+//  its thousands of naturreservat, whose per-reserve bylaws frequently restrict drones), so
+//  this EEA-attributed provider covers exactly those four countries. Germany, Switzerland,
+//  Czechia and Denmark already ship reserves and are excluded to avoid overlap; Finland is
+//  excluded deliberately because drone flight in Finnish nature areas is generally allowed
+//  under Everyman's Right (Metsähallitus), so a blanket conditional wash would be misleading.
+//
+//  One instance is registered *per country* (each scoped to that country's outline) rather than
+//  a single shared session, so the user can enable the nature layer in one country without it
+//  switching on in the others.
 //
 //  Rendering reuses the shared WMS GetMap plumbing; point queries go through the ArcGIS REST
 //  `identify` endpoint (clean JSON, no CRS pixel math), matching how the other ArcGIS-backed
@@ -18,65 +26,89 @@
 import Foundation
 
 struct ProtectedAreaFeatureInfoRecord: ProviderRawRecord {
+    let providerID: String
     let siteName: String?
     let siteType: String?
-
-    nonisolated var providerID: String { ProtectedAreasProvider.providerID }
 }
 
 final class ProtectedAreasProvider: WMSBackedProvider, @unchecked Sendable {
-    nonisolated static let providerID = "eu-protected-areas"
     nonisolated static let datasetID = "nature.protected-areas"
     // Layer "0" is the combined Habitats + Birds Directive sites (the full Natura 2000 set).
     nonisolated static let layerID = "0"
 
-    nonisolated let id = ProtectedAreasProvider.providerID
+    // Stable per-country provider ids (also the settings navigation ids).
+    nonisolated static let austriaID = "eu-protected-areas-at"
+    nonisolated static let luxembourgID = "eu-protected-areas-lu"
+    nonisolated static let netherlandsID = "eu-protected-areas-nl"
+    nonisolated static let swedenID = "eu-protected-areas-se"
+
+    nonisolated let id: String
+    nonisolated let coverage: CountryCoverage?
+    nonisolated let catalog: WMSDatasetCatalog
+
+    // Each instance is scoped to one country's outline so it toggles, renders and gates
+    // independently of the same layer in the neighbouring countries.
+    nonisolated init(id: String, country: CountryCoverage) {
+        self.id = id
+        self.coverage = country
+        let box = country.boundingBox
+        self.catalog = WMSDatasetCatalog(
+            baseURL: "https://bio.discomap.eea.europa.eu/arcgis/services/ProtectedSites/Natura2000Sites/MapServer/WMSServer",
+            definitions: [
+                .make(
+                    id: ProtectedAreasProvider.datasetID,
+                    title: "Nature Reserves",
+                    groupTitle: "Nature",
+                    layerIDs: [ProtectedAreasProvider.layerID]
+                )
+            ],
+            coverageBounds: WMSDatasetCatalog.CoverageBounds(
+                minLat: box.minLat, maxLat: box.maxLat, minLon: box.minLon, maxLon: box.maxLon
+            ),
+            coverage: country,
+            // The EEA ArcGIS WMS, like the Czech one, is served in web-mercator for GetMap.
+            crs: "EPSG:3857"
+        )
+    }
+
+    // The registered per-country instances.
+    nonisolated static func austria() -> ProtectedAreasProvider {
+        ProtectedAreasProvider(id: austriaID, country: CountryBoundaries.austria)
+    }
+    nonisolated static func luxembourg() -> ProtectedAreasProvider {
+        ProtectedAreasProvider(id: luxembourgID, country: CountryBoundaries.luxembourg)
+    }
+    nonisolated static func netherlands() -> ProtectedAreasProvider {
+        ProtectedAreasProvider(id: netherlandsID, country: CountryBoundaries.netherlands)
+    }
+    nonisolated static func sweden() -> ProtectedAreasProvider {
+        ProtectedAreasProvider(id: swedenID, country: CountryBoundaries.sweden)
+    }
+
     nonisolated var displayName: String {
         NSLocalizedString("Protected Areas (Europe)", comment: "EU protected areas provider display name")
     }
-    nonisolated var attributionName: String { "European Environment Agency" }
+    nonisolated var attributionName: String { "EEA" }
     nonisolated let capabilities = ProviderCapabilities(
         supportsRendering: true,
         supportsQuerying: true,
         supportsStatusRefresh: true
     )
 
-    nonisolated let catalog = WMSDatasetCatalog(
-        baseURL: "https://bio.discomap.eea.europa.eu/arcgis/services/ProtectedSites/Natura2000Sites/MapServer/WMSServer",
-        definitions: [
-            .make(
-                id: ProtectedAreasProvider.datasetID,
-                title: "Nature Reserves",
-                groupTitle: "Nature",
-                layerIDs: [ProtectedAreasProvider.layerID]
-            )
-        ],
-        // Rectangular fast-reject spanning AT + LU + NL; the exact per-country gate is `coverage`.
-        coverageBounds: WMSDatasetCatalog.CoverageBounds(
-            minLat: 46.3, maxLat: 53.8, minLon: 3.3, maxLon: 17.2
-        ),
-        coverage: CountryBoundaries.protectedAreas,
-        // The EEA ArcGIS WMS, like the Czech one, is served in web-mercator for GetMap.
-        crs: "EPSG:3857"
-    )
-
     // Unused: `query` is overridden to hit the ArcGIS `identify` REST endpoint.
     nonisolated var queryInfoFormat: String { "application/json" }
 
-    // The EEA GetMap image is EU-wide, so clip it to the served countries (AT + LU + NL) and
+    // The EEA GetMap image spans more than this country, so clip it to the country outline and
     // keep it faint — Natura 2000 blankets large areas, and it's a soft advisory, not a hard zone.
     nonisolated var renderOverlayOpacity: Double { 0.35 }
     nonisolated var renderClipPolygons: [[MapCoordinate]]? {
-        CountryBoundaries.protectedAreas.polygons.map { ring in
+        coverage?.polygons.map { ring in
             ring.map { MapCoordinate(latitude: $0[1], longitude: $0[0]) }
         }
     }
 
-    // Only over the three countries this layer is meant to fill in for.
-    nonisolated var coverage: CountryCoverage? { CountryBoundaries.protectedAreas }
-
     nonisolated func intersects(_ region: MapRegion) -> Bool {
-        CountryBoundaries.protectedAreas.intersects(region)
+        coverage?.intersects(region) ?? false
     }
 
     nonisolated var referenceLinks: [ProviderReferenceLink] {
@@ -165,7 +197,7 @@ final class ProtectedAreasProvider: WMSBackedProvider, @unchecked Sendable {
             let type = ["SITETYPE", "SITE_TYPE", "Site Type"]
                 .compactMap { attributes[$0]?.stringValue }
                 .first
-            return ProtectedAreaFeatureInfoRecord(siteName: name, siteType: type)
+            return ProtectedAreaFeatureInfoRecord(providerID: id, siteName: name, siteType: type)
         }
 
         return .matches(records: records.map { $0 as any ProviderRawRecord })

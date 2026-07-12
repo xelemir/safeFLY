@@ -14,15 +14,24 @@ struct ProviderRegistration {
 enum BuiltInProviders {
     static let all: [ProviderRegistration] = [
         ProviderRegistration(provider: DIPULProvider(), normalizer: DIPULZoneNormalizer()),
+        ProviderRegistration(provider: DIPULOfflineProvider(), normalizer: DIPULOfflineZoneNormalizer()),
         ProviderRegistration(provider: FranceProvider(), normalizer: FranceZoneNormalizer()),
         ProviderRegistration(provider: SwitzerlandProvider(), normalizer: SwitzerlandZoneNormalizer()),
         ProviderRegistration(provider: CzechProvider(), normalizer: CzechZoneNormalizer()),
+        ProviderRegistration(provider: BelgiumProvider(), normalizer: BelgiumZoneNormalizer()),
+        ProviderRegistration(provider: DenmarkProvider(), normalizer: DenmarkZoneNormalizer()),
+        ProviderRegistration(provider: SwedenProvider(), normalizer: SwedenZoneNormalizer()),
+        ProviderRegistration(provider: FinlandProvider(), normalizer: FinlandZoneNormalizer()),
         // The three countries whose national feed carries no nature reserves, grouped at the
         // bottom, with the EU nature-reserve layer that backfills them placed last of all.
         ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer()),
         ProviderRegistration(provider: NetherlandsProvider(), normalizer: NetherlandsZoneNormalizer()),
         ProviderRegistration(provider: LuxembourgProvider(), normalizer: LuxembourgZoneNormalizer()),
-        ProviderRegistration(provider: ProtectedAreasProvider(), normalizer: ProtectedAreasZoneNormalizer())
+        // The EU nature-reserve layer, one independently-toggleable instance per backfilled country.
+        ProviderRegistration(provider: ProtectedAreasProvider.austria(), normalizer: ProtectedAreasZoneNormalizer()),
+        ProviderRegistration(provider: ProtectedAreasProvider.luxembourg(), normalizer: ProtectedAreasZoneNormalizer()),
+        ProviderRegistration(provider: ProtectedAreasProvider.netherlands(), normalizer: ProtectedAreasZoneNormalizer()),
+        ProviderRegistration(provider: ProtectedAreasProvider.sweden(), normalizer: ProtectedAreasZoneNormalizer())
     ]
 }
 
@@ -63,6 +72,7 @@ final class ProvidersStore: ObservableObject {
         }
     }
 
+    // Providers that actually contribute to rendering/queries: switched on by the user.
     var enabledSessions: [ProviderSession] {
         sessions.filter { enabledProviderIDs.contains($0.provider.id) }
     }
@@ -71,8 +81,50 @@ final class ProvidersStore: ObservableObject {
         enabledProviderIDs.contains(providerID)
     }
 
+    // Whether a provider contributes to the map and queries. Kept as its own name because the
+    // UI (coverage dim, status dot) asks the "does it render anything" question, distinct from
+    // the raw toggle state in intent even though they now coincide.
+    func isProviderActive(_ providerID: String) -> Bool {
+        isProviderEnabled(providerID)
+    }
+
     func providerSession(for providerID: String) -> ProviderSession? {
         sessions.first { $0.provider.id == providerID }
+    }
+
+    // Condenses a country's providers into the single status shown on its settings row. Only
+    // enabled providers count toward the roll-up (a disabled provider isn't "degraded", it
+    // just isn't contributing); the worst of those wins so one failing layer pulls the
+    // country off "Available".
+    func countryStatus(for country: ProviderCountry) -> CountryProviderStatus {
+        let countrySessions = country.providerIDs.compactMap { providerSession(for: $0) }
+
+        let contributing = countrySessions.filter { enabledProviderIDs.contains($0.id) }
+
+        guard !contributing.isEmpty else {
+            return .off
+        }
+
+        // If we have both offline and online providers contributing for a country,
+        // and the online one is unavailable but the offline one is available, we roll up
+        // as degraded (partial offline coverage) instead of fully unavailable.
+        let statuses = contributing.map(\.statusSnapshot.providerStatus)
+        if statuses.contains(.available) && statuses.contains(.unavailable) {
+            let hasAvailableOffline = contributing.contains { session in
+                session.provider.downloadURL != nil && session.statusSnapshot.providerStatus == .available
+            }
+            let hasUnavailableOnline = contributing.contains { session in
+                session.provider.downloadURL == nil && session.statusSnapshot.providerStatus == .unavailable
+            }
+            if hasAvailableOffline && hasUnavailableOnline {
+                return .rollup(.degraded)
+            }
+        }
+
+        let worst = contributing
+            .map(\.statusSnapshot.providerStatus)
+            .max { $0.severity < $1.severity } ?? .unknown
+        return .rollup(worst)
     }
 
     func setProviderEnabled(_ providerID: String, isEnabled: Bool) {
@@ -245,7 +297,7 @@ final class ProvidersStore: ObservableObject {
         renderPayloads = renderOrderedSessions.flatMap { payloadsByProviderID[$0.id] ?? [] }
     }
 
-    func queryLocation(for request: ProviderPointQueryRequest) async {
+    func queryLocation(for request: ProviderPointQueryRequest, isOfflineMapStyle: Bool = false) async {
         let generation = nextQueryGeneration()
         let enabledSessions = enabledSessions
 
@@ -299,7 +351,7 @@ final class ProvidersStore: ObservableObject {
             }
         }
 
-        zoneQueryResult = aggregateZoneQueryResult(from: enabledSessions)
+        zoneQueryResult = aggregateZoneQueryResult(from: enabledSessions, isOfflineMapStyle: isOfflineMapStyle)
         isLoading = false
     }
 
@@ -322,10 +374,12 @@ final class ProvidersStore: ObservableObject {
         configurationRevision += 1
     }
 
-    private func aggregateZoneQueryResult(from sessions: [ProviderSession]) -> ZoneQueryResult {
+    private func aggregateZoneQueryResult(from sessions: [ProviderSession], isOfflineMapStyle: Bool) -> ZoneQueryResult {
         var matchedFeatures: [ZoneFeature] = []
         var firstUnavailableReason: UnavailableReason?
         var sawClearResult = false
+        var sawOfflineClearResult = false
+        var sawOnlineClearResult = false
 
         for session in sessions {
             guard let result = session.zoneQueryResult else {
@@ -347,6 +401,11 @@ final class ProvidersStore: ObservableObject {
                 }
             case .clear:
                 sawClearResult = true
+                if session.provider.downloadURL != nil {
+                    sawOfflineClearResult = true
+                } else {
+                    sawOnlineClearResult = true
+                }
             case .nonAssessment:
                 continue
             }
@@ -358,6 +417,13 @@ final class ProvidersStore: ObservableObject {
                 features: sortedFeatures,
                 assessment: ZoneAssessmentEvaluator.evaluate(features: sortedFeatures)
             )
+        }
+
+        // If we are on the offline map style, and have a clear result from an offline provider,
+        // but did NOT get any clear result from an online provider (either because online is disabled,
+        // or because request failed/no connection), we show the offline safety warning.
+        if isOfflineMapStyle, sawOfflineClearResult, !sawOnlineClearResult {
+            return .clear(reason: .offlineOnlyNoMatchingRestrictions)
         }
 
         if let firstUnavailableReason {

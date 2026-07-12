@@ -55,6 +55,10 @@
 "ZONE_RESULT_NO_DATA_MESSAGE" = "No provider data was available to assess this location.";
 "ZONE_RESULT_INVALID_RESPONSE_MESSAGE" = "The provider returned data that could not be assessed.";
 "ZONE_RESULT_REQUEST_FAILED_MESSAGE" = "The restriction query could not be completed.";
+"ZONE_RESULT_OFFLINE_CLEAR_TITLE" = "Clear (Offline Data)";
+"ZONE_RESULT_OFFLINE_CLEAR_MESSAGE" = "Based on local offline data, no airspace restrictions were found at this coordinate. However, offline data may be incomplete or outdated, and real-time updates are currently unavailable. You are solely responsible for ensuring the safety and compliance of your flight; please proceed with caution.";
+"Offline Data" = "Offline Data";
+"Download Visible Map" = "Download Visible Map";
 "ZONE_FEATURE_ALTITUDE" = "Altitude";
 "ZONE_FEATURE_LEGAL_REFERENCE" = "Legal Reference";
 
@@ -269,6 +273,22 @@
 "Providers" = "Providers";
 "Manage built-in geospatial providers and configure their provider-specific datasets." = "Manage built-in geospatial providers and configure their provider-specific datasets.";
 "Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly." = "Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly.";
+
+/* Countries (provider grouping) */
+"Countries" = "Countries";
+"Pick a country to manage the providers that cover it. Enable the ones you need for where you plan to fly." = "Pick a country to manage the providers that cover it. Enable the ones you need for where you plan to fly.";
+"Off" = "Off";
+"country.germany" = "Germany";
+"country.austria" = "Austria";
+"country.belgium" = "Belgium";
+"country.czech" = "Czech Republic";
+"country.denmark" = "Denmark";
+"country.finland" = "Finland";
+"country.france" = "France";
+"country.luxembourg" = "Luxembourg";
+"country.netherlands" = "Netherlands";
+"country.sweden" = "Sweden";
+"country.switzerland" = "Switzerland";
 "Refreshing Status..." = "Refreshing Status...";
 "Refresh Provider Status" = "Refresh Provider Status";
 "Provider Status" = "Provider Status";
@@ -280,9 +300,11 @@
 "Provider Datasets" = "Provider Datasets";
 "Dataset selection remains editable even when a dataset is temporarily unavailable." = "Dataset selection remains editable even when a dataset is temporarily unavailable.";
 "Provider References" = "Provider References";
-"Protected Areas (Europe)" = "Nature Reserves 🇦🇹🇳🇱🇱🇺";
+"Protected Areas (Europe)" = "Nature Reserves";
 "Natura 2000 network (EEA)" = "Natura 2000 network (EEA)";
 "EU.NOTE.PROTECTED_AREA" = "Protected area (Natura 2000). Drone flight is restricted under national nature-protection law — usually a permit is required and it is often prohibited. Check the local rules before flying.";
+
+"Active" = "Active";
 "Disabled" = "Disabled";
 "Unknown" = "Unknown";
 "Available" = "Available";
@@ -305,6 +327,14 @@
 "Airspace" = "Airspace";
 "Restricted Zones" = "Restricted Zones";
 "Landing Sites" = "Landing Sites";
+
+/* DIPUL Offline Core (GeoJSON) provider */
+"DIPUL Offline Core" = "DIPUL Offline Core";
+"Geographic Zones" = "Geographic Zones";
+"Sensitive Facilities" = "Sensitive Facilities";
+"Offline Package Contents" = "Offline Package Contents";
+"DIPUL_OFFLINE_INCLUDED" = "This offline package contains only flight-critical layers: airspace (flight-restriction areas, airports, airfields, control zones, hang-gliding sites, model-flying fields) and sensitive facilities (military, police, hospitals, prisons, authorities, diplomatic missions, international organisations, labs).";
+"DIPUL_OFFLINE_EXCLUDED" = "Not included offline — enable the online DIPUL provider for these: nature reserves, national parks, bird sanctuaries & FFH habitats; motorways, federal roads, railways & waterways; industrial facilities, power plants, substations, power lines & wind turbines; residential properties & outdoor pools.";
 
 /* Translation setting */
 "Translation" = "Translation";
@@ -332,23 +362,57 @@
 "NLD.NOTE.NO_OPEN" = "Standard open category drone flights are prohibited here.";
 
 /* Provider names in Settings */
-"DIPUL (Germany)" = "DIPUL 🇩🇪";
-"LVNL/IenW (Netherlands)" = "LVNL/IenW 🇳🇱";
+"DIPUL" = "DIPUL";
+"LVNL/IenW" = "LVNL/IenW";
 
 /* Austria (Austro Control) provider */
-"Austro Control (Austria)" = "Austro Control 🇦🇹";
+"Austro Control" = "Austro Control";
 "Austro Control Dronespace" = "Austro Control Dronespace";
 
 /* Switzerland (FOCA) provider */
-"FOCA (Switzerland)" = "FOCA 🇨🇭";
+"FOCA" = "FOCA";
 "Geographical flight restrictions (FOCA)" = "Geographical flight restrictions (FOCA)";
 
 /* Luxembourg (DAC) provider */
-"DAC (Luxembourg)" = "DAC 🇱🇺";
+"DAC" = "DAC";
 "UAS Geographical Zones (DAC)" = "UAS Geographical Zones (DAC)";
 
+/* Belgium (skeyes) provider */
+"skeyes" = "skeyes";
+"UAS Geographical Zones (skeyes DroneGuide)" = "UAS Geographical Zones (skeyes DroneGuide)";
+"BE.NOTE.PROHIBITED" = "Drone flights are prohibited in this zone.";
+"BE.NOTE.AUTHORISATION" = "Drone flights here require prior authorisation.";
+"BE.NOTE.ALLOWED" = "No specific drone restriction applies to this zone.";
+
+/* Denmark (Trafikstyrelsen) provider */
+"Trafikstyrelsen" = "Trafikstyrelsen";
+"Dronezoner (Trafikstyrelsen)" = "Dronezoner (Trafikstyrelsen)";
+"DK.NOTE.RED" = "Flight-safety-critical zone — drone flights are prohibited.";
+"DK.NOTE.BLUE" = "Security-critical zone — drone flights are prohibited without a permit.";
+"DK.NOTE.ORANGE" = "Awareness area — check restrictions before flying.";
+"DK.NOTE.NATURE" = "Nature area — drone flights may be restricted; check local rules.";
+"DK.RESTRICTED_PERIOD" = "Restriction period: %@.";
+"DK.T.HEMS" = "Hospital emergency helipad (HEMS) — drone flights are prohibited.";
+"DK.T.AIRPORT" = "Airport safety zone — drone flights are prohibited.";
+"DK.T.SEAPLANE" = "Seaplane base — drone flights are prohibited.";
+"DK.T.EMBASSY" = "Embassy — drone flights are prohibited without a permit.";
+"DK.T.PRISON" = "Prison — drone flights are prohibited without a permit.";
+"DK.T.POLICE" = "Police property — drone flights are prohibited without a permit.";
+"DK.T.MILITARY" = "Military area — drone flights are prohibited without a permit.";
+"DK.T.COURT" = "Court building — drone flights are prohibited without a permit.";
+"DK.T.PALACE" = "Royal palace or grounds — drone flights are prohibited without a permit.";
+"DK.T.INDUSTRY" = "High-risk industrial site — drone flights are prohibited without a permit.";
+"DK.T.HELIPAD" = "Helipad nearby — fly with caution; conditions may apply.";
+"DK.T.PARACHUTE" = "Parachute-jumping site nearby — fly with caution; conditions may apply.";
+"DK.T.GLIDER" = "Glider site nearby — fly with caution; conditions may apply.";
+"DK.T.PRIVATE_AF" = "Private airfield nearby — fly with caution; conditions may apply.";
+"DK.T.NATURA_BIRD" = "Natura 2000 bird-protection area — drone flights may be restricted.";
+"DK.T.NATURA_HABITAT" = "Natura 2000 habitat area — drone flights may be restricted.";
+"DK.T.CONSERVATION" = "Protected conservation area — drone flights may be restricted.";
+"DK.T.DRONE_BAN" = "Drone-prohibition zone — drone flights are not allowed.";
+
 /* Czech Republic (ŘLP) provider */
-"ŘLP (Czech Republic)" = "ŘLP 🇨🇿";
+"ŘLP" = "ŘLP";
 "DroneMap (ŘLP ČR)" = "DroneMap (ŘLP ČR)";
 "Airport Zones" = "Airport Zones";
 "Military Objects" = "Military Objects";
@@ -362,7 +426,7 @@
 "Population" = "Population";
 
 /* France (DGAC) provider */
-"DGAC (France)" = "DGAC 🇫🇷";
+"DGAC" = "DGAC";
 "Carte des restrictions drones (Géoportail)" = "Carte des restrictions drones (Géoportail)";
 
 /* France (DGAC) drone restriction notes */
@@ -388,3 +452,50 @@
 "Legal Notice" = "Legal Notice";
 "PROVIDER_LEGAL_DISCLAIMER" = "safeFLY is not a legal advisor. The zones shown here may be incomplete or inaccurate, and safeFLY can be wrong. Always check the current local regulations yourself and obey them before every flight. You alone are responsible for your flights — safeFLY accepts no liability for any laws broken or any resulting damages.";
 "Drone rules (Civil Aviation Authority)" = "Drone rules (Civil Aviation Authority)";
+
+/* Sweden provider (LFV / Transportstyrelsen) */
+"LFV / Transportstyrelsen" = "LFV / Transportstyrelsen";
+"Drönarkartan (LFV)" = "Drone Chart — Drönarkartan (LFV)";
+"UAS Geographical Zones (Transportstyrelsen)" = "UAS Geographical Zones (Transportstyrelsen)";
+"UAS Geo Zones" = "UAS Geo Zones";
+"Airport & Heliport Zones" = "Airport & Heliport Zones";
+"Restricted & Danger Areas" = "Restricted & Danger Areas";
+"SE.NOTE.RWY5K" = "Airport protection zone (5 km around the runways). Drone flights require permission from air traffic control.";
+"SE.NOTE.HKP1K" = "Heliport protection zone (1 km). Drone flights require permission from the heliport's air traffic service or operator.";
+"SE.NOTE.RSTA" = "Restricted area (AIP). Drone flights are prohibited without a special permit from the responsible authority — this includes all Swedish national parks.";
+"SE.NOTE.DNGA" = "Danger area (AIP). Hazardous activity may take place here during published hours; avoid flying while the area is active.";
+"SE.NOTE.CTR" = "Control zone / traffic information zone. Without clearance, drones up to 10 kg may fly at most 50 m above ground here (10 m within 1 km of a heliport); otherwise contact air traffic services.";
+"SE.NOTE.UAS" = "UAS geographical zone (Transportstyrelsen). Check the zone's conditions before flying.";
+
+/* Finland provider (Traficom via Flyk) */
+"Traficom" = "Traficom";
+"UAS Geographical Zones (Droneinfo/Traficom)" = "UAS Geographical Zones (Droneinfo/Traficom)";
+"Flyk Aviation Map" = "Flyk Aviation Map";
+"UAS Geographical Zones" = "UAS Geographical Zones";
+"FI.NOTE.PROHIBITED" = "UAS geographical zone where drone flights are prohibited (e.g. prisons, critical infrastructure). Do not fly here.";
+"FI.NOTE.AUTHORISATION" = "UAS geographical zone. Drone flights require authorization or permission from the responsible party (e.g. air navigation services or the site operator).";
+"FI.NOTE.NO_RESTRICTION" = "Informational UAS zone (e.g. a model aircraft field). No specific drone restriction, but stay aware of local activity.";
+
+/* Offline Maps */
+"Offline" = "Offline";
+"Offline Maps" = "Offline Maps";
+"Maps" = "Maps";
+"Download Area" = "Download Area";
+"OFFLINE_MAPS_FOOTER" = "Download map areas for offline use. Select 'Offline' as map style to use them.";
+"OFFLINE_MAPS_INFO_FOOTER" = "Downloaded areas are available when your device is offline. The base map uses OpenFreeMap (OpenStreetMap data). Geozone overlays still require an internet connection.";
+"Area Name" = "Area Name";
+"Enter a name for this area" = "Enter a name for this area";
+"Download" = "Download";
+"Cancel" = "Cancel";
+"Delete" = "Delete";
+"Delete Area" = "Delete Area";
+"DELETE_AREA_CONFIRMATION" = "Are you sure you want to delete this offline area? You can download it again later.";
+"Downloaded Areas" = "Downloaded Areas";
+"Storage Used" = "Storage Used";
+"No Downloaded Areas" = "No downloaded areas";
+"Downloading..." = "Downloading...";
+"Cancel Download" = "Cancel Download";
+"Active Download" = "Active Download";
+"Unnamed Area" = "Unnamed Area";
+"OFFLINE_MAP_ATTRIBUTION" = "© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors";
+

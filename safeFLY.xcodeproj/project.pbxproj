@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AB00000000000000000000F1 /* MapLibre in Frameworks */ = {isa = PBXBuildFile; productRef = AB00000000000000000000F2 /* MapLibre */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		AB000000000000000000000A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AB00000000000000000000F1 /* MapLibre in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,6 +108,7 @@
 			);
 			name = safeFLY;
 			packageProductDependencies = (
+				AB00000000000000000000F2 /* MapLibre */,
 			);
 			productName = safeFLY;
 			productReference = 0D1D6F042ECB5B12001017DC /* safeFLY.app */;
@@ -161,6 +167,7 @@
 			mainGroup = 0D1D6EFB2ECB5B12001017DC;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				AB00000000000000000000F3 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0D1D6F052ECB5B12001017DC /* Products */;
@@ -496,6 +503,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AB00000000000000000000F3 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/maplibre/maplibre-gl-native-distribution";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AB00000000000000000000F2 /* MapLibre */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AB00000000000000000000F3 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */;
+			productName = MapLibre;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0D1D6EFC2ECB5B12001017DC /* Project object */;
 }

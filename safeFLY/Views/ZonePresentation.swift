@@ -229,21 +229,41 @@ enum ZonePresentation {
 
 struct ZoneResultHeaderPresentation {
     let title: String
+    let subtitle: String?
     let message: String?
     let iconName: String
     let color: Color
+
+    init(title: String, subtitle: String? = nil, message: String?, iconName: String, color: Color) {
+        self.title = title
+        self.subtitle = subtitle
+        self.message = message
+        self.iconName = iconName
+        self.color = color
+    }
 }
 
 enum ZoneQueryPresentation {
     static func header(for result: ZoneQueryResult) -> ZoneResultHeaderPresentation {
         switch result {
-        case .clear:
-            return ZoneResultHeaderPresentation(
-                title: NSLocalizedString("No Restrictions", comment: "Clear result title"),
-                message: NSLocalizedString("ZONE_RESULT_CLEAR_MESSAGE", comment: "Clear result message"),
-                iconName: "checkmark",
-                color: .green
-            )
+        case .clear(let reason):
+            switch reason {
+            case .noMatchingRestrictions:
+                return ZoneResultHeaderPresentation(
+                    title: NSLocalizedString("No Restrictions", comment: "Clear result title"),
+                    message: NSLocalizedString("ZONE_RESULT_CLEAR_MESSAGE", comment: "Clear result message"),
+                    iconName: "checkmark",
+                    color: .green
+                )
+            case .offlineOnlyNoMatchingRestrictions:
+                return ZoneResultHeaderPresentation(
+                    title: NSLocalizedString("No Restrictions", comment: "Clear result title"),
+                    subtitle: NSLocalizedString("Offline Data", comment: "Offline data subtitle"),
+                    message: NSLocalizedString("ZONE_RESULT_OFFLINE_CLEAR_MESSAGE", comment: "Offline clear message"),
+                    iconName: "checkmark",
+                    color: .green
+                )
+            }
         case .matches(_, let assessment):
             switch assessment {
             case .allowed:

@@ -25,10 +25,10 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
 
         return ZoneFeature(
             category: category,
-            restrictionLevel: restrictionLevel(for: category),
+            restrictionLevel: Self.restrictionLevel(for: category),
             name: record.name,
             sourceDeclaredType: record.sourceDeclaredType,
-            sourceDeclaredRestriction: record.sourceDeclaredRestriction ?? regulatoryText(for: category),
+            sourceDeclaredRestriction: record.sourceDeclaredRestriction ?? Self.regulatoryText(for: category),
             lowerLimit: record.lowerLimit,
             upperLimit: record.upperLimit,
             legalReference: record.legalReference,
@@ -40,7 +40,8 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
 
     // German LuftVO verdict: airports and active temporary no-fly zones are hard
     // prohibitions; everything else DIPUL reports is permitted only under conditions.
-    nonisolated private func restrictionLevel(for category: ZoneCategory) -> FlightAssessmentOutcome {
+    // Shared with the offline DIPUL provider so both express the same German rules.
+    nonisolated static func restrictionLevel(for category: ZoneCategory) -> FlightAssessmentOutcome {
         switch category {
         case .airport, .temporaryRestrictionActive:
             return .prohibited
@@ -89,8 +90,9 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
     }
 
     // German regulatory explanation used when the source record does not declare its own
-    // restriction text.
-    nonisolated private func regulatoryText(for category: ZoneCategory) -> String {
+    // restriction text. Shared with the offline DIPUL provider (whose GeoJSON carries no
+    // free-text restriction, so it always uses this localized explanation).
+    nonisolated static func regulatoryText(for category: ZoneCategory) -> String {
         switch category {
         case .aerodrome:
             return NSLocalizedString("AERODROME_CONDITIONAL", comment: "Aerodrome operation conditional message")

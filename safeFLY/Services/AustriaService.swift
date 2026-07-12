@@ -56,7 +56,7 @@ final class AustriaProvider: ED269DownloadableProvider, @unchecked Sendable {
 
     nonisolated let id = AustriaProvider.providerID
     nonisolated var displayName: String {
-        NSLocalizedString("Austro Control (Austria)", comment: "Austria provider display name")
+        NSLocalizedString("Austro Control", comment: "Austria provider display name")
     }
     nonisolated var attributionName: String {
         "Austro Control"

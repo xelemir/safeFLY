@@ -26,11 +26,13 @@ final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
 
     nonisolated let id = DIPULProvider.providerID
     nonisolated var displayName: String {
-        NSLocalizedString("DIPUL (Germany)", comment: "DIPUL provider display name")
+        NSLocalizedString("DIPUL", comment: "DIPUL provider display name")
     }
+    // DIPUL geographic-zone data (WMS/WFS/download) is licensed CC BY-ND 4.0.
+    // The mandated attribution per dipul.de/…/geografische-gebiete/wfs-wms/ is
+    // exactly "dipul, CC-BY-ND 4.0". Commercial use is permitted; no derivatives.
     nonisolated var attributionName: String {
-        let year = Calendar.current.component(.year, from: Date())
-        return "DFS, BKG \(year)"
+        "dipul, CC-BY-ND 4.0"
     }
     nonisolated let capabilities = ProviderCapabilities(
         supportsRendering: true,
@@ -110,7 +112,9 @@ final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
         [
             ProviderReferenceLink(
                 title: NSLocalizedString("DFS DIPUL Datasource", comment: "Provider reference link title"),
-                url: URL(string: "https://uas-betrieb.dfs.de/homepage/")!
+                // Points at the WFS/WMS page that states the CC BY-ND 4.0 licence and the
+                // mandated "dipul, CC-BY-ND 4.0" attribution the app renders.
+                url: URL(string: "https://www.dipul.de/homepage/de/informationen/geografische-gebiete/wfs-wms/")!
             )
         ]
     }
@@ -240,14 +244,16 @@ extension MKCoordinateRegion {
         )
     }
 
-    // Biases location search across every country safeFLY ships providers for:
-    // Germany, France, Austria and the Netherlands.
+    // Biases location search across every country safeFLY ships providers for: Germany,
+    // France, Austria, the Netherlands, Belgium, Luxembourg, Switzerland/Liechtenstein,
+    // Czechia, Denmark, Sweden and Finland.
     static var supportedCountries: MKCoordinateRegion {
-        // Centre/​span biases search completions toward the covered countries. Widened east so
-        // Czechia's eastern edge (~18.9° E) is comfortably inside the bias window.
+        // Centre/​span biases search completions toward the covered countries. Widened north
+        // and east so all of Sweden and Finland (up to ~70° N, ~31.6° E) fit alongside
+        // France's western edge and Czechia.
         MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 48.5, longitude: 8.0),
-            span: MKCoordinateSpan(latitudeDelta: 17.0, longitudeDelta: 28.0)
+            center: CLLocationCoordinate2D(latitude: 55.5, longitude: 13.0),
+            span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 38.0)
         )
     }
 }

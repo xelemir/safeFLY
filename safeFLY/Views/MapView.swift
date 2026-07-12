@@ -9,6 +9,7 @@ import SwiftUI
 import MapKit
 import StoreKit
 import UIKit
+import MapLibre
 
 
 struct MapView: View {
@@ -19,16 +20,23 @@ struct MapView: View {
 
     @EnvironmentObject private var providersStore: ProvidersStore
     @EnvironmentObject var droneSettings: DroneSettings
-    @State private var region = MKCoordinateRegion.germany
-    @State private var selectedMapStyle: Int = 0
-    @State private var cameraPosition: MapCameraPosition = .region(.germany)
+    // Both camera states must hold the saved position before the first body evaluation — the
+    // offline MapLibre view reads `region` in makeUIView, which can run ahead of
+    // handleViewAppear — so they bootstrap from UserDefaults directly instead of DroneSettings.
+    @State private var region: MKCoordinateRegion = MapView.initialSavedRegion()
+    @AppStorage("selectedMapStyle") private var selectedMapStyle: Int = 0
+    @State private var cameraPosition: MapCameraPosition = MapView.initialSavedCamera()
     @State private var tappedLocation: CLLocationCoordinate2D?
     @State private var showZoneInfo = false
+    @State private var centerOnUser = false
     @State private var currentViewSize: CGSize = .zero
     @State private var updateTask: Task<Void, Never>?
     @State private var isInitialLoad = true
     @State private var hasCompletedInitialSetup = false
     @State private var showSettings = false
+    @State private var showDownloadSheet = false
+    @State private var downloadAreaName = ""
+    @EnvironmentObject var offlineMapStore: OfflineMapStore
 
 
     private var mapStyle: MapStyle {
@@ -87,7 +95,9 @@ struct MapView: View {
             guard let coverage = session.provider.coverage else { return nil }
             return ProviderCoverageMask(
                 providerID: session.provider.id,
-                isActive: providersStore.isProviderEnabled(session.provider.id),
+                // "Active" mirrors the test that decides whether the provider renders, so the
+                // dim mask and the actual overlays never disagree.
+                isActive: providersStore.isProviderActive(session.provider.id),
                 polygons: coverage.polygons
             )
         }
@@ -155,10 +165,18 @@ struct MapView: View {
             }
             .onChange(of: droneSettings.simulatedCameraUpdate) { _, newValue in
                 if let update = newValue {
+                    let center = CLLocationCoordinate2D(latitude: update.latitude, longitude: update.longitude)
+                    // Same distance↔span approximation used when leaving the offline map, so
+                    // the MapLibre view lands at the equivalent zoom.
+                    let spanDelta = update.distance / 111000.0
                     withAnimation(.easeInOut(duration: 0.85)) {
+                        region = MKCoordinateRegion(
+                            center: center,
+                            span: MKCoordinateSpan(latitudeDelta: spanDelta, longitudeDelta: spanDelta)
+                        )
                         cameraPosition = .camera(
                             MapCamera(
-                                centerCoordinate: CLLocationCoordinate2D(latitude: update.latitude, longitude: update.longitude),
+                                centerCoordinate: center,
                                 distance: update.distance,
                                 heading: 0,
                                 pitch: 0
@@ -166,6 +184,14 @@ struct MapView: View {
                         )
                     }
                     droneSettings.simulatedCameraUpdate = nil
+                }
+            }
+            .onChange(of: selectedMapStyle) { oldValue, newValue in
+                // Hand the camera back to MapKit when leaving the offline style: while the
+                // MapLibre view is up only `region` tracks the user's panning, so without this
+                // the MapKit map would restore wherever it last was.
+                if oldValue == 3 && newValue != 3 {
+                    cameraPosition = .region(region)
                 }
             }
             .onChange(of: droneSettings.dismissActiveSheet) { _, newValue in
@@ -184,16 +210,16 @@ struct MapView: View {
             ZStack {
                 mapView
 
-                CoverageMaskNativeOverlay(masks: coverageMasks, isVisible: coverageMaskVisible)
-                .allowsHitTesting(false)
-                .ignoresSafeArea()
+                if selectedMapStyle != 3 {
+                    CoverageMaskNativeOverlay(masks: coverageMasks, isVisible: coverageMaskVisible)
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea()
+                }
 
-                WMSNativeOverlay(payloads: shouldShowGeozones ? renderPayloads : [])
-                .allowsHitTesting(false)
-                .ignoresSafeArea()
-                
-                if !shouldShowGeozones {
-                    zoomHintView
+                if selectedMapStyle != 3 {
+                    WMSNativeOverlay(payloads: shouldShowGeozones ? renderPayloads : [])
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea()
                 }
                 
                 if providersStore.isLoading {
@@ -202,6 +228,14 @@ struct MapView: View {
 
                 if shouldShowGeozones {
                     attributionView
+                }
+
+                if offlineMapStore.activeDownload != nil {
+                    centeredDownloadOrProgressView
+                } else if !shouldShowGeozones {
+                    zoomHintView
+                } else if selectedMapStyle == 3 {
+                    centeredDownloadOrProgressView
                 }
             }
             .onAppear {
@@ -213,7 +247,40 @@ struct MapView: View {
         }
     }
     
+    @ViewBuilder
     private var mapView: some View {
+        if selectedMapStyle == 3 {
+            OfflineMapLibreView(
+                region: $region,
+                centerOnUser: $centerOnUser,
+                wmsPayloads: shouldShowGeozones ? renderPayloads : [],
+                polygonPayloads: shouldShowGeozones ? polygonRenderPayloads : [],
+                tappedLocation: tappedLocation,
+                onboardingPinCoordinate: droneSettings.onboardingPinCoordinate,
+                onTap: { coordinate in
+                    handleMapTap(at: coordinate, viewSize: currentViewSize)
+                },
+                onCameraChange: { newRegion in
+                    region = newRegion
+                },
+                onCameraChangeEnd: { newRegion in
+                    region = newRegion
+                    droneSettings.lastCameraLatitude = newRegion.center.latitude
+                    droneSettings.lastCameraLongitude = newRegion.center.longitude
+                    droneSettings.lastCameraLatitudeDelta = newRegion.span.latitudeDelta
+                    droneSettings.lastCameraLongitudeDelta = newRegion.span.longitudeDelta
+                    droneSettings.lastCameraDistance = newRegion.span.latitudeDelta * 111000.0
+
+                    if !hasCompletedInitialSetup { return }
+                    if shouldShowGeozones {
+                        updateOverlay(size: currentViewSize)
+                    } else {
+                        providersStore.clearRenderPayloads()
+                    }
+                }
+            )
+            .ignoresSafeArea()
+        } else {
             MapReader { proxy in
             Map(position: $cameraPosition, interactionModes: .all.subtracting(.rotate).subtracting(.pitch)) {
                 // The coverage dim mask is a native MKOverlay drawn beneath the labels (see
@@ -271,6 +338,7 @@ struct MapView: View {
             )
         }
         .ignoresSafeArea()
+        }
     }
     
 
@@ -361,15 +429,21 @@ struct MapView: View {
                     Label("Standard", systemImage: "map").tag(0)
                     Label("Hybrid", systemImage: "square.3.layers.3d").tag(1)
                     Label("Satellite", systemImage: "globe.europe.africa.fill").tag(2)
+                    Label(NSLocalizedString("Offline", comment: "Offline map style label"), systemImage: "arrow.down.circle").tag(3)
                 }
             } label: {
                 Image(systemName: "map")
             }
         }
-        
+
+
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                cameraPosition = .userLocation(fallback: .automatic)
+                if selectedMapStyle == 3 {
+                    centerOnUser = true
+                } else {
+                    cameraPosition = .userLocation(fallback: .automatic)
+                }
             } label: {
                 Image(systemName: "location")
             }
@@ -408,6 +482,8 @@ struct MapView: View {
         let startLatitude = useStuttgart ? 48.7758 : droneSettings.lastCameraLatitude
         let startLongitude = useStuttgart ? 9.1829 : droneSettings.lastCameraLongitude
         let startDistance = useStuttgart ? 35000 : droneSettings.lastCameraDistance
+        let startLatDelta = useStuttgart ? 0.5 : droneSettings.lastCameraLatitudeDelta
+        let startLonDelta = useStuttgart ? 0.5 : droneSettings.lastCameraLongitudeDelta
 
         let savedCoordinate = CLLocationCoordinate2D(
             latitude: startLatitude,
@@ -424,7 +500,7 @@ struct MapView: View {
 
         region = MKCoordinateRegion(
             center: savedCoordinate,
-            span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+            span: MKCoordinateSpan(latitudeDelta: startLatDelta, longitudeDelta: startLonDelta)
         )
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -457,6 +533,8 @@ struct MapView: View {
         droneSettings.lastCameraLatitude = context.camera.centerCoordinate.latitude
         droneSettings.lastCameraLongitude = context.camera.centerCoordinate.longitude
         droneSettings.lastCameraDistance = context.camera.distance
+        droneSettings.lastCameraLatitudeDelta = context.region.span.latitudeDelta
+        droneSettings.lastCameraLongitudeDelta = context.region.span.longitudeDelta
         
         if !hasCompletedInitialSetup {
             return
@@ -474,8 +552,11 @@ struct MapView: View {
     private func handleSearchedCoordinate(_ searchCoord: SearchCoordinate?) {
         if let searchCoord = searchCoord {
             let coord = searchCoord.coordinate
-            let region = MKCoordinateRegion(center: coord, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
-            cameraPosition = .region(region)
+            let target = MKCoordinateRegion(center: coord, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
+            // Drive both engines: `cameraPosition` moves the MapKit map, `region` is the
+            // binding the offline MapLibre view follows.
+            region = target
+            cameraPosition = .region(target)
             droneSettings.searchedCoordinate = nil
         }
     }
@@ -514,6 +595,7 @@ struct MapView: View {
         )
 
         withAnimation(.easeInOut(duration: 0.3)) {
+            region.center = newCenter
             cameraPosition = .camera(
                 MapCamera(
                     centerCoordinate: newCenter,
@@ -530,7 +612,8 @@ struct MapView: View {
                     coordinate: MapCoordinate(coordinate),
                     region: MapRegion(region),
                     viewportSize: MapViewportSize(viewSize)
-                )
+                ),
+                isOfflineMapStyle: selectedMapStyle == 3
             )
         }
         showZoneInfo = true
@@ -538,6 +621,146 @@ struct MapView: View {
 
     private func providerRenderRequest(viewSize: CGSize) -> ProviderRenderRequest {
         ProviderRenderRequest(region: MapRegion(region), viewportSize: MapViewportSize(viewSize))
+    }
+
+    // MARK: - Saved Camera Bootstrap
+
+    private static let onboardingStartCenter = CLLocationCoordinate2D(latitude: 48.7758, longitude: 9.1829)
+
+    private static func savedDouble(_ key: String, fallback: Double) -> Double {
+        let value = UserDefaults.standard.double(forKey: key)
+        return value != 0 ? value : fallback
+    }
+
+    private static func initialSavedCenter() -> CLLocationCoordinate2D {
+        guard UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") else {
+            return onboardingStartCenter
+        }
+        return CLLocationCoordinate2D(
+            latitude: savedDouble("lastCameraLatitude", fallback: 51.1657),
+            longitude: savedDouble("lastCameraLongitude", fallback: 10.4515)
+        )
+    }
+
+    private static func initialSavedRegion() -> MKCoordinateRegion {
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        let span = hasCompletedOnboarding
+            ? MKCoordinateSpan(
+                latitudeDelta: savedDouble("lastCameraLatitudeDelta", fallback: 0.5),
+                longitudeDelta: savedDouble("lastCameraLongitudeDelta", fallback: 0.5)
+            )
+            : MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
+        return MKCoordinateRegion(center: initialSavedCenter(), span: span)
+    }
+
+    private static func initialSavedCamera() -> MapCameraPosition {
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        let distance = hasCompletedOnboarding ? savedDouble("lastCameraDistance", fallback: 1000000) : 35000
+        return .camera(
+            MapCamera(
+                centerCoordinate: initialSavedCenter(),
+                distance: distance,
+                heading: 0,
+                pitch: 0
+            )
+        )
+    }
+
+    // MARK: - Offline Download UI
+
+    @ViewBuilder
+    private var centeredDownloadOrProgressView: some View {
+        if let download = offlineMapStore.activeDownload {
+            VStack {
+                Spacer()
+                if #available(iOS 26.0, *) {
+                    HStack(spacing: 8) {
+                        ProgressView(value: download.progress)
+                            .frame(maxWidth: 120)
+                        Text("\(Int(download.progress * 100))%")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .glassEffect()
+                } else {
+                    HStack(spacing: 8) {
+                        ProgressView(value: download.progress)
+                            .frame(maxWidth: 120)
+                        Text("\(Int(download.progress * 100))%")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                }
+                Spacer()
+            }
+        } else if !offlineMapStore.isWithinDownloadedArea(region) {
+            VStack {
+                Spacer()
+                Button {
+                    downloadAreaName = ""
+                    showDownloadSheet = true
+                } label: {
+                    if #available(iOS 26.0, *) {
+                        Text(NSLocalizedString("Download Visible Map", comment: "Download map area centered button"))
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .glassEffect()
+                    } else {
+                        Text(NSLocalizedString("Download Visible Map", comment: "Download map area centered button"))
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .buttonStyle(.plain)
+                Spacer()
+            }
+            .alert(
+                NSLocalizedString("Download Area", comment: "Download area alert title"),
+                isPresented: $showDownloadSheet
+            ) {
+                TextField(
+                    NSLocalizedString("Area Name", comment: "Area name text field placeholder"),
+                    text: $downloadAreaName
+                )
+                Button(NSLocalizedString("Download", comment: "Download button")) {
+                    startDownload()
+                }
+                Button(NSLocalizedString("Cancel", comment: "Cancel button"), role: .cancel) {}
+            } message: {
+                Text(NSLocalizedString("Enter a name for this area", comment: "Download area alert message"))
+            }
+        }
+    }
+
+    private func startDownload() {
+        let name = downloadAreaName.isEmpty
+            ? NSLocalizedString("Unnamed Area", comment: "Default offline area name")
+            : downloadAreaName
+
+        let bounds = MLNCoordinateBounds(
+            sw: CLLocationCoordinate2D(
+                latitude: region.center.latitude - region.span.latitudeDelta / 2,
+                longitude: region.center.longitude - region.span.longitudeDelta / 2
+            ),
+            ne: CLLocationCoordinate2D(
+                latitude: region.center.latitude + region.span.latitudeDelta / 2,
+                longitude: region.center.longitude + region.span.longitudeDelta / 2
+            )
+        )
+
+        offlineMapStore.downloadRegion(name: name, bounds: bounds)
     }
 }
 
@@ -628,7 +851,11 @@ struct ZoneInfoSheet: View {
                         .fontWeight(.bold)
                         .foregroundStyle(.primary)
 
-                    if showsZoneCount {
+                    if let subtitle = presentation.subtitle {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else if showsZoneCount {
                         Text(String.localizedStringWithFormat(NSLocalizedString("%d overlapping zones", comment: "Number of overlapping zones in the zone header"), sortedFeatures.count))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -829,6 +1056,7 @@ struct DetailRow: View {
     MapView()
         .environmentObject(DroneSettings())
         .environmentObject(ProvidersStore(registrations: BuiltInProviders.all))
+        .environmentObject(OfflineMapStore())
 }
 
 // Bridges to UIKit's `presentationControllerWillDismiss`, the only callback that fires when

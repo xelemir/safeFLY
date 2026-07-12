@@ -56,7 +56,7 @@ final class LuxembourgProvider: ED269DownloadableProvider, @unchecked Sendable {
 
     nonisolated let id = LuxembourgProvider.providerID
     nonisolated var displayName: String {
-        NSLocalizedString("DAC (Luxembourg)", comment: "Luxembourg provider display name")
+        NSLocalizedString("DAC", comment: "Luxembourg provider display name")
     }
     nonisolated var attributionName: String {
         "DAC Luxembourg"
