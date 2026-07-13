@@ -249,6 +249,7 @@
 "ONBOARDING.WEATHER.TITLE" = "Weather Advisories";
 "ONBOARDING.WEATHER.DESCRIPTION" = "In the Weather tab, you can view current weather conditions and wind forecasts at different altitudes.";
 
+
 "ONBOARDING.READY.TITLE" = "Ready for Takeoff";
 "ONBOARDING.READY.DESCRIPTION" = "All set! In settings, you can customize the displayed geozones and report app errors.";
 
@@ -271,6 +272,7 @@
 
 /* Provider Management */
 "Providers" = "Providers";
+"Enable provider explanatory text" = "Enable the providers you need. Additional provider data can complement the main provider's data (e.g. nature reserves). Some providers overlap or are subsets of other providers (e.g. DIPUL and DIPUL Offline).";
 "Manage built-in geospatial providers and configure their provider-specific datasets." = "Manage built-in geospatial providers and configure their provider-specific datasets.";
 "Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly." = "Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly.";
 
@@ -498,4 +500,3 @@
 "Active Download" = "Active Download";
 "Unnamed Area" = "Unnamed Area";
 "OFFLINE_MAP_ATTRIBUTION" = "© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors";
-

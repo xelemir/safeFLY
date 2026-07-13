@@ -29,7 +29,8 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
         // Switzerland (+ Liechtenstein, which the Swiss provider also covers)
         "CH": ["Schweiz", "Switzerland", "Suisse", "Svizzera", "Svizra", "Liechtenstein"],
         "LU": ["Luxemburg", "Luxembourg", "Lëtzebuerg"],
-        "CZ": ["Tschechien", "Tschechische Republik", "Czech Republic", "Czechia", "Česko", "Česká republika"],
+        // CZ search aliases removed with its country row (licence restrictions); the provider
+        // file stays in the repo — re-add when the country returns.
         "BE": ["Belgien", "Belgium", "België", "Belgique"],
         "DK": ["Dänemark", "Denmark", "Danmark"],
         "SE": ["Schweden", "Sweden", "Sverige"],
@@ -156,10 +157,11 @@ struct MainTabView: View {
         }
     }
 
-    // Countries with at least one enabled provider — the set place search accepts results from.
+    // Countries with at least one enabled provider — the set place search accepts results
+    // from. A country with nothing switched on renders nothing, so it isn't searchable either.
     private var enabledCountryIDs: Set<String> {
         Set(ProviderCountries.all
-            .filter { country in country.providerIDs.contains { providersStore.isProviderEnabled($0) } }
+            .filter { country in country.providerIDs.contains { providersStore.isProviderActive($0) } }
             .map(\.id))
     }
 

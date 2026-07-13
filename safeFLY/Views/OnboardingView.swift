@@ -75,10 +75,10 @@ struct OnboardingView: View {
             description: NSLocalizedString("ONBOARDING.READY.DESCRIPTION", comment: "Onboarding ready description"),
             type: .ready
         ))
-        
+
         return list
     }
-    
+
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
@@ -170,7 +170,7 @@ struct OnboardingView: View {
                         removal: .opacity.combined(with: .move(edge: .top))
                     ))
                 }
-                
+
                 // MARK: - Floating Bottom Overlay (Static position, contents transition dynamically)
                 VStack(spacing: 0) {
                     // Page dots indicator
@@ -331,7 +331,7 @@ struct OnboardingView: View {
     }
     
     // MARK: - Navigation Logic
-    
+
     private func nextPage() {
         let impact = UIImpactFeedbackGenerator(style: .light)
         impact.impactOccurred()
@@ -435,7 +435,7 @@ struct OnboardingView: View {
         case .weather:
             // Switch active tab to WeatherView
             droneSettings.activeTab = 1
-            
+
         case .location:
             // Show map tab with broader Stuttgart overview
             droneSettings.activeTab = 0

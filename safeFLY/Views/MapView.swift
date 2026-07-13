@@ -429,7 +429,8 @@ struct MapView: View {
                     Label("Standard", systemImage: "map").tag(0)
                     Label("Hybrid", systemImage: "square.3.layers.3d").tag(1)
                     Label("Satellite", systemImage: "globe.europe.africa.fill").tag(2)
-                    Label(NSLocalizedString("Offline", comment: "Offline map style label"), systemImage: "arrow.down.circle").tag(3)
+                    Label(NSLocalizedString("Offline", comment: "Offline map style label"),
+                          systemImage: "arrow.down.circle").tag(3)
                 }
             } label: {
                 Image(systemName: "map")

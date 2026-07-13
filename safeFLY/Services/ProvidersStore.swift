@@ -17,11 +17,15 @@ enum BuiltInProviders {
         ProviderRegistration(provider: DIPULOfflineProvider(), normalizer: DIPULOfflineZoneNormalizer()),
         ProviderRegistration(provider: FranceProvider(), normalizer: FranceZoneNormalizer()),
         ProviderRegistration(provider: SwitzerlandProvider(), normalizer: SwitzerlandZoneNormalizer()),
-        ProviderRegistration(provider: CzechProvider(), normalizer: CzechZoneNormalizer()),
+        // Czechia (ŘLP ČR DroneMap) is intentionally NOT registered: its terms prohibit
+        // derived/public use regardless of the app being free. CzechService.swift is kept in
+        // the repo so it can be re-registered the moment a written agreement is in place.
+        // Sweden (LFV Drönarkartan, CC BY-NC-ND) ships now that the app is free and
+        // non-commercial; the ND clause is accepted as residual risk.
         ProviderRegistration(provider: BelgiumProvider(), normalizer: BelgiumZoneNormalizer()),
         ProviderRegistration(provider: DenmarkProvider(), normalizer: DenmarkZoneNormalizer()),
-        ProviderRegistration(provider: SwedenProvider(), normalizer: SwedenZoneNormalizer()),
         ProviderRegistration(provider: FinlandProvider(), normalizer: FinlandZoneNormalizer()),
+        ProviderRegistration(provider: SwedenProvider(), normalizer: SwedenZoneNormalizer()),
         // The three countries whose national feed carries no nature reserves, grouped at the
         // bottom, with the EU nature-reserve layer that backfills them placed last of all.
         ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer()),
@@ -81,9 +85,9 @@ final class ProvidersStore: ObservableObject {
         enabledProviderIDs.contains(providerID)
     }
 
-    // Whether a provider contributes to the map and queries. Kept as its own name because the
-    // UI (coverage dim, status dot) asks the "does it render anything" question, distinct from
-    // the raw toggle state in intent even though they now coincide.
+    // Whether a provider actually contributes to the map and queries. Kept as a distinct
+    // name because callers (coverage dim, search scope) ask "does this render?", which is
+    // conceptually broader than the raw toggle even though they now coincide.
     func isProviderActive(_ providerID: String) -> Bool {
         isProviderEnabled(providerID)
     }
@@ -99,7 +103,9 @@ final class ProvidersStore: ObservableObject {
     func countryStatus(for country: ProviderCountry) -> CountryProviderStatus {
         let countrySessions = country.providerIDs.compactMap { providerSession(for: $0) }
 
-        let contributing = countrySessions.filter { enabledProviderIDs.contains($0.id) }
+        let contributing = countrySessions.filter {
+            enabledProviderIDs.contains($0.id)
+        }
 
         guard !contributing.isEmpty else {
             return .off

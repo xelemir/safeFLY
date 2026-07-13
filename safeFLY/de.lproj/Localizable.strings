@@ -251,6 +251,7 @@
 "ONBOARDING.WEATHER.TITLE" = "Wetterhinweise";
 "ONBOARDING.WEATHER.DESCRIPTION" = "Im Wetter-Tab siehst du die aktuellen Wetterbedingungen und Windvorhersagen in verschiedenen Höhen.";
 
+
 "ONBOARDING.READY.TITLE" = "Bereit zum Abheben";
 "ONBOARDING.READY.DESCRIPTION" = "Alles bereit! In den Einstellungen kannst du die angezeigten Geozonen anpassen und App-Fehler melden.";
 
@@ -500,4 +501,3 @@
 "Active Download" = "Aktiver Download";
 "Unnamed Area" = "Unbenannter Bereich";
 "OFFLINE_MAP_ATTRIBUTION" = "© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors";
-

@@ -32,8 +32,9 @@ enum ProviderCountries {
                         providerIDs: [AustriaProvider.providerID, ProtectedAreasProvider.austriaID]),
         ProviderCountry(id: "BE", flag: "🇧🇪", nameKey: "country.belgium",
                         providerIDs: [BelgiumProvider.providerID]),
-        ProviderCountry(id: "CZ", flag: "🇨🇿", nameKey: "country.czech",
-                        providerIDs: [CzechProvider.providerID]),
+        // Czechia (CZ) is intentionally omitted — the ŘLP ČR licence forbids derived/public
+        // use regardless of price (see BuiltInProviders in ProvidersStore). CzechService.swift
+        // remains in the repo; re-add the country row here once an agreement is secured.
         ProviderCountry(id: "DK", flag: "🇩🇰", nameKey: "country.denmark",
                         providerIDs: [DenmarkProvider.providerID]),
         ProviderCountry(id: "FI", flag: "🇫🇮", nameKey: "country.finland",
