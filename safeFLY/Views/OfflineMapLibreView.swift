@@ -88,7 +88,16 @@ struct OfflineMapLibreView: UIViewRepresentable {
             } else if let lastRegion = coordinator.lastDelegateRegion, coordinator.regionsAreEqual(region, lastRegion) {
                 // Skips setCenter if the region update originated from map interaction
             } else {
-                let targetZoom = zoomLevel(for: region)
+                // Re-deriving zoom from the span (a lossy log2 approximation) doesn't round-trip
+                // to the map's real zoom, so a pure re-center — e.g. tapping to open the zone
+                // sheet, which shifts only `region.center` — would visibly jog the zoom. When the
+                // span is unchanged, keep the map's actual zoom; only recompute for genuine zoom
+                // changes like a search result setting a fresh span.
+                let spanUnchanged = coordinator.lastDelegateRegion.map { last in
+                    abs(last.span.latitudeDelta - region.span.latitudeDelta) < 0.00001 &&
+                    abs(last.span.longitudeDelta - region.span.longitudeDelta) < 0.00001
+                } ?? false
+                let targetZoom = spanUnchanged ? mapView.zoomLevel : zoomLevel(for: region)
                 mapView.setCenter(targetCenter, zoomLevel: targetZoom, animated: true)
                 coordinator.lastDelegateRegion = region
             }
