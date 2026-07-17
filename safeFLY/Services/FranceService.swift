@@ -65,7 +65,11 @@ final class FranceProvider: WMSBackedProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("Carte des restrictions drones (Géoportail)", comment: "France provider data source link title"),
+                title: "Exploitation de drones en catégorie ouverte",
+                url: URL(string: "https://www.ecologie.gouv.fr/politiques-publiques/exploitation-drones-categorie-ouverte")!
+            ),
+            ProviderReferenceLink(
+                title: "Géoportail",
                 url: URL(string: "https://www.geoportail.gouv.fr/donnees/restrictions-uas-categorie-ouverte-et-aeromodelisme")!
             )
         ]

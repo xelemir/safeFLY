@@ -213,6 +213,12 @@ struct ZoneFeature: Identifiable, Sendable {
     // API (e.g. Dutch from PDOK). nil means the text is already in the user's language
     // (our own localized advisories) and must not be machine-translated.
     let restrictionSourceLanguage: String?
+    // An extra, always-localized advisory shown beneath the main restriction text, in a
+    // de-emphasized style. Used when a rule depends on something the zone geometry doesn't carry
+    // (e.g. the pilot's drone class), so it can't be folded into the verdict. Always already in
+    // the user's language — unlike `sourceDeclaredRestriction`, it is never machine-translated —
+    // so it must not be mixed into that raw-text field, which is why it is its own field.
+    let supplementaryNote: String?
 
     nonisolated init(
         category: ZoneCategory,
@@ -224,7 +230,8 @@ struct ZoneFeature: Identifiable, Sendable {
         upperLimit: AltitudeLimit?,
         legalReference: String?,
         source: SourceProvenance,
-        restrictionSourceLanguage: String? = nil
+        restrictionSourceLanguage: String? = nil,
+        supplementaryNote: String? = nil
     ) {
         self.category = category
         self.restrictionLevel = restrictionLevel
@@ -236,6 +243,7 @@ struct ZoneFeature: Identifiable, Sendable {
         self.legalReference = legalReference
         self.source = source
         self.restrictionSourceLanguage = restrictionSourceLanguage
+        self.supplementaryNote = supplementaryNote
         self.id = ZoneFeature.makeID(
             category: category,
             name: name,
@@ -244,7 +252,8 @@ struct ZoneFeature: Identifiable, Sendable {
             lowerLimit: lowerLimit,
             upperLimit: upperLimit,
             legalReference: legalReference,
-            source: source
+            source: source,
+            supplementaryNote: supplementaryNote
         )
     }
 
@@ -256,7 +265,8 @@ struct ZoneFeature: Identifiable, Sendable {
         lowerLimit: AltitudeLimit?,
         upperLimit: AltitudeLimit?,
         legalReference: String?,
-        source: SourceProvenance
+        source: SourceProvenance,
+        supplementaryNote: String?
     ) -> String {
         [
             source.providerID,
@@ -267,7 +277,8 @@ struct ZoneFeature: Identifiable, Sendable {
             sourceDeclaredRestriction ?? "",
             lowerLimit?.stableIDComponent ?? "",
             upperLimit?.stableIDComponent ?? "",
-            legalReference ?? ""
+            legalReference ?? "",
+            supplementaryNote ?? ""
         ].joined(separator: "||")
     }
 }

@@ -196,7 +196,13 @@ final class BelgiumProvider: GeospatialProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("UAS Geographical Zones (skeyes DroneGuide)", comment: "Belgium provider data source link title"),
+                title: "skeyes",
+                url: URL(string: "https://www.skeyes.be/")!
+            ),
+            // The map's own <title> is also just "Skeyes", which would give two identically
+            // labelled rows, so it takes the name it is branded and universally known by.
+            ProviderReferenceLink(
+                title: "DroneGuide",
                 url: URL(string: "https://map.droneguide.be/")!
             )
         ]

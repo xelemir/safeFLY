@@ -127,6 +127,13 @@ nonisolated struct ED269RenderStyle {
     static let prohibited = ED269RenderStyle(fillColor: "EF4444", fillOpacity: 0.25, strokeColor: "EF4444", strokeOpacity: 0.8, lineWidth: 2.0)
     static let conditional = ED269RenderStyle(fillColor: "F59E0B", fillOpacity: 0.25, strokeColor: "D97706", strokeOpacity: 0.8, lineWidth: 1.5)
 
+    // The one category-keyed style, rather than verdict-keyed like the two above: the EU nature
+    // overlay draws green to match the green leaf its zones already carry in the zone list, even
+    // though their verdict is `conditional`. It lives here so every map colour stays in one place.
+    // The opaque outline is load-bearing, not decoration: it is what separates a reserve from the
+    // soft green woodland shading Apple's own basemap draws underneath it.
+    static let natureReserve = ED269RenderStyle(fillColor: "34C759", fillOpacity: 0.25, strokeColor: "248A3D", strokeOpacity: 0.8, lineWidth: 1.5)
+
     // Standard verdict → style. `nil` for `.allowed`: unrestricted zones carry no flight
     // limitation, so drawing them would only clutter the map.
     static func forVerdict(_ verdict: FlightAssessmentOutcome) -> ED269RenderStyle? {

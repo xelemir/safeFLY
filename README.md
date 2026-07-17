@@ -4,10 +4,11 @@
 
 ### Fly Responsibly. Explore Airspace with Confidence.
 
-**safeFLY** is the essential iOS map companion for drone pilots in Germany —
-real-time air traffic control zones, nature reserves, wind profiles, and
-instant flight checks, built on **official DFS mapping data**. Optional
-providers extend zone coverage to six neighbouring countries.
+**safeFLY** is the essential iOS map companion for drone pilots in Germany:
+real-time air traffic control zones, nature reserves, wind profiles, offline
+maps, and instant flight checks, built on **official DFS mapping data**. Optional
+providers extend zone coverage to nine neighbouring countries. Completely free
+and open source.
 
 [![App Store version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fitunes.apple.com%2Flookup%3Fid%3D6755426394%26country%3Dde&query=%24.results%5B0%5D.version&label=App%20Store&prefix=v&logo=apple&color=0D96F6)](https://apps.apple.com/de/app/safefly/id6755426394)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -45,16 +46,16 @@ to check that location. Toggle the layers you care about:
 
 ### 🇪🇺 Coverage beyond Germany
 Germany (DIPUL / DFS) is the core. You can additionally enable official
-drone-zone providers for **France, Switzerland, Austria, the Czech Republic,
-the Netherlands and Luxembourg** in Settings — each pulling from that
-country's own aviation authority. A coverage layer dims areas without data,
-with a lighter shade for providers you haven't switched on yet, so availability
-is clear at a glance.
+drone-zone providers for **Austria, Belgium, Denmark, Finland, France,
+Luxembourg, the Netherlands, Sweden and Switzerland** in Settings, each pulling
+from that country's own aviation authority. A coverage layer dims areas without
+data, with a lighter shade for providers you haven't switched on yet, so
+availability is clear at a glance.
 
 ### 📍 Zone details & flight validation
-Tap a point to see the geozones affecting it — zone **name**, **type**,
+Tap a point to see the geozones affecting it: zone **name**, **type**,
 **restriction**, **upper/lower altitude limits**, and the **legal reference**
-behind each one — so you get an instant read on whether you can fly there.
+behind each one, so you get an instant read on whether you can fly there.
 
 ### 🌤️ Wind & weather (DFS ICON-D2 model)
 Aeronautical weather tailored to drone operations, with a 24-hour hourly forecast:
@@ -67,6 +68,12 @@ Aeronautical weather tailored to drone operations, with a 24-hour hourly forecas
 General forecast data falls back to Open-Meteo where the DFS coverage area
 doesn't apply.
 
+### 📥 Offline maps & zone packages
+Fly with no connection. Download the base map for any area you draw, and pull
+offline geozone packages for supported countries, then check restrictions
+entirely offline. Ideal for remote areas or travelling abroad without mobile
+data. Downloaded packages are kept up to date in the background.
+
 ### ⚙️ Pilot profile
 Store your **drone class** (C0–C4) and **operator ID** for quick reference,
 plus onboarding to get set up fast.
@@ -78,17 +85,22 @@ Fully available in **English** and **German**.
 
 safeFLY only queries public endpoints; it does not redistribute their data.
 
-| Source | Used for |
-| --- | --- |
-| **DIPUL** (Digitale Plattform Unbemannte Luftfahrt) | geozones — Germany 🇩🇪 |
-| **DGAC / Géoportail** | geozones — France 🇫🇷 |
-| **FOCA (BAZL) / swisstopo** | geozones — Switzerland 🇨🇭 |
-| **Austro Control** (Dronespace) | geozones — Austria 🇦🇹 |
-| **ŘLP ČR** (DroneMap) | geozones — Czech Republic 🇨🇿 |
-| **Rijksoverheid / LVNL** | geozones — Netherlands 🇳🇱 |
-| **DAC** (Direction de l'Aviation Civile) | geozones — Luxembourg 🇱🇺 |
-| **DFS Deutsche Flugsicherung** | aeronautical weather (UTM weather service, ICON-D2) |
-| **Open-Meteo** ([open-meteo.com](https://open-meteo.com)) | general weather forecast |
+| Source | Region | Used for |
+| --- | --- | --- |
+| **DIPUL** (Digitale Plattform Unbemannte Luftfahrt) | Germany 🇩🇪 | geozones |
+| **Austro Control** (Dronespace) | Austria 🇦🇹 | geozones |
+| **skeyes / BCAA** (DroneGuide) | Belgium 🇧🇪 | geozones |
+| **Trafikstyrelsen** | Denmark 🇩🇰 | geozones |
+| **Traficom / Flyk** (Droneinfo) | Finland 🇫🇮 | geozones |
+| **DGAC / Géoportail** | France 🇫🇷 | geozones |
+| **DAC** (Direction de l'Aviation Civile) | Luxembourg 🇱🇺 | geozones |
+| **Rijksoverheid / LVNL** | Netherlands 🇳🇱 | geozones |
+| **LFV / Transportstyrelsen** (Drönarkartan) | Sweden 🇸🇪 | geozones |
+| **FOCA (BAZL) / swisstopo** | Switzerland 🇨🇭 | geozones |
+| **EEA** (Natura 2000) | AT · LU · NL · SE | nature reserves |
+| **OpenFreeMap** (Liberty style) | Global | offline base map tiles |
+| **DFS Deutsche Flugsicherung** | Germany 🇩🇪 | aeronautical weather (UTM service, ICON-D2) |
+| **Open-Meteo** ([open-meteo.com](https://open-meteo.com)) | Global | general weather forecast |
 
 These services are not affiliated with this project and retain all rights to
 their respective data.
@@ -108,7 +120,7 @@ their respective data.
    (`com.gruettecloud.droneMaps`).
 3. Build and run on a simulator or device.
 
-No API keys are required — all backing services are public and keyless.
+No API keys are required; all backing services are public and keyless.
 
 ## Contributing
 

@@ -306,7 +306,12 @@ struct DIPULOfflineZoneNormalizer: ZoneFeatureNormalizing, Sendable {
                 upperLimit: record.upperLimit,
                 legalReference: record.legalReference,
                 source: SourceProvenance(providerID: record.providerID, sourceLayerID: record.typeCode ?? "dipul"),
-                restrictionSourceLanguage: nil
+                restrictionSourceLanguage: nil,
+                // Same class-aware residential note as the online provider, so offline behaves
+                // identically. Only .residentialProperty gets one (see DIPULZoneNormalizer.classNote).
+                supplementaryNote: DIPULZoneNormalizer.classNote(
+                    for: category, droneClass: DIPULZoneNormalizer.currentDroneClass()
+                )
             )
         }
     }

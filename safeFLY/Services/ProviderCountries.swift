@@ -4,8 +4,9 @@
 //
 //  Groups providers by the country a user actually flies in. Settings shows this list of
 //  countries first; each country drills into the providers responsible for it. A provider may
-//  belong to several countries (the EU nature-reserve layer backfills Austria, Luxembourg and
-//  the Netherlands), so `providerIDs` is intentionally not a partition of the provider set.
+//  belong to several countries (the EU nature-reserve layer backfills Austria, Belgium,
+//  Luxembourg, the Netherlands and Sweden), so `providerIDs` is intentionally not a partition
+//  of the provider set.
 //
 
 import Foundation
@@ -31,7 +32,7 @@ enum ProviderCountries {
         ProviderCountry(id: "AT", flag: "🇦🇹", nameKey: "country.austria",
                         providerIDs: [AustriaProvider.providerID, ProtectedAreasProvider.austriaID]),
         ProviderCountry(id: "BE", flag: "🇧🇪", nameKey: "country.belgium",
-                        providerIDs: [BelgiumProvider.providerID]),
+                        providerIDs: [BelgiumProvider.providerID, ProtectedAreasProvider.belgiumID]),
         // Czechia (CZ) is intentionally omitted — the ŘLP ČR licence forbids derived/public
         // use regardless of price (see BuiltInProviders in ProvidersStore). CzechService.swift
         // remains in the repo; re-add the country row here once an agreement is secured.
@@ -42,7 +43,7 @@ enum ProviderCountries {
         ProviderCountry(id: "FR", flag: "🇫🇷", nameKey: "country.france",
                         providerIDs: [FranceProvider.providerID]),
         ProviderCountry(id: "LU", flag: "🇱🇺", nameKey: "country.luxembourg",
-                        providerIDs: [LuxembourgProvider.providerID, ProtectedAreasProvider.luxembourgID]),
+                        providerIDs: [LuxembourgProvider.providerID]),
         ProviderCountry(id: "NL", flag: "🇳🇱", nameKey: "country.netherlands",
                         providerIDs: [NetherlandsProvider.providerID, ProtectedAreasProvider.netherlandsID]),
         ProviderCountry(id: "SE", flag: "🇸🇪", nameKey: "country.sweden",

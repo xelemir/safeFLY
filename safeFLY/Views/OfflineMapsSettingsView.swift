@@ -23,8 +23,6 @@ struct OfflineMapsSettingsView: View {
             }
 
             downloadedAreasSection
-
-            infoSection
         }
         .navigationTitle(NSLocalizedString("Offline Maps", comment: "Offline maps settings title"))
         .navigationBarTitleDisplayMode(.inline)
@@ -148,15 +146,10 @@ struct OfflineMapsSettingsView: View {
             }
         } header: {
             Text(NSLocalizedString("Downloaded Areas", comment: "Downloaded areas section header"))
-        }
-    }
-
-    private var infoSection: some View {
-        Section {
+        } footer: {
+            // Plain informative footnote rather than its own tile: it explains what offline
+            // covers, it is not a setting.
             Text(NSLocalizedString("OFFLINE_MAPS_INFO_FOOTER", comment: "Offline maps info footer"))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

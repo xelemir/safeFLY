@@ -139,6 +139,13 @@ struct MainTabView: View {
         .environmentObject(droneSettings)
         .environmentObject(providersStore)
         .environmentObject(offlineMapStore)
+        // Entry point for safefly:// links (the App Store in-app event card links here).
+        // Every link lands on the map, where the geozones and offline maps live; the scheme
+        // is registered in Info.plist under CFBundleURLTypes.
+        .onOpenURL { url in
+            guard url.scheme == "safefly" else { return }
+            droneSettings.activeTab = 0
+        }
         // Keep place search scoped to the countries that actually have a provider turned on,
         // so every enabled country is searchable (and newly enabled ones become so instantly).
         .onAppear { searchManager.updateEnabledCountries(enabledCountryIDs) }

@@ -306,7 +306,31 @@
 "Provider References" = "Anbieter-Referenzen";
 "Protected Areas (Europe)" = "Naturschutzgebiete";
 "Natura 2000 network (EEA)" = "Natura-2000-Netzwerk (EEA)";
-"EU.NOTE.PROTECTED_AREA" = "Schutzgebiet (Natura 2000). Drohnenflüge sind nach nationalem Naturschutzrecht eingeschränkt – meist ist eine Genehmigung erforderlich und oft ganz verboten. Prüfe vor dem Flug die örtlichen Regeln.";
+/* Fallback only: every registered instance has its own country-specific note below. */
+"EU.NOTE.PROTECTED_AREA" = "Schutzgebiet (Natura 2000). Drohnenflüge sind nach nationalem Naturschutzrecht eingeschränkt: meist ist eine Genehmigung erforderlich und oft ganz verboten. Prüfe vor dem Flug die örtlichen Regeln.";
+
+"EU.NOTE.PROTECTED_AREA.AT" = "Natura-2000-Gebiet. Naturschutz ist in Österreich Landessache, es gelten also neun verschiedene Regelungen. In Nationalparks sind Drohnenflüge in der Regel komplett verboten, und in einem Naturschutzgebiet kann das allgemeine Störungsverbot auch dann greifen, wenn Austro Control keine Zone anzeigt. Die Genehmigung erteilt die Naturschutzbehörde des Landes, deren Strafen zusätzlich zu denen von Austro Control anfallen.";
+"EU.NOTE.PROTECTED_AREA.BE" = "Natura-2000-Gebiet. In Wallonien ist das Überfliegen jedes ausgewiesenen Naturschutzgebiets mit einer Drohne generell verboten (Naturschutzgesetz vom 12. Juli 1973, Art. 11, geändert 2019), mit Strafen bis zu 100.000 EUR. In Flandern ist das Tieffliegen über anerkannten Schutzgebieten verboten (Natuurdecreet Art. 35 §2 12°). skeyes veröffentlicht beides nicht, frag daher vor dem Flug bei der Gebietsverwaltung nach.";
+"EU.NOTE.PROTECTED_AREA.NL" = "Natura-2000-Gebiet. Drohnenflüge sind hier grundsätzlich nicht erlaubt, da sie geschützte Arten und Lebensräume stören können. Die Details regeln die Provinzverordnungen, eine Ausnahme erfordert ein ökologisches Gutachten und meist eine Genehmigung. Am strengsten ist es in der Brutzeit (etwa März bis August).";
+"EU.NOTE.PROTECTED_AREA.SE" = "Natura-2000-Gebiet. Drohnenflüge in einem Natura-2000-Gebiet brauchen eine Genehmigung, in Nationalparks sind sie ganz verboten. Für gewöhnliche Naturreservate gilt kein pauschales Verbot: jedes hat eigene Vorschriften (föreskrifter), prüfe daher die Regeln des Gebiets oder frag bei der Provinzialregierung (länsstyrelsen) nach.";
+
+/* Grauer Hinweis unter einem Kartentipp, für Länder ohne Daten zu Wohngebieten. */
+"RESIDENTIAL.INFO.INTRO" = "Wohnbebauung ist nicht Teil der Drohnendaten dieses Landes. Prüfe also, ob du über Wohngrundstücken fliegst, und halte dich an die Regeln deiner Drohnenklasse.";
+"RESIDENTIAL.INFO.C0" = "Deine C0 (unter 250 g) Drohne darf über unbeteiligte Personen fliegen, aber niemals über eine Menschenansammlung. Ein Mindestabstand zur Wohnbebauung gilt nicht.";
+"RESIDENTIAL.INFO.C1" = "Deine C1 (unter 900 g) Drohne darf niemals über eine Menschenansammlung fliegen, und du darfst unbeteiligte Personen nicht absichtlich überfliegen. Passiert es doch, halte es so kurz wie möglich. Ein Mindestabstand zur Wohnbebauung gilt nicht.";
+"RESIDENTIAL.INFO.C2" = "Deine C2 (unter 4 kg) Drohne muss mindestens 30 m Abstand zu unbeteiligten Personen halten, im Langsamflugmodus 5 m, und darf sie nicht überfliegen. Dafür brauchst du das A2-Fernpilotenzeugnis.";
+"RESIDENTIAL.INFO.C3C4" = "Deine C3 oder C4 (unter 25 kg) Drohne muss mindestens 150 m Abstand zu Wohn-, Gewerbe-, Industrie- und Erholungsgebieten halten. Über Wohnbebauung bleibt damit kein Flug in der offenen Kategorie möglich: du bräuchtest eine Betriebsgenehmigung in der speziellen Kategorie.";
+"RESIDENTIAL.INFO.DK" = "Dänemark hat zusätzlich eine weitere Regel: Du darfst ein bewohntes Privatgrundstück, also ein Haus mit eingezäuntem oder umhecktem Garten oder Hof, nicht ohne Zustimmung der Bewohner überfliegen und musst sie vorher informieren (§ 19 der Drohnenverordnung BEK 1649). as gilt nicht, wenn du in mindestens 100 m Höhe und mit mindestens 5 m/s geradlinig auf dem Weg woandershin querst. Verstöße werden mit Geldstrafe geahndet.";
+"RESIDENTIAL.INFO.CH" = "Die Schweiz ist nicht in der EU, hat die Verordnung 2019/947 aber zum 1. Januar 2023 über das Luftverkehrsabkommen mit der EU unverändert übernommen. Es gelten also dieselben Klassengrenzen.";
+
+/* Klassenspezifische Zeile unter einer deutschen Wohngrundstück-Zone. §21h LuftVO gewährt hier
+   eine Ausnahme unter 250 g; die EU-Unterkategorien der offenen Kategorie (A2/A3) ergänzen
+   klassenbasierte Abstände. */
+"DE.RESIDENTIAL.CLASS.C3C4" = "Für deine C3 oder C4 (unter 25 kg) Drohne: Die offene Kategorie A3 verlangt mindestens 150 m horizontalen Abstand zu Wohn-, Gewerbe-, Industrie- und Erholungsgebieten. Da der Abstand horizontal gilt, hilft größere Höhe nicht — die §21h-Ausnahme ab 100 m greift hier nicht, ein Überflug ist in der offenen Kategorie in keiner Höhe möglich und braucht eine Genehmigung in der speziellen Kategorie.";
+
+/* Gültigkeitsfenster unter einer deutschen temporären Beschränkung (NOTAM / §21h Abs. 3 Nr. 11).
+   %1$@ = Beginn, %2$@ = Ende, beide bereits in deutscher Ortszeit formatiert. */
+"DE.TEMP.WINDOW" = "Zeitfenster: %1$@ bis %2$@";
 
 "Active" = "Aktiv";
 "Disabled" = "Deaktiviert";
@@ -336,8 +360,7 @@
 "Geographic Zones" = "Geografische Gebiete";
 "Sensitive Facilities" = "Sensible Einrichtungen";
 "Offline Package Contents" = "Inhalt des Offline-Pakets";
-"DIPUL_OFFLINE_INCLUDED" = "Dieses Offline-Paket enthält nur flugkritische Ebenen: Luftverkehr (Flugbeschränkungsgebiete, Flughäfen, Flugplätze, Kontrollzonen, Hängegleiter-Gelände, Modellflugplätze) und sensible Einrichtungen (Militär, Polizei, Krankenhäuser, Justizvollzugsanstalten, Behörden, diplomatische Vertretungen, internationale Organisationen, Labore).";
-"DIPUL_OFFLINE_EXCLUDED" = "Offline nicht enthalten — aktiviere dafür den Online-Anbieter DIPUL (Deutschland): Naturschutzgebiete, Nationalparks, Vogelschutz- & FFH-Gebiete; Autobahnen, Bundesstraßen, Bahnanlagen & Wasserstraßen; Industrieanlagen, Kraftwerke, Umspannwerke, Stromleitungen & Windkraftanlagen; Wohngrundstücke & Freibäder.";
+"DIPUL_OFFLINE_CONTENTS" = "Enthält nur flugkritische Ebenen: Luftverkehr und sensible Einrichtungen. Für Natur-, Verkehrs-, Industrie- und Wohngebiete aktiviere den Online-Anbieter DIPUL.";
 
 /* Translation setting */
 "Translation" = "Übersetzung";

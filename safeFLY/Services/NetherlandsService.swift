@@ -91,8 +91,13 @@ final class NetherlandsProvider: ED269DownloadableProvider, @unchecked Sendable 
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("Waar mag ik vliegen met een drone? (Rijksoverheid)", comment: "Provider reference link title"),
-                url: URL(string: "https://www.rijksoverheid.nl/vraag-en-antwoord/drone/waar-mag-ik-vliegen-met-een-drone")!
+                title: "Dronevluchten | LVNL",
+                url: URL(string: "https://www.lvnl.nl/diensten/dronevluchten")!
+            ),
+            // map.godrone.nl, not godrone.nl: the bare domain now lands on the Operator Portal.
+            ProviderReferenceLink(
+                title: "GoDrone",
+                url: URL(string: "https://map.godrone.nl/")!
             )
         ]
     }

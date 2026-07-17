@@ -247,10 +247,7 @@ struct ProviderDetailView: View {
     // the online DIPUL provider for the bulk layers that were stripped out to keep it small.
     private var offlineContentsSection: some View {
         Section {
-            Text(NSLocalizedString("DIPUL_OFFLINE_INCLUDED", comment: "Offline DIPUL package: included layers"))
-                .font(.footnote)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(NSLocalizedString("DIPUL_OFFLINE_EXCLUDED", comment: "Offline DIPUL package: excluded layers"))
+            Text(NSLocalizedString("DIPUL_OFFLINE_CONTENTS", comment: "Offline DIPUL package: what it covers"))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

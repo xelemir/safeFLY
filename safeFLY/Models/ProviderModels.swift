@@ -58,6 +58,14 @@ struct ProviderCapabilities: Sendable {
     let supportsStatusRefresh: Bool
 }
 
+// A source the pilot can go and check for themselves. Each country's main provider carries two:
+// the authority's own page for the rules, and that country's drone map for the zones.
+//
+// `title` is deliberately NOT localized. It is the site's own name in the site's own language, so
+// that the row here matches the page the pilot actually lands on. Translating "Drönarkartan" into
+// "Drone map" only makes it harder to tell you arrived in the right place, and inventing our own
+// descriptive titles ("UAS Geographical Zones (…)") named pages that call themselves nothing of
+// the sort. Use each site's real title, verbatim, whatever language it is in.
 struct ProviderReferenceLink: Identifiable, Sendable {
     let title: String
     let url: URL

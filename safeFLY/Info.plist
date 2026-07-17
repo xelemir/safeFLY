@@ -11,5 +11,18 @@
 		<string>en</string>
 		<string>de</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.gruettecloud.droneMaps</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>safefly</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

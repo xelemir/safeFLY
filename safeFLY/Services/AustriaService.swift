@@ -98,8 +98,12 @@ final class AustriaProvider: ED269DownloadableProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("Austro Control Dronespace", comment: "Austria provider data source link title"),
-                url: URL(string: "https://www.dronespace.at/geo_zonen/allgemeine_informationen")!
+                title: "dronespace.at – die Austro Control Drohnenplattform",
+                url: URL(string: "https://www.dronespace.at/")!
+            ),
+            ProviderReferenceLink(
+                title: "Austro Control Dronespace",
+                url: URL(string: "https://map.dronespace.at/")!
             )
         ]
     }

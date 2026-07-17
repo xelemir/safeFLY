@@ -111,11 +111,11 @@ final class FinlandProvider: ED269DownloadableProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("UAS Geographical Zones (Droneinfo/Traficom)", comment: "Finland provider zones link title"),
-                url: URL(string: "https://droneinfo.fi/en/uas-map")!
+                title: "Miehittämätön ilmailu | Traficom",
+                url: URL(string: "https://droneinfo.fi/")!
             ),
             ProviderReferenceLink(
-                title: NSLocalizedString("Flyk Aviation Map", comment: "Finland provider map link title"),
+                title: "Flyk Aviation Map",
                 url: URL(string: "https://flyk.com/map")!
             )
         ]

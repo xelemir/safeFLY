@@ -78,8 +78,15 @@ final class SwitzerlandProvider: WMSBackedProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("Geographical flight restrictions (FOCA)", comment: "Switzerland provider data source link title"),
-                url: URL(string: "https://www.bazl.admin.ch/en/geographical-flight-restrictions")!
+                title: "Geografische Flugeinschränkungen",
+                url: URL(string: "https://www.bazl.admin.ch/de/geografische-flugeinschraenkungen")!
+            ),
+            // Deep-linked onto the aviation topic with the drone layer already selected. The
+            // viewer's own <title> is the generic "Maps of Switzerland", which says nothing about
+            // drones, so this takes the name BAZL itself gives the map.
+            ProviderReferenceLink(
+                title: "Drohnenkarte",
+                url: URL(string: "https://map.geo.admin.ch/#/map?topic=aviation&layers=ch.bazl.einschraenkungen-drohnen&bgLayer=ch.swisstopo.pixelkarte-grau")!
             )
         ]
     }

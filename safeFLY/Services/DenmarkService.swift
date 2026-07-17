@@ -104,7 +104,11 @@ final class DenmarkProvider: GeospatialProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("Dronezoner (Trafikstyrelsen)", comment: "Denmark provider data source link title"),
+                title: "Droneregler",
+                url: URL(string: "https://www.droneregler.dk/")!
+            ),
+            ProviderReferenceLink(
+                title: "Dronezoner",
                 url: URL(string: "https://www.droneregler.dk/dronezoner")!
             )
         ]

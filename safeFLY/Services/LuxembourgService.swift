@@ -97,8 +97,12 @@ final class LuxembourgProvider: ED269DownloadableProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("UAS Geographical Zones (DAC)", comment: "Luxembourg provider data source link title"),
-                url: URL(string: "https://dac.gouvernement.lu/en/drones/geozones.html")!
+                title: "Drones - Direction de l'aviation civile - Le gouvernement luxembourgeois",
+                url: URL(string: "https://dac.gouvernement.lu/fr/drones.html")!
+            ),
+            ProviderReferenceLink(
+                title: "drones.geoportail.lu",
+                url: URL(string: "https://drones.geoportail.lu/")!
             )
         ]
     }

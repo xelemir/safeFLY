@@ -26,14 +26,14 @@ enum BuiltInProviders {
         ProviderRegistration(provider: DenmarkProvider(), normalizer: DenmarkZoneNormalizer()),
         ProviderRegistration(provider: FinlandProvider(), normalizer: FinlandZoneNormalizer()),
         ProviderRegistration(provider: SwedenProvider(), normalizer: SwedenZoneNormalizer()),
-        // The three countries whose national feed carries no nature reserves, grouped at the
-        // bottom, with the EU nature-reserve layer that backfills them placed last of all.
+        // The countries whose national feed carries no nature reserves, grouped at the bottom,
+        // with the EU nature-reserve layer that backfills them placed last of all.
         ProviderRegistration(provider: AustriaProvider(), normalizer: AustriaZoneNormalizer()),
         ProviderRegistration(provider: NetherlandsProvider(), normalizer: NetherlandsZoneNormalizer()),
         ProviderRegistration(provider: LuxembourgProvider(), normalizer: LuxembourgZoneNormalizer()),
         // The EU nature-reserve layer, one independently-toggleable instance per backfilled country.
         ProviderRegistration(provider: ProtectedAreasProvider.austria(), normalizer: ProtectedAreasZoneNormalizer()),
-        ProviderRegistration(provider: ProtectedAreasProvider.luxembourg(), normalizer: ProtectedAreasZoneNormalizer()),
+        ProviderRegistration(provider: ProtectedAreasProvider.belgium(), normalizer: ProtectedAreasZoneNormalizer()),
         ProviderRegistration(provider: ProtectedAreasProvider.netherlands(), normalizer: ProtectedAreasZoneNormalizer()),
         ProviderRegistration(provider: ProtectedAreasProvider.sweden(), normalizer: ProtectedAreasZoneNormalizer())
     ]

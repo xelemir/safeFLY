@@ -21,7 +21,12 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
     }
 
     nonisolated private func normalize(_ record: DIPULFeatureInfoRecord) -> ZoneFeature {
-        let category = mapCategory(from: record.layerName)
+        let category = Self.effectiveCategory(
+            mapCategory(from: record.layerName),
+            start: record.startTime,
+            end: record.endTime,
+            now: Date()
+        )
 
         return ZoneFeature(
             category: category,
@@ -34,8 +39,101 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
             legalReference: record.legalReference,
             source: SourceProvenance(providerID: record.providerID, sourceLayerID: record.layerName),
             // Raw restriction text from the API is German; our localized fallback is not.
-            restrictionSourceLanguage: record.sourceDeclaredRestriction != nil ? "de" : nil
+            restrictionSourceLanguage: record.sourceDeclaredRestriction != nil ? "de" : nil,
+            supplementaryNote: Self.supplementaryNote(
+                for: category, record: record, droneClass: Self.currentDroneClass()
+            )
         )
+    }
+
+    // DIPUL's "active" temporary-restriction layer (temporaere_betriebseinschraenkungen) publishes
+    // every valid record, including ones whose window is still in the FUTURE (and, briefly, ones
+    // that just expired) — the NOTAM for a bridge demolition next week already sits in it today. A
+    // temporary no-fly zone is only a real, currently-enforced prohibition while `now` is inside
+    // [start, end]; before or after that it is known but not in force, so it drops to the inactive
+    // category (whose verdict is conditional) instead of showing a red no-fly days early. A record
+    // with no window at all is left as published (we can't prove it's dormant).
+    nonisolated static func effectiveCategory(
+        _ category: ZoneCategory, start: Date?, end: Date?, now: Date
+    ) -> ZoneCategory {
+        guard category == .temporaryRestrictionActive else { return category }
+        if let start, now < start { return .temporaryRestrictionInactive }
+        if let end, now > end { return .temporaryRestrictionInactive }
+        return .temporaryRestrictionActive
+    }
+
+    // The de-emphasized note under a zone: a temporary restriction's validity window, or the
+    // drone-class advisory for residential. A feature has one category, so these never collide.
+    nonisolated static func supplementaryNote(
+        for category: ZoneCategory, record: DIPULFeatureInfoRecord, droneClass: DroneClass
+    ) -> String? {
+        if let window = temporaryWindowNote(for: category, start: record.startTime, end: record.endTime) {
+            return window
+        }
+        return classNote(for: category, droneClass: droneClass)
+    }
+
+    // The validity window for a temporary restriction (active or scheduled), shown so the pilot
+    // sees exactly when it applies. Rendered in German local time (Europe/Berlin) to match the
+    // published NOTAM regardless of the device's timezone; a same-day window shows the end as a
+    // bare time ("25 Jul 2026, 13:30 to 15:30").
+    nonisolated static func temporaryWindowNote(
+        for category: ZoneCategory, start: Date?, end: Date?
+    ) -> String? {
+        guard category == .temporaryRestrictionActive || category == .temporaryRestrictionInactive,
+              let start, let end else { return nil }
+
+        let berlin = TimeZone(identifier: "Europe/Berlin")
+        let dateTime = DateFormatter()
+        dateTime.dateStyle = .medium
+        dateTime.timeStyle = .short
+        dateTime.timeZone = berlin
+
+        var calendar = Calendar(identifier: .gregorian)
+        if let berlin { calendar.timeZone = berlin }
+
+        let startText = dateTime.string(from: start)
+        let endText: String
+        if calendar.isDate(start, inSameDayAs: end) {
+            let timeOnly = DateFormatter()
+            timeOnly.dateStyle = .none
+            timeOnly.timeStyle = .short
+            timeOnly.timeZone = berlin
+            endText = timeOnly.string(from: end)
+        } else {
+            endText = dateTime.string(from: end)
+        }
+
+        return String(
+            format: NSLocalizedString("DE.TEMP.WINDOW", comment: "Temporary restriction validity window"),
+            startText, endText
+        )
+    }
+
+    // The pilot's configured drone class, read from where DroneSettings persists it. Kept out of
+    // the pure `classNote` below so that function stays testable without touching UserDefaults.
+    nonisolated static func currentDroneClass() -> DroneClass {
+        let raw = UserDefaults.standard.string(forKey: "droneClass") ?? DroneClass.c0.rawValue
+        return DroneClass(rawValue: raw) ?? .c0
+    }
+
+    // A class-specific advisory appended below a German residential zone, for C3/C4 only.
+    //
+    // Only C3/C4 get one, deliberately. For C0/C1/C2 the relevant rule is already the §21h text in
+    // the main tile (owner consent, the sub-0.25 kg exemption, the ≥100 m option), so a class line
+    // there would just re-state part of it — and a partial re-statement reads as a contradiction
+    // (e.g. mentioning consent but omitting the 100 m route). C3/C4 is different: the EU open
+    // category's A3 rule adds a 150 m horizontal distance that the §21h text does not mention and
+    // that removes open-category overflight entirely, so it is genuinely new information.
+    // Verdict is untouched: the note informs, it does not turn the zone green.
+    nonisolated static func classNote(for category: ZoneCategory, droneClass: DroneClass) -> String? {
+        guard category == .residentialProperty else { return nil }
+        switch droneClass {
+        case .c3, .c4:
+            return NSLocalizedString("DE.RESIDENTIAL.CLASS.C3C4", comment: "German residential zone, C3/C4 drone")
+        case .c0, .c1, .c2:
+            return nil
+        }
     }
 
     // German LuftVO verdict: airports and active temporary no-fly zones are hard

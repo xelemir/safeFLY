@@ -17,6 +17,11 @@ struct DIPULFeatureInfoRecord: ProviderRawRecord {
     let lowerLimit: AltitudeLimit?
     let upperLimit: AltitudeLimit?
     let legalReference: String?
+    // Validity window for temporary restrictions (§21h Abs. 3 Nr. 11 zones). DIPUL's "active"
+    // layer publishes scheduled-future restrictions too, so these decide whether a temporary
+    // no-fly zone is actually in force right now — see DIPULZoneNormalizer.effectiveCategory.
+    let startTime: Date?
+    let endTime: Date?
 
     nonisolated var providerID: String { DIPULProvider.providerID }
 }
@@ -210,9 +215,19 @@ final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
                 unit: data["upper_limit_unit"],
                 reference: data["upper_limit_reference"] ?? data["upper_limit_alt_ref"]
             ),
-            legalReference: normalizedValue(data["legal_ref"])
+            legalReference: normalizedValue(data["legal_ref"]),
+            startTime: parseTimestamp(data["start_time"]),
+            endTime: parseTimestamp(data["end_time"])
         )
     }
+
+    // DIPUL temporary-restriction timestamps are ISO-8601 UTC, e.g. "2026-07-25T11:30:00Z".
+    nonisolated private func parseTimestamp(_ value: String?) -> Date? {
+        guard let value = normalizedValue(value) else { return nil }
+        return DIPULProvider.iso8601Parser.date(from: value)
+    }
+
+    nonisolated private static let iso8601Parser = ISO8601DateFormatter()
 
     nonisolated private func makeAltitudeLimit(value: String?, unit: String?, reference: String?) -> AltitudeLimit? {
         guard let value = normalizedValue(value) else {

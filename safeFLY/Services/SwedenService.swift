@@ -265,12 +265,12 @@ final class SwedenProvider: ED269DownloadableProvider, @unchecked Sendable {
     nonisolated var referenceLinks: [ProviderReferenceLink] {
         [
             ProviderReferenceLink(
-                title: NSLocalizedString("Drönarkartan (LFV)", comment: "Sweden provider data source link title"),
-                url: URL(string: "https://dronechart.lfv.se/")!
+                title: "LFV - Luftfartsverket",
+                url: URL(string: "https://www.lfv.se/")!
             ),
             ProviderReferenceLink(
-                title: NSLocalizedString("UAS Geographical Zones (Transportstyrelsen)", comment: "Sweden provider zones link title"),
-                url: URL(string: "https://www.transportstyrelsen.se/en/aviation/Aircraft/drones--unmanned-aircraft/")!
+                title: "Drönarkartan",
+                url: URL(string: "https://dronechart.lfv.se/")!
             )
         ]
     }

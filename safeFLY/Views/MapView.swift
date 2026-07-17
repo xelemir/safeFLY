@@ -402,7 +402,9 @@ struct MapView: View {
     
     private var zoneInfoSheet: some View {
         ZoneInfoSheet(
-            result: providersStore.zoneQueryResult
+            result: providersStore.zoneQueryResult,
+            coordinate: tappedLocation,
+            droneClass: droneSettings.droneClass
         ) {
             // Setting this false dismisses the sheet, which triggers handleSheetDismiss
             // (the sheet's onDismiss) where the marker and query result are cleared.
@@ -769,7 +771,17 @@ struct MapView: View {
 
 struct ZoneInfoSheet: View {
     let result: ZoneQueryResult?
+    let coordinate: CLLocationCoordinate2D?
+    let droneClass: DroneClass
     let onDismiss: () -> Void
+
+    // Static rules-over-housing footnote for the countries that publish no residential geometry,
+    // written for the pilot's own drone class. It matters most exactly when the verdict is
+    // "clear": no data does not mean no rule.
+    private var residentialNote: String? {
+        guard let coordinate else { return nil }
+        return ResidentialRuleNotes.note(for: MapCoordinate(coordinate), droneClass: droneClass)
+    }
 
     private var sortedFeatures: [ZoneFeature] {
         guard case .matches(let features, _) = result else {
@@ -817,11 +829,30 @@ struct ZoneInfoSheet: View {
     @ViewBuilder
     private func resultContent(_ result: ZoneQueryResult) -> some View {
         switch result {
-        case .clear, .nonAssessment, .unavailable:
+        case .clear:
+            resultHeader(for: result)
+            residentialNoteView
+        case .nonAssessment, .unavailable:
+            // No usable answer was produced, so a footnote about it would be noise.
             resultHeader(for: result)
         case .matches:
             resultHeader(for: result)
             zonesListView
+            residentialNoteView
+        }
+    }
+
+    @ViewBuilder
+    private var residentialNoteView: some View {
+        if let residentialNote {
+            Text(residentialNote)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                // Matches ZoneFeatureRow's own horizontal inset so the footnote's text edges
+                // line up with the zone text above it rather than sitting flush to the sheet.
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -926,6 +957,13 @@ struct ZoneFeatureRow: View {
                 Text(restrictionText)
                     .font(.subheadline)
                     .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let note = feature.supplementaryNote?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
+                Text(note)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
