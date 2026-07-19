@@ -941,12 +941,37 @@ struct ZoneFeatureRow: View {
         ZonePresentation.explanation(for: feature)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    // Supplementary information belongs in the expandable section: it does not change the
+    // primary restriction shown on the tile. This includes class-dependent residential advice
+    // and temporary-restriction validity windows.
+    private var supplementaryInfo: String? {
+        feature.supplementaryNote?.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var supplementaryInfoLabel: String {
+        switch feature.category {
+        case .temporaryRestrictionActive, .temporaryRestrictionInactive:
+            return NSLocalizedString("ZONE_FEATURE_TIME_WINDOW", comment: "Temporary restriction time window label")
+        default:
+            return NSLocalizedString("ZONE_FEATURE_DRONE_CLASS_RULE", comment: "Drone-class-specific rule label")
+        }
+    }
+
+    private var isTemporaryRestriction: Bool {
+        switch feature.category {
+        case .temporaryRestrictionActive, .temporaryRestrictionInactive:
+            return true
+        default:
+            return false
+        }
+    }
+
     private var altitudeText: String? {
         ZonePresentation.formattedAltitude(for: feature)
     }
 
     private var hasDetails: Bool {
-        altitudeText != nil || feature.legalReference != nil
+        altitudeText != nil || feature.legalReference != nil || supplementaryInfo != nil
     }
 
     var body: some View {
@@ -957,13 +982,6 @@ struct ZoneFeatureRow: View {
                 Text(restrictionText)
                     .font(.subheadline)
                     .foregroundStyle(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            if let note = feature.supplementaryNote?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
-                Text(note)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -1042,7 +1060,16 @@ struct ZoneFeatureRow: View {
                     DetailRow(
                         label: NSLocalizedString("ZONE_FEATURE_LEGAL_REFERENCE", comment: "Legal reference label"),
                         value: legalReference,
-                        icon: "book.pages"
+                        icon: "book.pages",
+                        valueURL: feature.legalReferenceURL
+                    )
+                }
+
+                if let supplementaryInfo {
+                    DetailRow(
+                        label: supplementaryInfoLabel,
+                        value: supplementaryInfo,
+                        icon: isTemporaryRestriction ? "clock" : "airplane"
                     )
                 }
             }
@@ -1068,6 +1095,7 @@ struct DetailRow: View {
     let label: String
     let value: String
     var icon: String?
+    var valueURL: URL? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -1081,9 +1109,15 @@ struct DetailRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Text(value)
-                .font(.subheadline)
-                .foregroundStyle(.primary)
+            if let valueURL {
+                Link(value, destination: valueURL)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+            } else {
+                Text(value)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+            }
         }
         .padding(.vertical, 4)
     }

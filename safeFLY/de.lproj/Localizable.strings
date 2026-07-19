@@ -253,7 +253,7 @@
 
 
 "ONBOARDING.READY.TITLE" = "Bereit zum Abheben";
-"ONBOARDING.READY.DESCRIPTION" = "Alles bereit! In den Einstellungen kannst du die angezeigten Geozonen anpassen und App-Fehler melden.";
+"ONBOARDING.READY.DESCRIPTION" = "Bitte beachte, dass safeFLY keine Rechtsberatung ist und Zonen unvollständig oder fehlerhaft sein können. Du bist allein für deine Flüge verantwortlich.";
 
 "ONBOARDING.BUTTON.GET_STARTED" = "Los geht's";
 "ONBOARDING.BUTTON.ACTIVATE_LOCATION" = "Standort aktivieren";
@@ -326,7 +326,7 @@
 /* Klassenspezifische Zeile unter einer deutschen Wohngrundstück-Zone. §21h LuftVO gewährt hier
    eine Ausnahme unter 250 g; die EU-Unterkategorien der offenen Kategorie (A2/A3) ergänzen
    klassenbasierte Abstände. */
-"DE.RESIDENTIAL.CLASS.C3C4" = "Für deine C3 oder C4 (unter 25 kg) Drohne: Die offene Kategorie A3 verlangt mindestens 150 m horizontalen Abstand zu Wohn-, Gewerbe-, Industrie- und Erholungsgebieten. Da der Abstand horizontal gilt, hilft größere Höhe nicht — die §21h-Ausnahme ab 100 m greift hier nicht, ein Überflug ist in der offenen Kategorie in keiner Höhe möglich und braucht eine Genehmigung in der speziellen Kategorie.";
+"DE.RESIDENTIAL.CLASS.C3C4" = "Für deine C3 oder C4 (unter 25 kg) Drohne: Die offene Kategorie A3 verlangt mindestens 150 m horizontalen Abstand zu Wohn-, Gewerbe-, Industrie- und Erholungsgebieten. Da der Abstand horizontal gilt, hilft größere Höhe nicht. Die §21h-Ausnahme ab 100 m greift hier nicht, ein Überflug ist in der offenen Kategorie in keiner Höhe möglich und braucht eine Genehmigung in der speziellen Kategorie.";
 
 /* Gültigkeitsfenster unter einer deutschen temporären Beschränkung (NOTAM / §21h Abs. 3 Nr. 11).
    %1$@ = Beginn, %2$@ = Ende, beide bereits in deutscher Ortszeit formatiert. */
@@ -339,6 +339,8 @@
 "Unavailable" = "Nicht verfügbar";
 "Show More" = "Mehr anzeigen";
 "Show Less" = "Weniger anzeigen";
+"ZONE_FEATURE_DRONE_CLASS_RULE" = "Regel für deine Drohnenklasse";
+"ZONE_FEATURE_TIME_WINDOW" = "Zeitfenster";
 
 /* Service Errors */
 "Invalid request URL" = "Ungültige Anfrage-URL";
@@ -474,7 +476,7 @@
 "Data Package last updated at %@." = "Datenpaket zuletzt aktualisiert am %@.";
 "Data Package has not been downloaded yet." = "Datenpaket wurde noch nicht heruntergeladen.";
 
-/* Non-DIPUL provider legal disclaimer */
+/* Rechtlicher Hinweis für Anbieter */
 "Legal Notice" = "Rechtlicher Hinweis";
 "PROVIDER_LEGAL_DISCLAIMER" = "safeFLY ist keine Rechtsberatung. Die hier angezeigten Zonen können unvollständig oder fehlerhaft sein, und safeFLY kann sich irren. Prüfe vor jedem Flug stets selbst die aktuellen örtlichen Vorschriften und halte sie ein. Du allein bist für deine Flüge verantwortlich – safeFLY übernimmt keine Haftung für etwaige Gesetzesverstöße oder daraus resultierende Schäden.";
 "Drone rules (Civil Aviation Authority)" = "Drohnenregeln (Tschechische Luftfahrtbehörde)";
@@ -488,7 +490,7 @@
 "Restricted & Danger Areas" = "Flugbeschränkungs- & Gefahrengebiete";
 "SE.NOTE.RWY5K" = "Flughafen-Schutzzone (5 km um die Start- und Landebahnen). Drohnenflüge erfordern eine Freigabe der Flugsicherung.";
 "SE.NOTE.HKP1K" = "Heliport-Schutzzone (1 km). Drohnenflüge erfordern eine Genehmigung der Flugsicherung bzw. des Betreibers.";
-"SE.NOTE.RSTA" = "Flugbeschränkungsgebiet (AIP). Drohnenflüge sind ohne Sondergenehmigung der zuständigen Behörde verboten — dazu zählen alle schwedischen Nationalparks.";
+"SE.NOTE.RSTA" = "Flugbeschränkungsgebiet (AIP). Drohnenflüge sind ohne Sondergenehmigung der zuständigen Behörde verboten. Dazu zählen alle schwedischen Nationalparks.";
 "SE.NOTE.DNGA" = "Gefahrengebiet (AIP). Hier finden zu veröffentlichten Zeiten gefährliche Aktivitäten statt; nicht fliegen, solange das Gebiet aktiv ist.";
 "SE.NOTE.CTR" = "Kontrollzone / Verkehrsinformationszone. Ohne Freigabe dürfen Drohnen bis 10 kg hier höchstens 50 m über Grund fliegen (10 m im Umkreis von 1 km um einen Heliport); andernfalls Flugsicherung kontaktieren.";
 "SE.NOTE.UAS" = "Geografische UAS-Zone (Transportstyrelsen). Prüfe vor dem Flug die Bedingungen der Zone.";

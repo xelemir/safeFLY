@@ -37,6 +37,7 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
             lowerLimit: record.lowerLimit,
             upperLimit: record.upperLimit,
             legalReference: record.legalReference,
+            legalReferenceURL: Self.legalReferenceURL(for: record.legalReference),
             source: SourceProvenance(providerID: record.providerID, sourceLayerID: record.layerName),
             // Raw restriction text from the API is German; our localized fallback is not.
             restrictionSourceLanguage: record.sourceDeclaredRestriction != nil ? "de" : nil,
@@ -56,14 +57,15 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
     nonisolated static func effectiveCategory(
         _ category: ZoneCategory, start: Date?, end: Date?, now: Date
     ) -> ZoneCategory {
-        guard category == .temporaryRestrictionActive else { return category }
+        guard case .temporaryRestrictionActive = category else { return category }
         if let start, now < start { return .temporaryRestrictionInactive }
         if let end, now > end { return .temporaryRestrictionInactive }
         return .temporaryRestrictionActive
     }
 
-    // The de-emphasized note under a zone: a temporary restriction's validity window, or the
-    // drone-class advisory for residential. A feature has one category, so these never collide.
+    // Extra information shown in a zone's expandable details: a temporary restriction's validity
+    // window or the drone-class advisory for residential. A feature has one category, so these
+    // never collide.
     nonisolated static func supplementaryNote(
         for category: ZoneCategory, record: DIPULFeatureInfoRecord, droneClass: DroneClass
     ) -> String? {
@@ -80,8 +82,14 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
     nonisolated static func temporaryWindowNote(
         for category: ZoneCategory, start: Date?, end: Date?
     ) -> String? {
-        guard category == .temporaryRestrictionActive || category == .temporaryRestrictionInactive,
-              let start, let end else { return nil }
+        switch category {
+        case .temporaryRestrictionActive, .temporaryRestrictionInactive:
+            break
+        default:
+            return nil
+        }
+
+        guard let start, let end else { return nil }
 
         let berlin = TimeZone(identifier: "Europe/Berlin")
         let dateTime = DateFormatter()
@@ -127,7 +135,7 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
     // that removes open-category overflight entirely, so it is genuinely new information.
     // Verdict is untouched: the note informs, it does not turn the zone green.
     nonisolated static func classNote(for category: ZoneCategory, droneClass: DroneClass) -> String? {
-        guard category == .residentialProperty else { return nil }
+        guard case .residentialProperty = category else { return nil }
         switch droneClass {
         case .c3, .c4:
             return NSLocalizedString("DE.RESIDENTIAL.CLASS.C3C4", comment: "German residential zone, C3/C4 drone")
@@ -236,5 +244,22 @@ struct DIPULZoneNormalizer: ZoneFeatureNormalizing, Sendable {
         case .modelFlyingField:
             return NSLocalizedString("MODEL_FLYING_FIELD_CAUTION", comment: "Model flying field caution message")
         }
+    }
+
+    nonisolated private static func legalReferenceURL(for legalReference: String?) -> URL? {
+        guard
+            let legalReference,
+            let match = legalReference.range(of: #"§\s*([0-9]+[a-z]?)"#, options: .regularExpression)
+        else {
+            return nil
+        }
+
+        let paragraph = legalReference[match]
+            .replacingOccurrences(of: "§", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        guard !paragraph.isEmpty else { return nil }
+        return URL(string: "https://www.gesetze-im-internet.de/luftvo_2015/__\(paragraph).html")
     }
 }

@@ -35,12 +35,6 @@ struct ProviderDetailView: View {
         return sections
     }
 
-    // DIPUL underpins the whole app and carries the app-wide disclaimer elsewhere; every other
-    // provider is opt-in and gets its own legal notice on its settings page.
-    private var isDIPUL: Bool {
-        providerSession.provider.id == DIPULProvider.providerID
-    }
-
     // The offline German package is deliberately stripped to flight-critical layers to keep it
     // small; this page spells out what it does and doesn't contain.
     private var isDIPULOffline: Bool {
@@ -65,11 +59,9 @@ struct ProviderDetailView: View {
                     referencesSection
                 }
 
-                // Offline providers gate the rest of the page behind a download; keep the legal
-                // notice with it so it doesn't show before the provider's data even exists.
-                if !isDIPUL {
-                    disclaimerSection
-                }
+                // Offline providers gate the rest of the page behind a download; keeping the
+                // notice here means it appears only once their data is available.
+                disclaimerSection
             }
         }
         .navigationTitle(providerSession.provider.displayName)
@@ -258,7 +250,7 @@ struct ProviderDetailView: View {
 
     private var disclaimerSection: some View {
         Section {
-            Text(NSLocalizedString("PROVIDER_LEGAL_DISCLAIMER", comment: "Legal disclaimer shown on every non-DIPUL provider settings page"))
+            Text(NSLocalizedString("PROVIDER_LEGAL_DISCLAIMER", comment: "Legal disclaimer shown on every provider settings page"))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

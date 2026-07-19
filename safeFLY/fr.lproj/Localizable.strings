@@ -1,0 +1,525 @@
+/* French localization for safeFLY */
+
+"Fly" = "Voler";
+"Settings" = "Réglages";
+"Search" = "Rechercher";
+"Search location" = "Rechercher un lieu";
+"No locations found" = "Aucun lieu trouvé";
+"Drone Map" = "Carte des drones";
+"Zoom in to see geozones" = "Zoomez pour voir les géozones";
+"Source geodata: %@" = "Source des géodonnées : %@";
+"Source geodata: No enabled providers" = "Source des géodonnées : Aucun fournisseur activé";
+"Source geodata: No coverage in this area" = "Source des géodonnées : Aucune couverture dans cette zone";
+"Standard" = "Standard";
+"Hybrid" = "Hybride";
+"Satellite" = "Satellite";
+"%d overlapping zones" = "%d zones superposées";
+"Map Style" = "Style de carte";
+"Map" = "Carte";
+"Weather" = "Météo";
+"No Restrictions" = "Aucune restriction";
+"Flight allowed" = "Vol autorisé";
+"Zone Information" = "Informations sur la zone";
+"Checking zone information..." = "Vérification des informations de la zone...";
+"FLIGHT_PERMITTED" = "Vol autorisé";
+"PERMITTED_UNDER_CONDITIONS" = "Autorisé sous conditions";
+"FLIGHT_PROHIBITED" = "Vol interdit";
+"ALTITUDE_UP_TO" = "Jusqu'à %@";
+"ALTITUDE_FROM" = "À partir de %@";
+"Fetching Forecast..." = "Chargement des prévisions...";
+"Getting the latest drone flight conditions for this area." = "Récupération des dernières conditions de vol pour cette zone.";
+"Support the Developer" = "Soutenir le développeur";
+
+"FLIGHT_ALLOWED" = "Vol autorisé";
+
+"AERODROME_CONDITIONAL" = "Exploitation au-dessus et dans un rayon latéral de 1,5 km des limites des aérodromes (hors aéroports) autorisée uniquement en catégorie « Spécifique » ou avec l'accord explicite de la direction des vols, de l'exploitant ou des autorités aériennes.";
+"AIRPORT_PROHIBITED" = "Exploitation au-dessus et dans un rayon latéral de 1 000 m des limites des aéroports, ainsi qu'à moins de 1 000 m des axes de pistes prolongés de 5 km dans le sens des approches/départs, uniquement autorisée en catégorie « Spécifique » avec une évaluation des risques appropriée.";
+"CONTROL_ZONE_CLEARANCE" = "Exploitation en zone de contrôle (CTR) uniquement autorisée avec une clairance de contrôle du trafic aérien selon le § 21.";
+"MOTORWAY_HIGHWAY_RAILWAY_CONDITIONS" = "Exploitation au-dessus ou à moins de 100 m des autoroutes, routes fédérales, voies navigables fédérales ou installations ferroviaires autorisée uniquement si : a) en catégorie « Spécifique » avec évaluation des risques, b) avec l'accord explicite de l'autorité/exploitant compétent, c) la hauteur de vol est toujours inférieure à la distance latérale et la distance latérale est > 10 m, ou d) pour les voies navigables, hauteur minimale de 100 m, traversée par le chemin le plus court et sans survol de navires ou d'installations portuaires.";
+"WATERWAYS_CONDITIONS" = "Au-dessus des voies navigables : exploitation uniquement à partir de ≥ 100 m de hauteur, par le chemin le plus court, en évitant les navires/installations ou avec l'accord explicite de l'exploitant.";
+"NATURE_AUTHORITY_CONSENT" = "Exploitation au-dessus des réserves naturelles et parcs nationaux uniquement avec l'autorisation de l'autorité de protection de la nature compétente ou selon la réglementation régionale. Des exceptions (hors parcs nationaux) s'appliquent pour des motifs non sportifs, à une hauteur > 100 m, si le télépilote connaît l'objectif de protection et que l'utilisation de l'espace aérien est inévitable.";
+"RESIDENTIAL_CONDITIONS" = "Au-dessus des propriétés résidentielles uniquement autorisé si : a) accord explicite du propriétaire/ayant droit, b) masse au décollage ≤ 0,25 kg et aucune fonction d'enregistrement/transmission de données de tiers n'est active, ou c) exploitation à partir de ≥ 100 m pour un motif légitime et dans le respect des obligations d'information, des horaires (hors 22h00–6h00) et des limites de bruit.";
+"TEMP_NO_FLY_PROHIBITED" = "Zone d'interdiction de vol temporaire – Vol interdit pendant la période d'activation";
+"INACTIVE_TEMP_RESTRICTION" = "Restriction temporaire inactive – Non appliquée actuellement ; vérifiez les périodes d'activation";
+"RESTRICTED_ZONE_CHECK" = "Espace aérien restreint – Vérifiez les conditions spécifiques et obtenez les autorisations requises";
+"MODEL_FLYING_FIELD_CAUTION" = "Terrain d'aéromodélisme à proximité – Attention aux risques de collision, en particulier pour les vols BVLOS ; coordination recommandée avec les pilotes locaux";
+"CONSENT_REQUIRED" = "Vol autorisé uniquement avec l'accord explicite de l'autorité compétente ou de l'exploitant du site";
+"OUTSIDE_OPERATING_HOURS" = "Vol autorisé en dehors des heures d'ouverture / de baignade";
+"NATIONAL_PARK_CONDITIONS" = "Vol uniquement avec l'autorisation de l'autorité de protection de la nature OU si les réglementations régionales le permettent. Les exceptions de hauteur ne s'appliquent pas.";
+"QUERY_FAILED" = "Échec de la requête : %@";
+
+"ZONE_RESULT_CLEAR_MESSAGE" = "Aucune restriction n'a été trouvée pour ce lieu dans les données des fournisseurs consultés.";
+"ZONE_RESULT_CONDITIONAL_MESSAGE" = "Des restrictions ou conditions s'appliquent à ce lieu. Consultez les détails de la zone ci-dessous.";
+"ZONE_RESULT_PROHIBITED_MESSAGE" = "Au moins une information de zone trouvée interdit le vol à cet endroit.";
+"ZONE_RESULT_NOT_ASSESSED_TITLE" = "Aucune évaluation disponible";
+"ZONE_RESULT_NO_LAYERS_MESSAGE" = "Activez au moins une couche de carte pour évaluer ce lieu.";
+"ZONE_RESULT_UNAVAILABLE_TITLE" = "Évaluation non disponible";
+"ZONE_RESULT_OUTSIDE_COVERAGE_MESSAGE" = "Aucune donnée de restriction DIPUL n'est disponible pour ce lieu.";
+"ZONE_RESULT_NO_DATA_MESSAGE" = "Aucune donnée de fournisseur n'était disponible pour évaluer ce lieu.";
+"ZONE_RESULT_INVALID_RESPONSE_MESSAGE" = "Le fournisseur a renvoyé des données qui n'ont pas pu être évaluées.";
+"ZONE_RESULT_REQUEST_FAILED_MESSAGE" = "La requête de restriction n'a pas pu aboutir.";
+"ZONE_RESULT_OFFLINE_CLEAR_TITLE" = "Aucune restriction (données hors ligne)";
+"ZONE_RESULT_OFFLINE_CLEAR_MESSAGE" = "Sur la base des données locales hors ligne, aucune restriction de l'espace aérien n'a été trouvée à ces coordonnées. Les données hors ligne pouvant être incomplètes ou obsolètes, et les requêtes en temps réel étant impossibles, l'exécution du vol relève de votre entière responsabilité. Veuillez faire preuve d'une prudence accrue.";
+"Offline Data" = "Données hors ligne";
+"Download Visible Map" = "Télécharger la carte visible";
+"ZONE_FEATURE_ALTITUDE" = "Altitude";
+"ZONE_FEATURE_LEGAL_REFERENCE" = "Base légale";
+
+/* Type labels */
+"TYPE.FLUGPLATZ" = "Aérodrome / Terrain d'aviation";
+"TYPE.FLUGHAFEN" = "Aéroport";
+"TYPE.KONTROLLZONE" = "Zone de contrôle (CTR)";
+"TYPE.ED-R" = "Zone réglementée";
+"TYPE.WOHNGRUNDSTUECK" = "Zone résidentielle";
+"TYPE.FREIBAD" = "Piscine en plein air / Plage";
+"TYPE.INDUSTRIEANLAGE" = "Site industriel";
+"TYPE.KRAFTWERK" = "Centrale électrique";
+"TYPE.UMSPANNWERK" = "Poste électrique";
+"TYPE.STROMLEITUNG" = "Ligne à haute tension";
+"TYPE.WINDKRAFTANLAGE" = "Éolienne";
+"TYPE.JVA" = "Établissement pénitentiaire";
+"TYPE.MILITAERANLAGE" = "Zone militaire";
+"TYPE.LABOR" = "Laboratoire P4 (BSL-4)";
+"TYPE.BEHORDE" = "Autorité";
+
+/* Layer labels */
+"LAYER.flugplaetze" = "Aérodrome / Terrain d'aviation";
+"LAYER.flughaefen" = "Aéroport";
+"LAYER.kontrollzonen" = "Zone de contrôle (CTR)";
+"LAYER.flugbeschraenkungsgebiete" = "Zone restreinte";
+"LAYER.bundesautobahnen" = "Autoroute fédérale";
+"LAYER.bundesstrassen" = "Route fédérale";
+"LAYER.bahnanlagen" = "Installation ferroviaire";
+"LAYER.binnenwasserstrassen" = "Voie navigable intérieure";
+"LAYER.seewasserstrassen" = "Voie maritime";
+"LAYER.schifffahrtsanlagen" = "Installation maritime";
+"LAYER.wohngrundstuecke" = "Zone résidentielle";
+"LAYER.populated_area" = "Zone habitée";
+"LAYER.freibaeder" = "Piscine en plein air / Plage";
+"LAYER.industrieanlagen" = "Site industriel";
+"LAYER.kraftwerke" = "Centrale électrique";
+"LAYER.umspannwerke" = "Poste électrique";
+"LAYER.stromleitungen" = "Ligne à haute tension";
+"LAYER.windkraftanlagen" = "Éolienne";
+"LAYER.justizvollzugsanstalten" = "Établissement pénitentiaire";
+"LAYER.militaerische_anlagen" = "Zone militaire";
+"LAYER.labore" = "Laboratoire P4 (BSL-4)";
+"LAYER.behoerden" = "Administration publique";
+"LAYER.diplomatische_vertretungen" = "Représentation diplomatique";
+"LAYER.internationale_organisationen" = "Organisation internationale";
+"LAYER.polizei" = "Site de la police";
+"LAYER.sicherheitsbehoerden" = "Autorité de sécurité";
+"LAYER.krankenhaeuser" = "Hôpital";
+"LAYER.nationalparks" = "Parc national";
+"LAYER.naturschutzgebiete" = "Réserve naturelle";
+"LAYER.ffh-gebiete" = "Zone Natura 2000 (ZSC)";
+"LAYER.vogelschutzgebiete" = "Zone de protection des oiseaux (ZPS)";
+"LAYER.temporaere_betriebseinschraenkungen" = "Restriction de vol temporaire";
+"LAYER.inaktive_temporaere_betriebseinschraenkungen" = "Restriction temporaire inactive";
+"LAYER.modellflugplaetze" = "Terrain d'aéromodélisme";
+"Drone Class" = "Classe de drone";
+"UAV e-ID" = "Identifiant d'exploitant UAS";
+"Drone Information" = "Informations sur le drone";
+"Save your UAV e-ID (e.g., DEU3otef849kry8h)" = "Enregistrez votre identifiant d'exploitant (p. ex. DEU3otef849kry8h)";
+"Aviation" = "Aviation";
+"Infrastructure" = "Infrastructure";
+"Restricted Areas" = "Zones restreintes";
+"Resources" = "Ressources";
+"DFS DIPUL Datasource" = "Source de données DFS DIPUL";
+"Version" = "Version";
+"Version %@" = "Version %@";
+"App Version %@" = "Version de l'app %@";
+"© %@ Jan Grüttefien and safeFLY contributors" = "© %@ Jan Grüttefien et les contributeurs de safeFLY";
+"About" = "À propos";
+"Airports" = "Aéroports";
+"Aerodromes" = "Aérodromes";
+"Control Zones" = "Zones de contrôle";
+"Temporary Restrictions" = "Restrictions temporaires";
+"Model Flying Fields" = "Terrains d'aéromodélisme";
+"Motorways" = "Autoroutes";
+"Highways" = "Routes nationales";
+"Railways" = "Voies ferrées";
+"Waterways" = "Voies navigables";
+"Industrial Facilities" = "Sites industriels";
+"Residential Property" = "Zones résidentielles";
+"Recreational Areas" = "Zones de loisirs";
+"Government Buildings" = "Bâtiments gouvernementaux";
+"Nature Reserves" = "Réserves naturelles";
+
+/* Weather View */
+"Weather" = "Météo";
+"No Weather Data" = "Aucune donnée météo";
+"Move the map to see weather conditions" = "Déplacez la carte pour voir les conditions météo";
+"Unable to fetch weather." = "Impossible de récupérer les données météo.";
+"Unknown Location" = "Lieu inconnu";
+
+/* Weather - Flight Conditions */
+"Optimal flight conditions" = "Conditions de vol optimales";
+"Limited - exercise caution" = "Conditions limitées – prudence recommandée";
+"Flight not recommended" = "Vol non recommandé";
+
+/* Weather - Condition Descriptions */
+"Clear" = "Dégagé";
+"Mainly clear" = "Globalement dégagé";
+"Partly cloudy" = "Partiellement nuageux";
+"Overcast" = "Couvert";
+"Fog" = "Brouillard";
+"Drizzle" = "Bruine";
+"Freezing Drizzle" = "Bruine verglaçante";
+"Rain" = "Pluie";
+"Freezing Rain" = "Pluie verglaçante";
+"Snow" = "Neige";
+"Showers" = "Averses";
+"Snow Showers" = "Averses de neige";
+"Thunderstorm" = "Orage";
+"Unknown" = "Inconnu";
+
+/* Weather - Section Headers */
+"Hourly Forecast" = "Prévisions horaires";
+"Detailed Information" = "Informations détaillées";
+
+/* Weather - Info Row Labels */
+"Temperature" = "Température";
+"Sun" = "Soleil";
+"Pressure (QNH)" = "Pression atmosphérique (QNH)";
+"Cloud Cover" = "Couverture nuageuse";
+"Dew Point" = "Point de rosée";
+"Max Gust" = "Rafale maximale";
+"Precipitation" = "Précipitations";
+"Rain Chance" = "Probabilité de pluie";
+"UV Index" = "Indice UV";
+"Feels like %@" = "Ressenti %@";
+
+/* Weather - UV Levels */
+"Low" = "Faible";
+"Moderate" = "Modéré";
+"High" = "Élevé";
+"Very High" = "Très élevé";
+"Extreme" = "Extrême";
+
+/* Weather - Flight Advisories */
+"Dangerous wind speed: %.1f m/s" = "Vitesse du vent dangereuse : %.1f m/s";
+"High wind speed: %.1f m/s" = "Vitesse du vent élevée : %.1f m/s";
+"Dangerous gusts: %.1f m/s" = "Rafales dangereuses : %.1f m/s";
+"Strong gusts: %.1f m/s" = "Rafales fortes : %.1f m/s";
+"Very poor visibility: %.1f km" = "Visibilité très faible : %.1f km";
+"Limited visibility: %.1f km" = "Visibilité limitée : %.1f km";
+"Heavy precipitation" = "Fortes précipitations";
+"Active precipitation" = "Précipitations en cours";
+"Very high precipitation risk (%d%%) in the next hour" = "Risque très élevé de précipitations (%d%%) dans la prochaine heure";
+"Precipitation risk (%d%%) in the next hour" = "Risque de précipitations (%d%%) dans la prochaine heure";
+"Snow precipitation - avoid flying" = "Chute de neige - Éviter de voler";
+"Snow precipitation present" = "Chute de neige en cours";
+"Thunderstorm activity - DO NOT FLY" = "Activité orageuse – NE PAS VOLER";
+"Freezing rain - avoid flying" = "Pluie verglaçante - Éviter de voler";
+"Fog present" = "Brouillard présent";
+"Drizzle present" = "Bruine présente";
+"Rain or showers present" = "Pluie ou averses en cours";
+"Snow or snow showers present" = "Neige ou averses de neige en cours";
+"Very cold - battery performance affected" = "Très froid – Performances de la batterie réduites";
+"Very hot - equipment may overheat" = "Très chaud – Risque de surchauffe de l'équipement";
+"Nighttime - ensure proper lighting and permissions" = "Nuit – Assurez-vous d'avoir les autorisations et l'éclairage requis";
+
+/* Weather - Wind Profile */
+"Wind Profile (AGL)" = "Profil du vent (par rapport au sol)";
+"Gust: %.1f m/s" = "Rafale : %.1f m/s";
+
+/* Weather - Wind Directions */
+"North" = "Nord";
+"Northeast" = "Nord-Est";
+"East" = "Est";
+"Southeast" = "Sud-Est";
+"South" = "Sud";
+"Southwest" = "Sud-Ouest";
+"West" = "Ouest";
+"Northwest" = "Nord-Ouest";
+
+/* Weather - Footer */
+"Weather data by Open-Meteo.com" = "Données météo fournies par Open-Meteo.com";
+"Wind profile data by DIPUL/DFS (ICON-D2)" = "Données du profil de vent fournies par DIPUL/DFS (ICON-D2)";
+
+/* Onboarding Flow */
+"ONBOARDING.WELCOME.TITLE" = "Bienvenue sur safeFLY";
+"ONBOARDING.WELCOME.DESCRIPTION" = "Cette introduction vous présente les principales fonctionnalités de safeFLY. Glissez vers la gauche ou appuyez sur « C'est parti ».";
+
+"ONBOARDING.AIRSPACE.TITLE" = "Plus d'informations";
+"ONBOARDING.AIRSPACE.DESCRIPTION" = "Appuyez sur la carte pour obtenir des informations détaillées sur les géozones à votre emplacement.";
+
+"ONBOARDING.LOCATION.TITLE" = "Accès à la position";
+"ONBOARDING.LOCATION.DESCRIPTION" = "Autorisez l'accès à votre position pour voir les informations de l'espace aérien autour de vous.";
+
+"ONBOARDING.WEATHER.TITLE" = "Alertes météo";
+"ONBOARDING.WEATHER.DESCRIPTION" = "Dans l'onglet Météo, consultez les conditions actuelles et les prévisions de vent à différentes altitudes.";
+
+"ONBOARDING.READY.TITLE" = "Prêt au décollage";
+"ONBOARDING.READY.DESCRIPTION" = "Veuillez noter que safeFLY ne constitue pas un conseil juridique. Les zones peuvent être incomplètes ou erronées. Vous êtes seul responsable de vos vols.";
+
+"ONBOARDING.BUTTON.GET_STARTED" = "C'est parti";
+"ONBOARDING.BUTTON.ACTIVATE_LOCATION" = "Activer la position";
+"ONBOARDING.BUTTON.SAFE_FLIGHT" = "Bon vol !";
+"ONBOARDING.BUTTON.CONTINUE" = "Continuer";
+
+/* Settings & Core App Setup */
+"C0 - <250g" = "C0 - < 250 g";
+"C1 - <900g" = "C1 - < 900 g";
+"C2 - <4kg" = "C2 - < 4 kg";
+"C3 - <25kg" = "C3 - < 25 kg";
+"C4 - <25kg" = "C4 - < 25 kg";
+"Play App Introduction Again" = "Revoir l'introduction de l'application";
+"App Setup" = "Configuration de l'app";
+"Done" = "Terminé";
+"App Webpage & Status" = "Site web & Statut de l'application";
+"Contact" = "Contact";
+
+/* Provider Management */
+"Providers" = "Fournisseurs";
+"Manage built-in geospatial providers and configure their provider-specific datasets." = "Gérez les fournisseurs de données géospatiales intégrés et configurez leurs jeux de données spécifiques.";
+"Different providers cover different countries and responsibilities. Enable the ones you need for where you plan to fly." = "Différents fournisseurs couvrent différents pays et compétences. Activez ceux dont vous avez besoin selon votre zone de vol.";
+
+/* Countries (provider grouping) */
+"Countries" = "Pays";
+"Pick a country to manage the providers that cover it. Enable the ones you need for where you plan to fly." = "Choisissez un pays pour gérer ses fournisseurs. Activez ceux dont vous avez besoin selon l'endroit où vous prévoyez de voler.";
+"Enable provider explanatory text" = "Activez les fournisseurs dont vous avez besoin. Des données de fournisseurs tiers peuvent compléter les données du fournisseur principal (ex: réserves naturelles). Certains fournisseurs se chevauchent ou sont des sous-groupes d'autres fournisseurs (ex: DIPUL et DIPUL Offline).";
+"Off" = "Désactivé";
+"country.germany" = "Allemagne";
+"country.austria" = "Autriche";
+"country.belgium" = "Belgique";
+"country.czech" = "Tchéquie";
+"country.denmark" = "Danemark";
+"country.finland" = "Finlande";
+"country.france" = "France";
+"country.luxembourg" = "Luxembourg";
+"country.netherlands" = "Pays-Bas";
+"country.sweden" = "Suède";
+"country.switzerland" = "Suisse";
+"Refreshing Status..." = "Mise à jour du statut...";
+"Refresh Provider Status" = "Actualiser le statut du fournisseur";
+"Provider Status" = "Statut du fournisseur";
+"Last refreshed on %@." = "Dernière mise à jour le %@.";
+"Provider status has not been refreshed yet." = "Le statut du fournisseur n'a pas encore été actualisé.";
+"Enable Provider" = "Activer le fournisseur";
+"Disabled providers do not participate in map rendering or location queries." = "Les fournisseurs désactivés n'apparaissent pas sur la carte et ne sont pas inclus dans les requêtes de localisation.";
+"Enable this provider to show status and dataset options." = "Activez ce fournisseur pour afficher son statut et ses options de jeu de données.";
+"Provider Datasets" = "Jeux de données du fournisseur";
+"Dataset selection remains editable even when a dataset is temporarily unavailable." = "La sélection des jeux de données reste modifiable même si un jeu de données est temporairement indisponible.";
+"Provider References" = "Références du fournisseur";
+"Protected Areas (Europe)" = "Zones protégées (Europe)";
+"Natura 2000 network (EEA)" = "Réseau Natura 2000 (AEE)";
+/* Fallback only: every registered instance has its own country-specific note below. */
+"EU.NOTE.PROTECTED_AREA" = "Zone protégée (Natura 2000). Les vols de drones sont restreints par le droit national de protection de la nature : une autorisation est généralement requise et le vol est souvent totalement interdit. Vérifiez les règles locales avant de voler.";
+
+"EU.NOTE.PROTECTED_AREA.AT" = "Zone Natura 2000. En Autriche, la protection de la nature relève des États fédérés (Länder), il existe donc neuf réglementations différentes. Dans les parcs nationaux, les vols de drones sont généralement totalement interdits, et dans les réserves naturelles, l'interdiction générale de perturbation peut s'appliquer même si Austro Control n'affiche pas de zone. L'autorisation est délivrée par l'autorité environnementale du Land, et ses sanctions s'ajoutent à celles d'Austro Control.";
+"EU.NOTE.PROTECTED_AREA.BE" = "Zone Natura 2000. En Wallonie, le survol de toute réserve naturelle agréée avec un drone est généralement interdit (loi sur la conservation de la nature du 12 juillet 1973, art. 11, modifiée en 2019), avec des amendes pouvant atteindre 100 000 EUR. En Flandre, le vol à basse altitude au-dessus des zones protégées reconnues est interdit (Natuurdecreet Art. 35 §2 12°). skeyes ne publiant pas ces zones, renseignez-vous auprès du gestionnaire du site avant le vol.";
+"EU.NOTE.PROTECTED_AREA.NL" = "Zone Natura 2000. Les vols de drones y sont en principe interdits car ils peuvent perturber les espèces et les habitats protégés. Les détails sont régis par les arrêtés provinciaux ; une exception nécessite une expertise écologique et généralement un permis. Les règles sont encore plus strictes pendant la période de nidification (environ de mars à août).";
+"EU.NOTE.PROTECTED_AREA.SE" = "Zone Natura 2000. Les vols de drones dans une zone Natura 2000 nécessitent une autorisation, et ils sont totalement interdits dans les parcs nationaux. Pour les réserves naturelles ordinaires, il n'y a pas d'interdiction générale : chacune a ses propres règles (föreskrifter), vérifiez donc les règlements de la zone ou contactez le gouvernement provincial (länsstyrelsen).";
+
+/* Gray note under a map tap, for countries without residential zone data. */
+"RESIDENTIAL.INFO.INTRO" = "Les zones résidentielles ne font pas partie des données géospatiales sur les drones de ce pays. Vérifiez par vous-même si vous survolez des propriétés résidentielles et respectez les règles de la classe de votre drone.";
+"RESIDENTIAL.INFO.C0" = "Votre drone C0 (moins de 250 g) peut voler au-dessus de personnes non impliquées, mais jamais au-dessus d'un rassemblement de personnes. Aucune distance minimale par rapport aux habitations ne s'applique.";
+"RESIDENTIAL.INFO.C1" = "Votre drone C1 (moins de 900 g) ne doit jamais voler au-dessus d'un rassemblement de personnes, et vous ne devez pas survoler délibérément des personnes non impliquées. Si cela se produit, réduisez le survol au strict minimum. Aucune distance minimale par rapport aux habitations ne s'applique.";
+"RESIDENTIAL.INFO.C2" = "Votre drone C2 (moins de 4 kg) doit maintenir une distance minimale de 30 m par rapport aux personnes non impliquées (5 m en mode basse vitesse) et ne doit pas les survoler. Le brevet de télépilote A2 est requis.";
+"RESIDENTIAL.INFO.C3C4" = "Votre drone C3 ou C4 (moins de 25 kg) doit maintenir une distance minimale de 150 m des zones résidentielles, commerciales, industrielles ou de loisirs. Aucun vol en catégorie ouverte n'est donc possible au-dessus des habitations : vous auriez besoin d'une autorisation d'exploitation en catégorie spécifique.";
+"RESIDENTIAL.INFO.DK" = "Le Danemark applique une règle supplémentaire : vous ne pouvez pas survoler une propriété privée habitée (maison avec jardin ou cour clôturée/bordée de haies) sans l'accord des résidents, et vous devez les informer au préalable (§ 19 de l'arrêté sur les drones BEK 1649). Cela ne s'applique pas si vous traversez en ligne droite à une hauteur d'au moins 100 m et à une vitesse d'au moins 5 m/s. Les infractions sont passibles d'une amende.";
+"RESIDENTIAL.INFO.CH" = "La Suisse ne fait pas partie de l'UE, mais elle a adopté le règlement 2019/947 à l'identique au 1er janvier 2023 via l'accord sur le transport aérien avec l'UE. Les mêmes limites de classe s'appliquent.";
+
+/* Class-specific subline under a German residential property zone. */
+"DE.RESIDENTIAL.CLASS.C3C4" = "Pour votre drone C3 ou C4 (moins de 25 kg) : la catégorie ouverte A3 exige une distance horizontale minimale de 150 m des zones résidentielles, commerciales, industrielles et de loisirs. Cette distance étant horizontale, une altitude plus élevée ne compense pas. L'exception du §21h à partir de 100 m ne s'applique pas ici, un survol en catégorie ouverte est impossible à n'importe quelle hauteur et nécessite une autorisation en catégorie spécifique.";
+
+/* Validity window under a German temporary restriction. */
+"DE.TEMP.WINDOW" = "Créneau horaire : du %1$@ au %2$@";
+
+"Active" = "Actif";
+"Disabled" = "Désactivé";
+"Available" = "Disponible";
+"Degraded" = "Dégradé";
+"Unavailable" = "Indisponible";
+"Show More" = "Afficher plus";
+"Show Less" = "Afficher moins";
+"ZONE_FEATURE_DRONE_CLASS_RULE" = "Règle pour votre classe de drone";
+"ZONE_FEATURE_TIME_WINDOW" = "Créneau horaire";
+
+/* Service Errors */
+"Invalid request URL" = "URL de requête non valide";
+"Request failed" = "La requête a échoué";
+"No current weather in response" = "Données météo actuelles manquantes dans la réponse";
+"Decoding failed: %@" = "Impossible de traiter la réponse : %@";
+"Invalid DIPUL URL" = "URL DIPUL non valide";
+"DIPUL request failed (HTTP %d)" = "La requête DIPUL a échoué (HTTP %d)";
+"DIPUL decoding: %@" = "Impossible de traiter la réponse DIPUL : %@";
+"No DIPUL weather data available" = "Aucune donnée météo DIPUL disponible";
+"Location outside DIPUL coverage (Central Europe only)" = "Lieu situé en dehors de la couverture DIPUL (Europe centrale uniquement)";
+
+/* Netherlands (PDOK) provider */
+"Airspace" = "Espace aérien";
+"Restricted Zones" = "Zones restreintes";
+"Landing Sites" = "Sites d'atterrissage";
+
+/* DIPUL Offline Core (GeoJSON) provider */
+"DIPUL Offline Core" = "DIPUL Offline Core";
+"Geographic Zones" = "Zones géographiques";
+"Sensitive Facilities" = "Installations sensibles";
+"Offline Package Contents" = "Contenu du pack hors ligne";
+"DIPUL_OFFLINE_CONTENTS" = "Contient uniquement les couches critiques pour le vol : trafic aérien et installations sensibles. Pour les zones naturelles, de transport, industrielles et résidentielles, veuillez activer le fournisseur en ligne DIPUL.";
+
+/* Translation setting */
+"Translation" = "Traduction";
+"Translate provider notes" = "Traduire les notes du fournisseur";
+"Translates foreign-language zone notes (e.g. Dutch) into your language. Common notes are built in; others use on-device translation, which may prompt a one-time language download." = "Traduit les notes de zone en langue étrangère (ex: néerlandais) dans votre langue. Les notes courantes sont intégrées ; les autres utilisent la traduction locale de l'appareil, ce qui peut nécessiter le téléchargement ponctuel d'un pack de langue.";
+
+/* Offline Packages & Downloads */
+"Download Required" = "Téléchargement requis";
+"Delete Data Package" = "Supprimer le pack de données";
+"Downloading Data..." = "Téléchargement des données...";
+"Download Data Package" = "Télécharger le pack de données";
+"Offline data package downloaded and ready. You can enable or disable the provider." = "Pack de données hors ligne téléchargé et prêt. Vous pouvez activer ou désactiver le fournisseur.";
+"Download this provider's data package to view restrictions. The package will be updated automatically when new data is available." = "Téléchargez le pack de données de ce fournisseur pour afficher les restrictions. Le pack sera mis à jour automatiquement lorsque de nouvelles données seront disponibles.";
+"Download Failed" = "Échec du téléchargement";
+"Data Package last updated" = "Dernière mise à jour du pack de données";
+"Update Now" = "Mettre à jour maintenant";
+"Updating Data..." = "Mise à jour des données...";
+
+/* Dutch ED-269 JSON Curated Advices */
+"NLD.NOTE.ALL_PROHIBITED" = "Les vols de drones sont généralement interdits dans cette zone.";
+"NLD.NOTE.MAY_4" = "Les vols de drones sont interdits le 4 mai (jour de commémoration).";
+"NLD.NOTE.MILITARY_ATC" = "Espace aérien militaire. Les vols de drones sont interdits, sauf autorisation expresse du contrôle aérien militaire.";
+"NLD.NOTE.LOW_FLY_30M" = "Couloir de vol à basse altitude. Les drones des catégories A1 ou A2 (moins de 4 kg) peuvent voler jusqu'à une hauteur maximale de 30 mètres. Les drones plus lourds (catégorie A3) sont interdits.";
+"NLD.NOTE.CTR_NO_OPEN" = "Les vols de drones en catégorie ouverte sont interdits ici. L'exploitation est autorisée uniquement avec un permis d'exploitation spécifique.";
+"NLD.NOTE.NO_OPEN" = "Les vols de drones standard sont interdits dans cette zone.";
+
+/* Provider names in Settings */
+"DIPUL" = "DIPUL";
+"LVNL/IenW" = "LVNL/IenW";
+
+/* Austria (Austro Control) provider */
+"Austro Control" = "Austro Control";
+"Austro Control Dronespace" = "Austro Control Dronespace";
+
+/* Switzerland (FOCA) provider */
+"FOCA" = "OFAC 🇨🇭";
+"Geographical flight restrictions (FOCA)" = "Restrictions géographiques de vol (OFAC)";
+
+/* Luxembourg (DAC) provider */
+"DAC" = "DAC";
+"UAS Geographical Zones (DAC)" = "Zones géographiques UAS (DAC)";
+
+/* Belgium (skeyes) provider */
+"skeyes" = "skeyes";
+"UAS Geographical Zones (skeyes DroneGuide)" = "Zones géographiques UAS (skeyes DroneGuide)";
+"BE.NOTE.PROHIBITED" = "Les vols de drones sont interdits dans cette zone.";
+"BE.NOTE.AUTHORISATION" = "Les vols de drones nécessitent une autorisation préalable dans cette zone.";
+"BE.NOTE.ALLOWED" = "Aucune restriction particulière pour les drones ne s'applique à cette zone.";
+
+/* Denmark (Trafikstyrelsen) provider */
+"Trafikstyrelsen" = "Trafikstyrelsen";
+"Dronezoner (Trafikstyrelsen)" = "Dronezoner (Trafikstyrelsen)";
+"DK.NOTE.RED" = "Zone critique pour la sécurité aérienne – Les vols de drones sont interdits.";
+"DK.NOTE.BLUE" = "Zone de sécurité – Les vols de drones sont interdits sans autorisation.";
+"DK.NOTE.ORANGE" = "Zone de vigilance – Vérifiez les restrictions avant le vol.";
+"DK.NOTE.NATURE" = "Zone naturelle – Les vols de drones peuvent être restreints ; vérifiez les règles locales.";
+"DK.RESTRICTED_PERIOD" = "Période de restriction : %@.";
+"DK.T.HEMS" = "Héliport d'hélicoptère de sauvetage (HEMS) – Les vols de drones sont interdits.";
+"DK.T.AIRPORT" = "Zone de sécurité d'aéroport – Les vols de drones sont interdits.";
+"DK.T.SEAPLANE" = "Hydroaérodrome – Les vols de drones sont interdits.";
+"DK.T.EMBASSY" = "Ambassade – Les vols de drones sont interdits sans autorisation.";
+"DK.T.PRISON" = "Prison – Les vols de drones sont interdits sans autorisation.";
+"DK.T.POLICE" = "Site de la police – Les vols de drones sont interdits sans autorisation.";
+"DK.T.MILITARY" = "Zone militaire – Les vols de drones sont interdits sans autorisation.";
+"DK.T.COURT" = "Palais de justice – Les vols de drones sont interdits sans autorisation.";
+"DK.T.PALACE" = "Château ou parc de château – Les vols de drones sont interdits sans autorisation.";
+"DK.T.INDUSTRY" = "Site industriel à haut risque – Les vols de drones sont interdits sans autorisation.";
+"DK.T.HELIPAD" = "Héliport à proximité – Volez avec prudence ; des conditions peuvent s'appliquer.";
+"DK.T.PARACHUTE" = "Zone de saut en parachute à proximité – Volez avec prudence ; des conditions peuvent s'appliquer.";
+"DK.T.GLIDER" = "Terrain de planeurs à proximité – Volez avec prudence ; des conditions peuvent s'appliquer.";
+"DK.T.PRIVATE_AF" = "Aérodrome privé à proximité – Volez avec prudence ; des conditions peuvent s'appliquer.";
+"DK.T.NATURA_BIRD" = "Zone de protection des oiseaux Natura 2000 – Les vols de drones peuvent être restreints.";
+"DK.T.NATURA_HABITAT" = "Zone d'habitat Natura 2000 – Les vols de drones peuvent être restreints.";
+"DK.T.CONSERVATION" = "Zone naturelle protégée – Les vols de drones peuvent être restreints.";
+"DK.T.DRONE_BAN" = "Zone d'interdiction de drone – Les vols de drones ne sont pas autorisés.";
+
+/* Czech Republic (ŘLP) provider */
+"ŘLP" = "ŘLP";
+"DroneMap (ŘLP ČR)" = "DroneMap (ŘLP ČR)";
+"Airport Zones" = "Zones d'aéroports";
+"Military Objects" = "Objets militaires";
+"Protected Areas" = "Zones protégées";
+"Power Network" = "Réseau électrique";
+"Roads" = "Routes";
+"Water Sources" = "Sources d'eau";
+"Population Height Zones" = "Zones de hauteur selon la population";
+"Nature" = "Nature";
+"Security" = "Sécurité";
+"Population" = "Population";
+
+/* France (DGAC) provider */
+"DGAC" = "DGAC";
+"Carte des restrictions drones (Géoportail)" = "Carte des restrictions UAS à des fins de loisir (Géoportail)";
+
+/* France (DGAC) drone restriction notes */
+"FRA.RESTRICTION.PROHIBITED" = "Les vols de drones sont interdits dans cette zone.";
+"FRA.RESTRICTION.MAX_HEIGHT" = "Hauteur maximale de vol : %@ m au-dessus du sol.";
+"FRA.NOTE.NOTIFICATION_900G" = "Pour les aéronefs d'une masse supérieure à 900 g, une notification préalable est requise.";
+"FRA.NOTE.AGGLOMERATION" = "Le vol au-dessus de l'espace public en zone urbaine est interdit sans autorisation préfectorale (catégorie ouverte ou aéromodélisme).";
+
+/* Luxembourg (DAC) fallback regulations */
+"LUX.NOTE.AIRPORT_PROHIBITED" = "Zone d'aéroport. Les vols de drones sont interdits pour la protection du trafic aérien.";
+"LUX.NOTE.AIRPORT_CONDITIONAL" = "Zone d'aéroport. Les vols de drones nécessitent l'autorisation préalable ou la coordination de l'exploitant de l'aéroport ou du contrôle aérien.";
+"LUX.NOTE.MILITARY_REQ_AUTHORISATION" = "Installation militaire. Les vols de drones sont interdits, sauf autorisation de l'Armée luxembourgeoise.";
+"LUX.NOTE.HOSPITAL_HELIPAD" = "Héliport d'hôpital. Les vols de drones nécessitent une coordination préalable afin de ne pas mettre en danger les hélicoptères de sauvetage.";
+"LUX.NOTE.STADIUM_PROHIBITED" = "Site sportif / Stade de football. Les vols de drones sont interdits pour la protection des rassemblements de personnes.";
+"LUX.NOTE.POLICE_REQ_AUTHORISATION" = "Installation de police. Les vols de drones nécessitent une autorisation préalable de la Police Grand-Ducale.";
+"LUX.NOTE.SENSITIVE_REQ_AUTHORISATION" = "Zone sensible. Les vols de drones nécessitent une autorisation préalable de l'autorité compétente.";
+
+/* Offline Packages Status Footer */
+"Data Package last updated at %@." = "Pack de données mis à jour le %@.";
+"Data Package has not been downloaded yet." = "Le pack de données n'a pas encore été téléchargé.";
+
+/* Legal Notice */
+"Legal Notice" = "Mentions légales";
+"PROVIDER_LEGAL_DISCLAIMER" = "safeFLY ne fournit pas de conseils juridiques. Les zones affichées ici peuvent être incomplètes ou erronées, et safeFLY peut se tromper. Avant chaque vol, vérifiez toujours vous-même les réglementations locales en vigueur et respectez-les. Vous êtes seul responsable de vos vols – safeFLY décline toute responsabilité en cas d'infraction à la loi ou de dommages en résultant.";
+"Drone rules (Civil Aviation Authority)" = "Règles applicables aux drones (Autorité de l'aviation civile)";
+
+/* Sweden (LFV / Transportstyrelsen) */
+"LFV / Transportstyrelsen" = "LFV / Transportstyrelsen";
+"Drönarkartan (LFV)" = "Carte des drones — Drönarkartan (LFV)";
+"UAS Geographical Zones (Transportstyrelsen)" = "Zones géographiques UAS (Transportstyrelsen)";
+"UAS Geo Zones" = "Zones géo UAS";
+"Airport & Heliport Zones" = "Zones d'aéroports & d'héliports";
+"Restricted & Danger Areas" = "Zones réglementées & dangereuses";
+"SE.NOTE.RWY5K" = "Zone de protection d'aéroport (5 km autour des pistes). Les vols de drones nécessitent une clairance du contrôle aérien.";
+"SE.NOTE.HKP1K" = "Zone de protection d'héliport (1 km). Les vols de drones nécessitent une autorisation du contrôle aérien ou de l'exploitant.";
+"SE.NOTE.RSTA" = "Zone réglementée (AIP). Les vols de drones sont interdits sans autorisation spéciale de l'autorité compétente. Cela inclut tous les parcs nationaux suédois.";
+"SE.NOTE.DNGA" = "Zone dangereuse (AIP). Des activités dangereuses s'y déroulent aux horaires publiés ; ne volez pas tant que la zone est active.";
+"SE.NOTE.CTR" = "Zone de contrôle / Zone d'information de vol. Sans clairance, les drones jusqu'à 10 kg peuvent voler ici à une hauteur maximale de 50 m au-dessus du sol (10 m dans un rayon de 1 km autour d'un héliport) ; sinon, contactez le contrôle aérien.";
+"SE.NOTE.UAS" = "Zone géographique UAS (Transportstyrelsen). Vérifiez les conditions de la zone avant le vol.";
+
+/* Finland (Traficom via Flyk) */
+"Traficom" = "Traficom";
+"UAS Geographical Zones (Droneinfo/Traficom)" = "Zones géographiques UAS (Droneinfo/Traficom)";
+"Flyk Aviation Map" = "Flyk Aviation Map";
+"UAS Geographical Zones" = "Zones géographiques UAS";
+"FI.NOTE.PROHIBITED" = "Zone géographique UAS avec interdiction de vol pour les drones (ex: prisons, infrastructures critiques). Ne pas voler ici.";
+"FI.NOTE.AUTHORISATION" = "Zone géographique UAS. Les vols de drones nécessitent une autorisation ou un permis de l'organisme compétent (ex: contrôle aérien ou exploitant).";
+"FI.NOTE.NO_RESTRICTION" = "Zone d'information (ex: terrain d'aéromodélisme). Aucune restriction spécifique pour les drones, mais attention à l'activité locale.";
+
+/* Offline Maps */
+"Offline" = "Hors ligne";
+"Offline Maps" = "Cartes hors ligne";
+"Maps" = "Cartes";
+"Download Area" = "Télécharger la zone";
+"OFFLINE_MAPS_FOOTER" = "Téléchargez des zones cartographiques pour une utilisation hors ligne. Sélectionnez « Hors ligne » comme style de carte pour les utiliser.";
+"OFFLINE_MAPS_INFO_FOOTER" = "Les zones téléchargées restent disponibles sans connexion Internet. La carte de base utilise OpenFreeMap (données OpenStreetMap). Les superpositions de géozones nécessitent toujours une connexion Internet.";
+"Area Name" = "Nom de la zone";
+"Enter a name for this area" = "Entrez un nom pour cette zone";
+"Download" = "Télécharger";
+"Cancel" = "Annuler";
+"Delete" = "Supprimer";
+"Delete Area" = "Supprimer la zone";
+"DELETE_AREA_CONFIRMATION" = "Voulez-vous vraiment supprimer cette zone hors ligne ? Vous pourrez la télécharger à nouveau plus tard.";
+"Downloaded Areas" = "Zones téléchargées";
+"Storage Used" = "Espace disque utilisé";
+"No Downloaded Areas" = "Aucune zone téléchargée";
+"Downloading..." = "Téléchargement...";
+"Cancel Download" = "Annuler le téléchargement";
+"Active Download" = "Téléchargement actif";
+"Unnamed Area" = "Zone sans nom";
+"OFFLINE_MAP_ATTRIBUTION" = "© OpenFreeMap © OpenMapTiles © contributeurs OpenStreetMap";

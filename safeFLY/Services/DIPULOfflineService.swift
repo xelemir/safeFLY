@@ -305,6 +305,7 @@ struct DIPULOfflineZoneNormalizer: ZoneFeatureNormalizing, Sendable {
                 lowerLimit: record.lowerLimit,
                 upperLimit: record.upperLimit,
                 legalReference: record.legalReference,
+                legalReferenceURL: Self.legalReferenceURL(for: record.legalReference),
                 source: SourceProvenance(providerID: record.providerID, sourceLayerID: record.typeCode ?? "dipul"),
                 restrictionSourceLanguage: nil,
                 // Same class-aware residential note as the online provider, so offline behaves
@@ -314,6 +315,23 @@ struct DIPULOfflineZoneNormalizer: ZoneFeatureNormalizing, Sendable {
                 )
             )
         }
+    }
+
+    nonisolated private static func legalReferenceURL(for legalReference: String?) -> URL? {
+        guard
+            let legalReference,
+            let match = legalReference.range(of: #"§\s*([0-9]+[a-z]?)"#, options: .regularExpression)
+        else {
+            return nil
+        }
+
+        let paragraph = legalReference[match]
+            .replacingOccurrences(of: "§", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        guard !paragraph.isEmpty else { return nil }
+        return URL(string: "https://www.gesetze-im-internet.de/luftvo_2015/__\(paragraph).html")
     }
 
     // Exact DIPUL `type_code` → our taxonomy. The 15 codes are the full set present in the

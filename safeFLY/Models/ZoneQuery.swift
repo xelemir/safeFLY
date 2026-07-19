@@ -208,6 +208,7 @@ struct ZoneFeature: Identifiable, Sendable {
     let lowerLimit: AltitudeLimit?
     let upperLimit: AltitudeLimit?
     let legalReference: String?
+    let legalReferenceURL: URL?
     let source: SourceProvenance
     // BCP-47 language of `sourceDeclaredRestriction` when it is raw text from the provider's
     // API (e.g. Dutch from PDOK). nil means the text is already in the user's language
@@ -229,6 +230,7 @@ struct ZoneFeature: Identifiable, Sendable {
         lowerLimit: AltitudeLimit?,
         upperLimit: AltitudeLimit?,
         legalReference: String?,
+        legalReferenceURL: URL? = nil,
         source: SourceProvenance,
         restrictionSourceLanguage: String? = nil,
         supplementaryNote: String? = nil
@@ -241,6 +243,7 @@ struct ZoneFeature: Identifiable, Sendable {
         self.lowerLimit = lowerLimit
         self.upperLimit = upperLimit
         self.legalReference = legalReference
+        self.legalReferenceURL = legalReferenceURL
         self.source = source
         self.restrictionSourceLanguage = restrictionSourceLanguage
         self.supplementaryNote = supplementaryNote

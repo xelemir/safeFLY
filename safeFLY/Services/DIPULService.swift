@@ -224,10 +224,8 @@ final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
     // DIPUL temporary-restriction timestamps are ISO-8601 UTC, e.g. "2026-07-25T11:30:00Z".
     nonisolated private func parseTimestamp(_ value: String?) -> Date? {
         guard let value = normalizedValue(value) else { return nil }
-        return DIPULProvider.iso8601Parser.date(from: value)
+        return ISO8601DateFormatter().date(from: value)
     }
-
-    nonisolated private static let iso8601Parser = ISO8601DateFormatter()
 
     nonisolated private func makeAltitudeLimit(value: String?, unit: String?, reference: String?) -> AltitudeLimit? {
         guard let value = normalizedValue(value) else {

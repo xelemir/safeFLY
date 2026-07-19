@@ -56,7 +56,7 @@ enum ResidentialRuleNotes {
 
     // The footnote for a tapped coordinate, or nil outside the countries this applies to
     // (including Germany and France, which map residential areas themselves).
-    nonisolated static func note(for coordinate: MapCoordinate, droneClass: DroneClass) -> String? {
+    static func note(for coordinate: MapCoordinate, droneClass: DroneClass) -> String? {
         guard let country = countries.first(where: { $0.coverage.contains(coordinate) }) else {
             return nil
         }

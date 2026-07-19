@@ -251,7 +251,7 @@
 
 
 "ONBOARDING.READY.TITLE" = "Ready for Takeoff";
-"ONBOARDING.READY.DESCRIPTION" = "All set! In settings, you can customize the displayed geozones and report app errors.";
+"ONBOARDING.READY.DESCRIPTION" = "Please note that safeFLY is not legal advice and zones may be incomplete or inaccurate. You are solely responsible for your flights.";
 
 "ONBOARDING.BUTTON.GET_STARTED" = "Get Started";
 "ONBOARDING.BUTTON.ACTIVATE_LOCATION" = "Activate Location";
@@ -324,7 +324,7 @@
 /* Class-specific line appended under a German residential (Wohngrundstück) zone. §21h LuftVO
    grants a sub-250 g exemption here; the EU open-category subcategories (A2/A3) add class-based
    distances on top. */
-"DE.RESIDENTIAL.CLASS.C3C4" = "For your C3 or C4 (under 25 kg) drone: open category A3 requires at least 150 m horizontal distance from residential, commercial, industrial and recreational areas. Because it is horizontal, flying higher does not lift it — the §21h ≥100 m exception cannot help here, so overflight is not possible in the open category at any height and needs a specific-category authorisation.";
+"DE.RESIDENTIAL.CLASS.C3C4" = "For your C3 or C4 (under 25 kg) drone: open category A3 requires at least 150 m horizontal distance from residential, commercial, industrial and recreational areas. Because it is horizontal, flying higher does not lift it. The §21h ≥100 m exception cannot help here, so overflight is not possible in the open category at any height and needs a specific-category authorisation.";
 
 /* Validity window shown under a German temporary restriction (NOTAM / §21h Abs. 3 Nr. 11).
    %1$@ = start, %2$@ = end, both already formatted in German local time. */
@@ -338,6 +338,8 @@
 "Unavailable" = "Unavailable";
 "Show More" = "Show More";
 "Show Less" = "Show Less";
+"ZONE_FEATURE_DRONE_CLASS_RULE" = "Rule for your drone class";
+"ZONE_FEATURE_TIME_WINDOW" = "Time window";
 
 /* Service Errors */
 "Invalid request URL" = "Invalid request URL";
@@ -473,7 +475,7 @@
 "Data Package last updated at %@." = "Data Package last updated at %@.";
 "Data Package has not been downloaded yet." = "Data Package has not been downloaded yet.";
 
-/* Non-DIPUL provider legal disclaimer */
+/* Provider legal disclaimer */
 "Legal Notice" = "Legal Notice";
 "PROVIDER_LEGAL_DISCLAIMER" = "safeFLY is not a legal advisor. The zones shown here may be incomplete or inaccurate, and safeFLY can be wrong. Always check the current local regulations yourself and obey them before every flight. You alone are responsible for your flights — safeFLY accepts no liability for any laws broken or any resulting damages.";
 "Drone rules (Civil Aviation Authority)" = "Drone rules (Civil Aviation Authority)";

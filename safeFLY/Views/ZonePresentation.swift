@@ -214,9 +214,28 @@ enum ZonePresentation {
 
     private static func formatted(limit: AltitudeLimit?) -> String? {
         guard let limit else { return nil }
-        return [limit.value, limit.unit, limit.reference ?? ""]
+        return [formattedAltitudeValue(limit.value), limit.unit, limit.reference ?? ""]
             .filter { !$0.isEmpty }
             .joined(separator: " ")
+    }
+
+    // The provider sometimes serializes exact values with binary floating-point noise, such as
+    // "5000.00016" FT. Keep meaningful precision while removing that implementation detail from
+    // the pilot-facing value.
+    private static func formattedAltitudeValue(_ value: String) -> String {
+        let normalized = value.replacingOccurrences(of: ",", with: ".")
+        guard let numericValue = Double(normalized) else { return value }
+
+        let roundedValue = (numericValue * 1_000).rounded() / 1_000
+        let formatted = String(format: "%.3f", locale: Locale(identifier: "en_US_POSIX"), roundedValue)
+        let withoutTrailingZeroes = formatted.replacingOccurrences(
+            of: #"(\.\d*?)0+$"#,
+            with: "$1",
+            options: .regularExpression
+        )
+        return withoutTrailingZeroes.hasSuffix(".")
+            ? String(withoutTrailingZeroes.dropLast())
+            : withoutTrailingZeroes
     }
 
     // Whether a limit's value is numerically zero (handling both "." and "," decimals).
