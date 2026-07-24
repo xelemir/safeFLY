@@ -30,8 +30,9 @@
 //  the term anywhere, and BEK 2253 of 2020 was repealed by §34 stk. 2. A lot of secondary
 //  drone-blog content still repeats it. Do not reintroduce it.
 //
-//  Switzerland gets an addendum because it is not in the EU and the reason the EU rules apply
-//  there is not obvious.
+//  Switzerland and Norway each get an addendum because they are not in the EU and the reason the
+//  EU rules still apply there is not obvious (Switzerland via its air transport agreement,
+//  Norway via the EEA agreement).
 //
 
 import Foundation
@@ -50,6 +51,7 @@ enum ResidentialRuleNotes {
         Country(coverage: CountryBoundaries.finland, addendumKey: nil),
         Country(coverage: CountryBoundaries.luxembourg, addendumKey: nil),
         Country(coverage: CountryBoundaries.netherlands, addendumKey: nil),
+        Country(coverage: CountryBoundaries.norway, addendumKey: "RESIDENTIAL.INFO.NO"),
         Country(coverage: CountryBoundaries.sweden, addendumKey: nil),
         Country(coverage: CountryBoundaries.switzerland, addendumKey: "RESIDENTIAL.INFO.CH")
     ]

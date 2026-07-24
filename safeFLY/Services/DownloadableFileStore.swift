@@ -44,6 +44,15 @@ struct DownloadableFileStore: Sendable {
         return attributes?[.modificationDate] as? Date
     }
 
+    // Size of the downloaded file on disk, or nil if it hasn't been downloaded.
+    nonisolated var byteSize: Int64? {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: localURL.path),
+              let size = attributes[.size] as? NSNumber else {
+            return nil
+        }
+        return size.int64Value
+    }
+
     // Downloads the remote payload, runs the caller's validation, writes it atomically and
     // returns the bytes. The HTTP status and a non-empty body are checked first — URLSession
     // does not throw on 4xx/5xx — and validation lets the provider reject malformed responses,
@@ -66,4 +75,17 @@ struct DownloadableFileStore: Sendable {
     nonisolated func delete() {
         try? FileManager.default.removeItem(at: localURL)
     }
+}
+
+// Best-effort remote size of a downloadable payload, used to show "how big is this download"
+// before the user commits to it. Returns nil whenever the server doesn't advertise a length,
+// so callers degrade gracefully to showing the size only once the file is on disk.
+nonisolated func remoteContentLength(_ url: URL) async -> Int64? {
+    var request = URLRequest(url: url)
+    request.httpMethod = "HEAD"
+    guard let (_, response) = try? await URLSession.shared.data(for: request) else {
+        return nil
+    }
+    let length = response.expectedContentLength
+    return length > 0 ? length : nil
 }

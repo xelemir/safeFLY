@@ -25,6 +25,9 @@ enum BuiltInProviders {
         ProviderRegistration(provider: BelgiumProvider(), normalizer: BelgiumZoneNormalizer()),
         ProviderRegistration(provider: DenmarkProvider(), normalizer: DenmarkZoneNormalizer()),
         ProviderRegistration(provider: FinlandProvider(), normalizer: FinlandZoneNormalizer()),
+        // Norway (Luftfartstilsynet / dronesoner.no) fetches its static GeoJSON layers directly,
+        // carrying its own nature reserves, so it needs no EU nature backfill.
+        ProviderRegistration(provider: NorwayProvider(), normalizer: NorwayZoneNormalizer()),
         ProviderRegistration(provider: SwedenProvider(), normalizer: SwedenZoneNormalizer()),
         // The countries whose national feed carries no nature reserves, grouped at the bottom,
         // with the EU nature-reserve layer that backfills them placed last of all.

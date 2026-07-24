@@ -289,6 +289,7 @@
 "country.france" = "France";
 "country.luxembourg" = "Luxembourg";
 "country.netherlands" = "Netherlands";
+"country.norway" = "Norway";
 "country.sweden" = "Sweden";
 "country.switzerland" = "Switzerland";
 "Refreshing Status..." = "Refreshing Status...";
@@ -320,6 +321,22 @@
 "RESIDENTIAL.INFO.C3C4" = "Your C3 or C4 (under 25 kg) drone must keep at least 150 m from residential, commercial, industrial and recreational areas. Over housing that leaves no open-category flight: you would need an operational authorisation in the specific category.";
 "RESIDENTIAL.INFO.DK" = "Denmark has an additional rule. You may not fly over an inhabited private property, meaning a house with its fenced or hedged garden or yard, without the occupier's consent, and you must tell them beforehand (§ 19 of the drone bekendtgørelse, BEK 1649). This does not apply if you cross at 100 m or higher and at least 5 m/s, in a straight line on the way somewhere. Breaches are punishable by fine.";
 "RESIDENTIAL.INFO.CH" = "Switzerland is not in the EU, but it adopted Regulation 2019/947 unchanged on 1 January 2023 through its air transport agreement with the EU, so the same class limits apply.";
+"RESIDENTIAL.INFO.NO" = "Norway is not in the EU, but through the EEA agreement it applies Regulation 2019/947 in full (effective 1 January 2021), so the same class limits apply.";
+
+/* Norway (dronesoner.no) dataset titles and per-layer advisories */
+"Prohibited Zones" = "Prohibited Zones";
+"Caution Areas" = "Caution Areas";
+"Controlled Airspace" = "Controlled Airspace";
+"NO.NOTE.AIRPORT" = "Within 5 km of an airport. Drone flights require prior permission from air traffic control.";
+"NO.NOTE.NSM" = "Sensor-restricted area (NSM). Carrying cameras or other sensors is prohibited without permission.";
+"NO.NOTE.EMBASSY" = "Foreign embassy. Flying over or close to the premises is prohibited.";
+"NO.NOTE.AIRFIELD" = "Airfield or landing site. Watch for manned traffic and give way.";
+"NO.NOTE.CTR" = "Controlled airspace (CTR/TIZ). Contact air traffic control before flying.";
+"NO.NOTE.RMZ" = "Radio and transponder mandatory zone (RMZ/TMZ), primarily for manned aviation.";
+"Nature Reserves (Drone Ban)" = "Nature Reserves (Drone Ban)";
+"Nature Reserves (No Ban)" = "Nature Reserves (No Ban)";
+"NO.NOTE.NATURE_BAN" = "Nature reserve with a drone ban. Flying is prohibited under the area's conservation regulation.";
+"NO.NOTE.NATURE" = "Protected area with no drone-specific ban, but flying may disturb wildlife and can be restricted under nature-conservation law.";
 
 /* Class-specific line appended under a German residential (Wohngrundstück) zone. §21h LuftVO
    grants a sub-250 g exemption here; the EU open-category subcategories (A2/A3) add class-based
@@ -473,6 +490,7 @@
 
 /* Offline Packages Status Footer */
 "Data Package last updated at %@." = "Data Package last updated at %@.";
+"Data Package Size" = "Data Package Size";
 "Data Package has not been downloaded yet." = "Data Package has not been downloaded yet.";
 
 /* Provider legal disclaimer */

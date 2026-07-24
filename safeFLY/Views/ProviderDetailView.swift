@@ -20,6 +20,19 @@ struct ProviderDetailView: View {
     @State private var isRefreshingStatus = false
     @State private var isDownloading = false
     @State private var downloadError: String? = nil
+    // Remote package size, fetched lazily so a not-yet-downloaded provider can still show how
+    // big its download is. nil until fetched (or when the server advertises no length).
+    @State private var remoteByteSize: Int64? = nil
+
+    // What to show as the package size: the real on-disk size once downloaded, otherwise the
+    // best-effort remote size. nil hides the row entirely (e.g. size unknown before download).
+    private var packageSizeText: String? {
+        let bytes = providerSession.provider.isDataDownloaded
+            ? providerSession.provider.datasetByteSize
+            : remoteByteSize
+        guard let bytes, bytes > 0 else { return nil }
+        return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
 
     private var datasetSections: [DatasetSection] {
         var sections: [DatasetSection] = []
@@ -79,6 +92,16 @@ struct ProviderDetailView: View {
                 Text(downloadError)
             }
         }
+        // Fetch the remote download size for a provider that has a package but hasn't downloaded
+        // it yet, so the size is visible before committing to the download. Re-runs if the
+        // download state changes; once downloaded the on-disk size is used instead.
+        .task(id: providerSession.provider.isDataDownloaded) {
+            guard providerSession.provider.downloadURL != nil,
+                  !providerSession.provider.isDataDownloaded else {
+                return
+            }
+            remoteByteSize = await providerSession.provider.remoteDatasetByteSize()
+        }
     }
 
     private var enablementSection: some View {
@@ -131,6 +154,16 @@ struct ProviderDetailView: View {
                         set: { providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: $0) }
                     )
                 )
+            }
+
+            // Data package size: the on-disk size once downloaded, otherwise the (best-effort)
+            // remote download size. Only shown for providers that actually have a package.
+            if providerSession.provider.downloadURL != nil, let packageSizeText {
+                HStack {
+                    Text(NSLocalizedString("Data Package Size", comment: "Offline data package size row label"))
+                    Spacer()
+                    Text(packageSizeText).foregroundStyle(.secondary)
+                }
             }
         } footer: {
             if let _ = providerSession.provider.downloadURL {

@@ -22,6 +22,11 @@ protocol GeospatialProvider: Sendable {
     nonisolated var downloadURL: URL? { get }
     nonisolated var isDataDownloaded: Bool { get }
     nonisolated var datasetLastUpdated: Date? { get }
+    // Size of the downloaded data package on disk, or nil if not downloaded / not applicable.
+    nonisolated var datasetByteSize: Int64? { get }
+    // Best-effort remote size of the package, so the download size can be shown before the user
+    // downloads it. nil when the server doesn't advertise a length.
+    nonisolated func remoteDatasetByteSize() async -> Int64?
     // Minimum time between silent background refreshes of a downloadable dataset. Providers
     // whose feed changes frequently (e.g. Luxembourg) can lower this to refresh every
     // foreground; the default keeps large datasets to once a day.
@@ -52,6 +57,8 @@ extension GeospatialProvider {
     nonisolated var downloadURL: URL? { nil }
     nonisolated var isDataDownloaded: Bool { true }
     nonisolated var datasetLastUpdated: Date? { nil }
+    nonisolated var datasetByteSize: Int64? { nil }
+    nonisolated func remoteDatasetByteSize() async -> Int64? { nil }
     nonisolated var datasetRefreshInterval: TimeInterval { 24 * 3600 }
     nonisolated var autoDownloadsDataset: Bool { false }
     nonisolated var coverage: CountryCoverage? { nil }

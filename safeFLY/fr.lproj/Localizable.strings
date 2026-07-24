@@ -290,6 +290,7 @@
 "country.france" = "France";
 "country.luxembourg" = "Luxembourg";
 "country.netherlands" = "Pays-Bas";
+"country.norway" = "Norvège";
 "country.sweden" = "Suède";
 "country.switzerland" = "Suisse";
 "Refreshing Status..." = "Mise à jour du statut...";
@@ -321,6 +322,22 @@
 "RESIDENTIAL.INFO.C3C4" = "Votre drone C3 ou C4 (moins de 25 kg) doit maintenir une distance minimale de 150 m des zones résidentielles, commerciales, industrielles ou de loisirs. Aucun vol en catégorie ouverte n'est donc possible au-dessus des habitations : vous auriez besoin d'une autorisation d'exploitation en catégorie spécifique.";
 "RESIDENTIAL.INFO.DK" = "Le Danemark applique une règle supplémentaire : vous ne pouvez pas survoler une propriété privée habitée (maison avec jardin ou cour clôturée/bordée de haies) sans l'accord des résidents, et vous devez les informer au préalable (§ 19 de l'arrêté sur les drones BEK 1649). Cela ne s'applique pas si vous traversez en ligne droite à une hauteur d'au moins 100 m et à une vitesse d'au moins 5 m/s. Les infractions sont passibles d'une amende.";
 "RESIDENTIAL.INFO.CH" = "La Suisse ne fait pas partie de l'UE, mais elle a adopté le règlement 2019/947 à l'identique au 1er janvier 2023 via l'accord sur le transport aérien avec l'UE. Les mêmes limites de classe s'appliquent.";
+"RESIDENTIAL.INFO.NO" = "La Norvège ne fait pas partie de l'UE, mais elle applique le règlement 2019/947 dans son intégralité via l'accord EEE (depuis le 1er janvier 2021). Les mêmes limites de classe s'appliquent.";
+
+/* Norvège (dronesoner.no) : titres des jeux de données et avis par couche */
+"Prohibited Zones" = "Zones interdites";
+"Caution Areas" = "Zones de vigilance";
+"Controlled Airspace" = "Espace aérien contrôlé";
+"NO.NOTE.AIRPORT" = "À moins de 5 km d'un aéroport. Les vols de drone nécessitent une autorisation préalable du contrôle aérien.";
+"NO.NOTE.NSM" = "Zone à capteurs restreints (NSM). Emporter des caméras ou d'autres capteurs est interdit sans autorisation.";
+"NO.NOTE.EMBASSY" = "Ambassade étrangère. Survoler les lieux ou voler à proximité immédiate est interdit.";
+"NO.NOTE.AIRFIELD" = "Aérodrome ou site d'atterrissage. Surveillez le trafic habité et cédez le passage.";
+"NO.NOTE.CTR" = "Espace aérien contrôlé (CTR/TIZ). Contactez le contrôle aérien avant de voler.";
+"NO.NOTE.RMZ" = "Zone à radio et transpondeur obligatoires (RMZ/TMZ), principalement pour l'aviation habitée.";
+"Nature Reserves (Drone Ban)" = "Réserves naturelles (drones interdits)";
+"Nature Reserves (No Ban)" = "Réserves naturelles (sans interdiction)";
+"NO.NOTE.NATURE_BAN" = "Réserve naturelle avec interdiction des drones. Le vol y est interdit en vertu du règlement de protection de la zone.";
+"NO.NOTE.NATURE" = "Zone protégée sans interdiction spécifique des drones, mais le vol peut déranger la faune et être restreint par le droit de la protection de la nature.";
 
 /* Class-specific subline under a German residential property zone. */
 "DE.RESIDENTIAL.CLASS.C3C4" = "Pour votre drone C3 ou C4 (moins de 25 kg) : la catégorie ouverte A3 exige une distance horizontale minimale de 150 m des zones résidentielles, commerciales, industrielles et de loisirs. Cette distance étant horizontale, une altitude plus élevée ne compense pas. L'exception du §21h à partir de 100 m ne s'applique pas ici, un survol en catégorie ouverte est impossible à n'importe quelle hauteur et nécessite une autorisation en catégorie spécifique.";
@@ -471,6 +488,7 @@
 
 /* Offline Packages Status Footer */
 "Data Package last updated at %@." = "Pack de données mis à jour le %@.";
+"Data Package Size" = "Taille du pack de données";
 "Data Package has not been downloaded yet." = "Le pack de données n'a pas encore été téléchargé.";
 
 /* Legal Notice */

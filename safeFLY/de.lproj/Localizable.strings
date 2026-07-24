@@ -291,6 +291,7 @@
 "country.france" = "Frankreich";
 "country.luxembourg" = "Luxemburg";
 "country.netherlands" = "Niederlande";
+"country.norway" = "Norwegen";
 "country.sweden" = "Schweden";
 "country.switzerland" = "Schweiz";
 "Refreshing Status..." = "Status wird aktualisiert...";
@@ -322,6 +323,22 @@
 "RESIDENTIAL.INFO.C3C4" = "Deine C3 oder C4 (unter 25 kg) Drohne muss mindestens 150 m Abstand zu Wohn-, Gewerbe-, Industrie- und Erholungsgebieten halten. Über Wohnbebauung bleibt damit kein Flug in der offenen Kategorie möglich: du bräuchtest eine Betriebsgenehmigung in der speziellen Kategorie.";
 "RESIDENTIAL.INFO.DK" = "Dänemark hat zusätzlich eine weitere Regel: Du darfst ein bewohntes Privatgrundstück, also ein Haus mit eingezäuntem oder umhecktem Garten oder Hof, nicht ohne Zustimmung der Bewohner überfliegen und musst sie vorher informieren (§ 19 der Drohnenverordnung BEK 1649). as gilt nicht, wenn du in mindestens 100 m Höhe und mit mindestens 5 m/s geradlinig auf dem Weg woandershin querst. Verstöße werden mit Geldstrafe geahndet.";
 "RESIDENTIAL.INFO.CH" = "Die Schweiz ist nicht in der EU, hat die Verordnung 2019/947 aber zum 1. Januar 2023 über das Luftverkehrsabkommen mit der EU unverändert übernommen. Es gelten also dieselben Klassengrenzen.";
+"RESIDENTIAL.INFO.NO" = "Norwegen ist nicht in der EU, wendet die Verordnung 2019/947 aber über das EWR-Abkommen vollständig an (seit 1. Januar 2021). Es gelten also dieselben Klassengrenzen.";
+
+/* Norwegen (dronesoner.no): Datensatztitel und Hinweise je Ebene */
+"Prohibited Zones" = "Verbotszonen";
+"Caution Areas" = "Hinweisbereiche";
+"Controlled Airspace" = "Kontrollierter Luftraum";
+"NO.NOTE.AIRPORT" = "Innerhalb von 5 km um einen Flughafen. Drohnenflüge erfordern eine vorherige Genehmigung der Flugverkehrskontrolle.";
+"NO.NOTE.NSM" = "Sensor-Sperrgebiet (NSM). Das Mitführen von Kameras oder anderen Sensoren ist ohne Genehmigung verboten.";
+"NO.NOTE.EMBASSY" = "Ausländische Botschaft. Das Überfliegen oder Fliegen in unmittelbarer Nähe ist verboten.";
+"NO.NOTE.AIRFIELD" = "Flugplatz oder Landeplatz. Auf bemannten Verkehr achten und ausweichen.";
+"NO.NOTE.CTR" = "Kontrollierter Luftraum (CTR/TIZ). Vor dem Flug die Flugverkehrskontrolle kontaktieren.";
+"NO.NOTE.RMZ" = "Funk- und Transponderpflichtzone (RMZ/TMZ), vor allem für die bemannte Luftfahrt.";
+"Nature Reserves (Drone Ban)" = "Naturschutzgebiete (Drohnenverbot)";
+"Nature Reserves (No Ban)" = "Naturschutzgebiete (ohne Verbot)";
+"NO.NOTE.NATURE_BAN" = "Naturschutzgebiet mit Drohnenverbot. Der Flug ist nach der Schutzverordnung des Gebiets untersagt.";
+"NO.NOTE.NATURE" = "Schutzgebiet ohne ausdrückliches Drohnenverbot. Der Flug kann jedoch Wildtiere stören und nach dem Naturschutzrecht eingeschränkt sein.";
 
 /* Klassenspezifische Zeile unter einer deutschen Wohngrundstück-Zone. §21h LuftVO gewährt hier
    eine Ausnahme unter 250 g; die EU-Unterkategorien der offenen Kategorie (A2/A3) ergänzen
@@ -474,6 +491,7 @@
 
 /* Offline Packages Status Footer */
 "Data Package last updated at %@." = "Datenpaket zuletzt aktualisiert am %@.";
+"Data Package Size" = "Größe des Datenpakets";
 "Data Package has not been downloaded yet." = "Datenpaket wurde noch nicht heruntergeladen.";
 
 /* Rechtlicher Hinweis für Anbieter */

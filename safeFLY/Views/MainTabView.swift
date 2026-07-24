@@ -34,7 +34,8 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
         "BE": ["Belgien", "Belgium", "België", "Belgique"],
         "DK": ["Dänemark", "Denmark", "Danmark"],
         "SE": ["Schweden", "Sweden", "Sverige"],
-        "FI": ["Finnland", "Finland", "Suomi", "Åland"]
+        "FI": ["Finnland", "Finland", "Suomi", "Åland"],
+        "NO": ["Norwegen", "Norway", "Norge", "Noreg"]
     ]
 
     // Countries the search currently accepts results from. Kept in sync with the countries

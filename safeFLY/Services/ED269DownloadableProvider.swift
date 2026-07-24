@@ -29,6 +29,7 @@ nonisolated final class ED269DownloadableDataset<Element: Sendable>: @unchecked 
     nonisolated var remoteURL: URL { store.remoteURL }
     nonisolated var isDownloaded: Bool { store.isDownloaded }
     nonisolated var lastUpdated: Date? { store.modificationDate }
+    nonisolated var byteSize: Int64? { store.byteSize }
 
     // Parsed features for the render/query path. Empty until the dataset is downloaded.
     @MainActor var features: [Element] { cache }
@@ -63,6 +64,8 @@ extension ED269DownloadableProvider {
     nonisolated var downloadURL: URL? { dataset.remoteURL }
     nonisolated var isDataDownloaded: Bool { dataset.isDownloaded }
     nonisolated var datasetLastUpdated: Date? { dataset.lastUpdated }
+    nonisolated var datasetByteSize: Int64? { dataset.byteSize }
+    nonisolated func remoteDatasetByteSize() async -> Int64? { await remoteContentLength(dataset.remoteURL) }
     nonisolated func downloadData() async throws { try await dataset.download() }
     nonisolated func deleteData() { dataset.delete() }
 }

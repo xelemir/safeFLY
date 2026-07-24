@@ -262,11 +262,11 @@ extension MKCoordinateRegion {
     // Czechia, Denmark, Sweden and Finland.
     static var supportedCountries: MKCoordinateRegion {
         // Centre/​span biases search completions toward the covered countries. Widened north
-        // and east so all of Sweden and Finland (up to ~70° N, ~31.6° E) fit alongside
-        // France's western edge and Czechia.
+        // and east so all of Norway, Sweden and Finland (Norway's North Cape reaches ~71.2° N,
+        // and the north-east corner ~31.6° E) fit alongside France's western edge.
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 55.5, longitude: 13.0),
-            span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 38.0)
+            span: MKCoordinateSpan(latitudeDelta: 32.0, longitudeDelta: 38.0)
         )
     }
 }

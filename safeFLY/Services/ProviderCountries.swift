@@ -46,6 +46,10 @@ enum ProviderCountries {
                         providerIDs: [LuxembourgProvider.providerID]),
         ProviderCountry(id: "NL", flag: "🇳🇱", nameKey: "country.netherlands",
                         providerIDs: [NetherlandsProvider.providerID, ProtectedAreasProvider.netherlandsID]),
+        // Norway carries its own nature reserves (dronesoner.no), so it does not use the EU
+        // protected-areas backfill layer.
+        ProviderCountry(id: "NO", flag: "🇳🇴", nameKey: "country.norway",
+                        providerIDs: [NorwayProvider.providerID]),
         ProviderCountry(id: "SE", flag: "🇸🇪", nameKey: "country.sweden",
                         providerIDs: [SwedenProvider.providerID, ProtectedAreasProvider.swedenID]),
         ProviderCountry(id: "CH", flag: "🇨🇭", nameKey: "country.switzerland",
