@@ -154,8 +154,8 @@ final class ProvidersStore: ObservableObject {
                     configurationRevision += 1
                 }
                 Task {
-                    if let provider, shouldRefreshDownloadableDataset(provider) {
-                        try? await provider.downloadData()
+                    if let session, let provider, shouldRefreshDownloadableDataset(provider) {
+                        try? await session.downloadPackage()
                         markConfigurationChanged()
                     }
                     await refreshStatus(for: providerID)
@@ -206,9 +206,10 @@ final class ProvidersStore: ObservableObject {
 
     // Keeps already-downloaded offline datasets (Netherlands, Austria, …) fresh without the
     // user noticing. Runs at most once per the provider's refresh interval, fully in the
-    // background: each download is detached, replaces its provider's parsed data atomically
-    // (so the map never flickers or blanks), and touches no published UI state. Failures are
-    // silent and leave the existing local copy in place.
+    // background: each download is detached and replaces its provider's parsed data atomically,
+    // so the map never flickers or blanks. Failures are silent and leave the existing local copy
+    // in place. The only UI state it publishes is the refreshed package snapshot, so a settings
+    // screen open at the time shows the new size and date instead of the pre-update ones.
     func refreshDownloadableDatasetsInBackground(now: Date = Date()) {
         // Respect provider enablement: disabled providers stay completely idle.
         for session in enabledSessions {
@@ -220,8 +221,10 @@ final class ProvidersStore: ObservableObject {
 
             Task.detached(priority: .background) {
                 // Silent: a failed refresh keeps the existing local dataset and is retried on
-                // the next app open.
+                // the next app open. The download stays off the main actor (it parses the whole
+                // payload to validate it); only the snapshot re-read hops back.
                 try? await provider.downloadData()
+                await session.refreshPackageSnapshot()
             }
         }
     }

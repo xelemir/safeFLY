@@ -20,17 +20,17 @@ struct ProviderDetailView: View {
     @State private var isRefreshingStatus = false
     @State private var isDownloading = false
     @State private var downloadError: String? = nil
-    // Remote package size, fetched lazily so a not-yet-downloaded provider can still show how
-    // big its download is. nil until fetched (or when the server advertises no length).
-    @State private var remoteByteSize: Int64? = nil
 
-    // What to show as the package size: the real on-disk size once downloaded, otherwise the
-    // best-effort remote size. nil hides the row entirely (e.g. size unknown before download).
+    // The size of the package this provider has stored on the device. Strictly on-disk: nothing
+    // is downloaded, nothing is shown, so the row can never suggest the app is still holding
+    // data the user just deleted.
     private var packageSizeText: String? {
-        let bytes = providerSession.provider.isDataDownloaded
-            ? providerSession.provider.datasetByteSize
-            : remoteByteSize
-        guard let bytes, bytes > 0 else { return nil }
+        guard providerSession.packageSnapshot.isDownloaded,
+              let bytes = providerSession.packageSnapshot.byteSize,
+              bytes > 0 else {
+            return nil
+        }
+
         return ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 
@@ -59,7 +59,7 @@ struct ProviderDetailView: View {
             enablementSection
 
             let isEnabled = providersStore.isProviderEnabled(providerSession.provider.id)
-            let isDownloaded = providerSession.provider.downloadURL == nil || providerSession.provider.isDataDownloaded
+            let isDownloaded = providerSession.provider.downloadURL == nil || providerSession.packageSnapshot.isDownloaded
             if isDownloaded, isEnabled {
                 statusSection
                 datasetSectionsView
@@ -92,22 +92,17 @@ struct ProviderDetailView: View {
                 Text(downloadError)
             }
         }
-        // Fetch the remote download size for a provider that has a package but hasn't downloaded
-        // it yet, so the size is visible before committing to the download. Re-runs if the
-        // download state changes; once downloaded the on-disk size is used instead.
-        .task(id: providerSession.provider.isDataDownloaded) {
-            guard providerSession.provider.downloadURL != nil,
-                  !providerSession.provider.isDataDownloaded else {
-                return
-            }
-            remoteByteSize = await providerSession.provider.remoteDatasetByteSize()
+        // Pick up a package that changed while this screen was not on screen (a silent background
+        // refresh, or a delete performed from another provider's screen for a shared file).
+        .onAppear {
+            providerSession.refreshPackageSnapshot()
         }
     }
 
     private var enablementSection: some View {
         Section {
             if let _ = providerSession.provider.downloadURL {
-                if providerSession.provider.isDataDownloaded {
+                if providerSession.packageSnapshot.isDownloaded {
                     let isEnabled = providersStore.isProviderEnabled(providerSession.provider.id)
                     Toggle(
                         NSLocalizedString("Enable Provider", comment: "Provider enable toggle label"),
@@ -117,9 +112,19 @@ struct ProviderDetailView: View {
                         )
                     )
 
+                    // Size sits above the destructive action: it describes the package the
+                    // delete button acts on, and it keeps "Delete" as the last row of the group.
+                    if let packageSizeText {
+                        HStack {
+                            Text(NSLocalizedString("Data Package Size", comment: "On-disk size of the downloaded data package"))
+                            Spacer()
+                            Text(packageSizeText).foregroundStyle(.secondary)
+                        }
+                    }
+
                     if isEnabled {
                         Button(role: .destructive) {
-                            providerSession.provider.deleteData()
+                            providerSession.deletePackage()
                             providersStore.setProviderEnabled(providerSession.provider.id, isEnabled: false)
                             Task {
                                 // Re-probe so the badge returns to .downloadRequired now the
@@ -155,19 +160,9 @@ struct ProviderDetailView: View {
                     )
                 )
             }
-
-            // Data package size: the on-disk size once downloaded, otherwise the (best-effort)
-            // remote download size. Only shown for providers that actually have a package.
-            if providerSession.provider.downloadURL != nil, let packageSizeText {
-                HStack {
-                    Text(NSLocalizedString("Data Package Size", comment: "Offline data package size row label"))
-                    Spacer()
-                    Text(packageSizeText).foregroundStyle(.secondary)
-                }
-            }
         } footer: {
             if let _ = providerSession.provider.downloadURL {
-                if providerSession.provider.isDataDownloaded {
+                if providerSession.packageSnapshot.isDownloaded {
                     if providersStore.isProviderEnabled(providerSession.provider.id) {
                         Text(NSLocalizedString("Offline data package downloaded and ready. You can enable or disable the provider.", comment: "Offline data package ready"))
                     } else {
@@ -235,7 +230,7 @@ struct ProviderDetailView: View {
                     Text(NSLocalizedString("Provider status has not been refreshed yet.", comment: "Provider status not refreshed footer"))
                 }
             } else {
-                if let lastUpdated = providerSession.provider.datasetLastUpdated {
+                if let lastUpdated = providerSession.packageSnapshot.lastUpdated {
                     Text(
                         String.localizedStringWithFormat(
                             NSLocalizedString("Data Package last updated at %@.", comment: "Offline data package last updated footer"),
@@ -320,7 +315,7 @@ struct ProviderDetailView: View {
         
         Task {
             do {
-                try await providerSession.provider.downloadData()
+                try await providerSession.downloadPackage()
                 // Re-probe status so the freshly downloaded package flips the snapshot from
                 // .downloadRequired to .available; otherwise the badge stays stale until the
                 // next status-refresh cooldown.

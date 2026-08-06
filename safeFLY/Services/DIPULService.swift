@@ -56,7 +56,18 @@ final class DIPULProvider: WMSBackedProvider, @unchecked Sendable {
                 id: "aviation.temporary-restrictions",
                 title: "Temporary Restrictions",
                 groupTitle: "Aviation",
-                layerIDs: ["dipul:temporaere_betriebseinschraenkungen", "dipul:inaktive_temporaere_betriebseinschraenkungen"]
+                layerIDs: ["dipul:temporaere_betriebseinschraenkungen"]
+            ),
+            // DIPUL never expires records out of its own "inactive" layer — a restriction whose
+            // window closed months ago still sits in it indefinitely — so this is split out from
+            // the active layer above and defaults off, letting pilots opt in if they want to see
+            // dormant/expired windows instead of having them appear unprompted.
+            .make(
+                id: "aviation.expired-temporary-restrictions",
+                title: "Expired Temporary Restrictions",
+                groupTitle: "Aviation",
+                layerIDs: ["dipul:inaktive_temporaere_betriebseinschraenkungen"],
+                isSelectedByDefault: false
             ),
             .make(id: "aviation.model-flying-fields", title: "Model Flying Fields", groupTitle: "Aviation", layerIDs: ["dipul:modellflugplaetze"]),
             .make(id: "infrastructure.motorways", title: "Motorways", groupTitle: "Infrastructure", layerIDs: ["dipul:bundesautobahnen"]),

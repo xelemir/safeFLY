@@ -70,13 +70,22 @@ class OfflineMapStore: ObservableObject {
     private var mlnPacks: [MLNOfflinePack] = []
 
     init() {
+        setupObservers()
+        // Everything that touches MLNOfflineStorage is deferred by one turn of the main run
+        // loop. This store is created while the first view body is being evaluated, and the
+        // first touch of `.shared` opens MapLibre's offline database, with `packs` then reading
+        // it synchronously — enough to hold up the first frame of the map on a device with
+        // several packs stored. Nothing here is needed until the user opens offline maps.
+        Task {
+            await prepareStorage()
+        }
+    }
+
+    private func prepareStorage() async {
         // Increase maximum allowed tiles to 50k to allow standard neighborhood/city downloads up to zoom 14
         MLNOfflineStorage.shared.setMaximumAllowedMapboxTiles(50000)
-        Task {
-            try? await MLNOfflineStorage.shared.setMaximumAmbientCacheSize(0)
-            try? await MLNOfflineStorage.shared.clearAmbientCache()
-        }
-        setupObservers()
+        try? await MLNOfflineStorage.shared.setMaximumAmbientCacheSize(0)
+        try? await MLNOfflineStorage.shared.clearAmbientCache()
         loadPacks()
     }
 

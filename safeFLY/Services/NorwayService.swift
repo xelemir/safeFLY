@@ -2,17 +2,19 @@
 //  NorwayService.swift
 //  safeFLY
 //
-//  Norway drone geo-zones via Luftfartstilsynet's own map, dronesoner.no. Norway is not in the
-//  EU, but through the EEA agreement it applies Regulation (EU) 2019/945 and 2019/947 in full
-//  (effective 1 January 2021), so the open-category C-classes and A1/A2/A3 subcategories are
+//  Norway drone geo-zones sourced from Luftfartstilsynet's own map, dronesoner.no. Norway is not
+//  in the EU, but through the EEA agreement it applies Regulation (EU) 2019/945 and 2019/947 in
+//  full (effective 1 January 2021), so the open-category C-classes and A1/A2/A3 subcategories are
 //  identical to the rest of the app — see RESIDENTIAL.INFO.NO for the note the pilot sees.
 //
-//  Unlike the proxy-backed offline countries (DE/NL/AT) this provider fetches dronesoner.no's
-//  static GeoJSON layers directly: there is no per-viewport query API, so the layers are
-//  downloaded once, cached in Documents, and rendered/queried fully offline through the shared
-//  `ED269Geometry` engine (same as the Denmark/ED-269 providers). The ED-269 / ED-318 / KML
-//  "downloads" the site offers are just client-side reformats of these same GeoJSON files, so
-//  the raw GeoJSON is the authoritative source.
+//  Fetched through the gruettecloud proxy (`?country=NO`), like the other offline countries,
+//  rather than hitting dronesoner.no directly: the site is on Netlify and (as of 2026-07) serves
+//  the default `*.netlify.app` certificate, which does not cover `dronesoner.no`, so a direct
+//  HTTPS fetch from the app fails TLS validation. The proxy fetches the site's static GeoJSON
+//  layers server-side and returns them as one bundle `{ "layers": { "<name>": <FeatureCollection>
+//  } }`, keyed by the dronesoner.no file base names (see gruettecloud-no-proxy.md at the repo
+//  root for the server contract). The bundle is downloaded once, cached, and rendered/queried
+//  fully offline through the shared `ED269Geometry` engine (same as the Denmark/ED-269 providers).
 //
 //  Attribution: the zones are Luftfartstilsynet / dronesoner.no data; the embassies layer is
 //  derived from OpenStreetMap (© OpenStreetMap contributors, ODbL), reflected in the provider's
@@ -69,92 +71,7 @@ struct NorwayFeatureInfoRecord: ProviderRawRecord {
     nonisolated var providerID: String { NorwayProvider.providerID }
 }
 
-// Owns the on-disk files (one per dronesoner.no layer), the combined parsed-feature cache and
-// the multi-file download lifecycle. Mirrors `ED269DownloadableDataset` but fans out over the
-// several static GeoJSON files the site publishes instead of a single proxy bundle.
-nonisolated final class NorwayZoneStore: @unchecked Sendable {
-    struct LayerSource: Sendable {
-        let layerID: String
-        let fileName: String
-        let remoteURL: URL
-        let parse: @Sendable (Data) throws -> [NorwayZoneFeature]
-    }
-
-    private let sources: [LayerSource]
-    private let stores: [DownloadableFileStore]
-
-    @MainActor private var cache: [NorwayZoneFeature] = []
-
-    init(sources: [LayerSource]) {
-        self.sources = sources
-        self.stores = sources.map { DownloadableFileStore(fileName: $0.fileName, remoteURL: $0.remoteURL) }
-        Task { try? await reload() }
-    }
-
-    // Non-nil so the app treats Norway as a downloadable provider; the exact value is only used
-    // as a sentinel (the individual layer URLs live on each `LayerSource`).
-    nonisolated var remoteURL: URL { URL(string: "https://dronesoner.no/data/")! }
-    // The package is present only once every layer has been downloaded.
-    nonisolated var isDownloaded: Bool { stores.allSatisfy { $0.isDownloaded } }
-    // Oldest layer timestamp, so a partially-stale package is treated as due for refresh.
-    nonisolated var lastUpdated: Date? { stores.compactMap { $0.modificationDate }.min() }
-    // Combined on-disk size of every downloaded layer file, or nil if none are present.
-    nonisolated var byteSize: Int64? {
-        let sizes = stores.compactMap { $0.byteSize }
-        return sizes.isEmpty ? nil : sizes.reduce(0, +)
-    }
-
-    // Combined remote size across all layers, fetched concurrently. nil unless at least one
-    // layer advertised a length.
-    nonisolated func remoteByteSize() async -> Int64? {
-        let total = await withTaskGroup(of: Int64?.self, returning: Int64?.self) { group in
-            for source in sources {
-                let url = source.remoteURL
-                group.addTask { await remoteContentLength(url) }
-            }
-            var sum: Int64 = 0
-            var sawAny = false
-            for await size in group {
-                if let size { sum += size; sawAny = true }
-            }
-            return sawAny ? sum : nil
-        }
-        return total
-    }
-
-    @MainActor var features: [NorwayZoneFeature] { cache }
-
-    @MainActor func reload() async throws {
-        var all: [NorwayZoneFeature] = []
-        for (index, store) in stores.enumerated() where store.isDownloaded {
-            let data = try store.read()
-            all.append(contentsOf: try sources[index].parse(data))
-        }
-        cache = all
-    }
-
-    // Download every layer concurrently, validating each fully parses before it may replace the
-    // local copy, so a malformed or truncated response never overwrites a previously good file.
-    nonisolated func download() async throws {
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            for (index, store) in stores.enumerated() {
-                let parse = sources[index].parse
-                group.addTask {
-                    _ = try await store.download { data in _ = try parse(data) }
-                }
-            }
-            try await group.waitForAll()
-        }
-        try await reload()
-    }
-
-    nonisolated func delete() {
-        stores.forEach { $0.delete() }
-        Task { @MainActor in self.cache = [] }
-    }
-}
-
-final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
+final class NorwayProvider: ED269DownloadableProvider, @unchecked Sendable {
     nonisolated static let providerID = "norway"
 
     nonisolated static let prohibitedDatasetID = "airspace.prohibited"
@@ -179,9 +96,11 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
         supportsStatusRefresh: true
     )
 
-    nonisolated private static let dataBase = "https://dronesoner.no/data"
-
-    let store = NorwayZoneStore(sources: NorwayProvider.layerSources)
+    let dataset = ED269DownloadableDataset<NorwayZoneFeature>(
+        fileName: "nor_uas_zones.json",
+        remoteURL: URL(string: "https://gruettecloud.com/safefly/download-json?country=NO")!,
+        parse: NorwayProvider.parse
+    )
 
     nonisolated var datasets: [ProviderDataset] {
         [
@@ -241,18 +160,8 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
         ]
     }
 
-    // MARK: - Download lifecycle
-
-    nonisolated var downloadURL: URL? { store.remoteURL }
-    nonisolated var isDataDownloaded: Bool { store.isDownloaded }
-    nonisolated var datasetLastUpdated: Date? { store.lastUpdated }
-    nonisolated var datasetByteSize: Int64? { store.byteSize }
-    nonisolated func remoteDatasetByteSize() async -> Int64? { await store.remoteByteSize() }
-    nonisolated func downloadData() async throws { try await store.download() }
-    nonisolated func deleteData() { store.delete() }
-
     nonisolated func refreshStatus() async -> ProviderStatusSnapshot {
-        let status: ProviderAvailabilityStatus = store.isDownloaded ? .available : .downloadRequired
+        let status: ProviderAvailabilityStatus = dataset.isDownloaded ? .available : .downloadRequired
         return ProviderStatusSnapshot(
             providerStatus: status,
             datasetStatuses: [
@@ -274,9 +183,9 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
         selectedDatasetIDs: Set<String>,
         status: ProviderStatusSnapshot
     ) async -> [ProviderRenderPayload] {
-        guard store.isDownloaded else { return [] }
+        guard dataset.isDownloaded else { return [] }
 
-        let features = await store.features
+        let features = await dataset.features
         var payloads: [ProviderRenderPayload] = []
 
         for feature in features {
@@ -313,12 +222,12 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
         guard CountryBoundaries.norway.contains(request.coordinate) else {
             return .unavailable(reason: .outsideCoverage)
         }
-        guard store.isDownloaded else {
+        guard dataset.isDownloaded else {
             return .unavailable(reason: .providerNoData)
         }
 
         let coordinate = request.coordinate
-        let matches = await store.features.compactMap { feature -> NorwayFeatureInfoRecord? in
+        let matches = await dataset.features.compactMap { feature -> NorwayFeatureInfoRecord? in
             guard selectedDatasetIDs.contains(feature.datasetID) else { return nil }
             if let bbox = feature.boundingBox, !bbox.contains(coordinate) { return nil }
             guard feature.contains(coordinate) else { return nil }
@@ -340,34 +249,84 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
         return matches.isEmpty ? .noMatches : .matches(records: matches.map { $0 as any ProviderRawRecord })
     }
 
-    // MARK: - Layer catalogue
+    // MARK: - Parsing
 
-    // Each dronesoner.no layer, with the dataset toggle it belongs to and how to turn its own
-    // property schema into `NorwayZoneFeature`s. Verdicts follow the site's own colour legend:
-    // red = prohibited (permission required), yellow = caution/conditional, blue = controlled.
-    nonisolated private static var layerSources: [NorwayZoneStore.LayerSource] {
-        func source<P: Decodable & Sendable>(
-            _ layerID: String, file: String, _ type: P.Type,
-            _ map: @escaping @Sendable (P, [ED269Geometry], Int) -> NorwayZoneFeature?
-        ) -> NorwayZoneStore.LayerSource {
-            NorwayZoneStore.LayerSource(
-                layerID: layerID,
-                fileName: "no_\(layerID).geojson",
-                remoteURL: URL(string: "\(NorwayProvider.dataBase)/\(file).geojson")!,
-                parse: { data in
-                    let features = try JSONDecoder()
-                        .decode(GeoJSONFeatureCollection<P>.self, from: ed269StrippedJSONData(data))
-                        .features
-                    return features.enumerated().compactMap { index, feature in
-                        let geometry = feature.ed269Geometry
-                        guard !geometry.isEmpty else { return nil }
-                        return map(feature.properties, geometry, index)
-                    }
-                }
-            )
+    // The proxy bundle is `{ "layers": { "<dronesoner.no file base name>": <GeoJSON
+    // FeatureCollection> } }`. Each layer has its own property schema, so every layer is decoded
+    // with its own typed FeatureCollection — but all of them out of one decode of the bundle.
+    // Pulling the layers apart with JSONSerialization first walked the whole payload as `Any`,
+    // re-serialised each layer back to `Data` and decoded that, which is three passes over ~25 MB.
+    nonisolated static func parse(_ data: Data) throws -> [NorwayZoneFeature] {
+        let clean = try ed269StrippedJSONData(data)
+        return try JSONDecoder().decode(ZoneBundle.self, from: clean).features
+    }
+
+    // Decodes the bundle by handing the `layers` container to each descriptor, which picks out
+    // its own key with its own property type. A layer the bundle doesn't carry is skipped.
+    nonisolated private struct ZoneBundle: Decodable {
+        let features: [NorwayZoneFeature]
+
+        private enum CodingKeys: String, CodingKey {
+            case layers
         }
 
-        @Sendable func base(
+        init(from decoder: any Decoder) throws {
+            let root = try decoder.container(keyedBy: CodingKeys.self)
+            let layers = try root.nestedContainer(keyedBy: LayerKey.self, forKey: .layers)
+
+            var all: [NorwayZoneFeature] = []
+            for descriptor in NorwayProvider.layerDescriptors {
+                all.append(contentsOf: try descriptor.decode(layers))
+            }
+            features = all
+        }
+    }
+
+    // The layer names are data, not a fixed schema, so the `layers` object needs a dynamic key.
+    nonisolated private struct LayerKey: CodingKey {
+        let stringValue: String
+        var intValue: Int? { nil }
+
+        init(stringValue: String) {
+            self.stringValue = stringValue
+        }
+
+        init?(intValue: Int) {
+            nil
+        }
+    }
+
+    // MARK: - Layer catalogue
+
+    nonisolated private struct LayerDescriptor {
+        let decode: (KeyedDecodingContainer<LayerKey>) throws -> [NorwayZoneFeature]
+    }
+
+    // Each dronesoner.no layer, keyed by its name in the bundle's `layers` map, the dataset toggle
+    // it belongs to, and how to turn its own property schema into `NorwayZoneFeature`s. Verdicts
+    // follow the site's own colour legend: red = prohibited (permission required), yellow =
+    // caution/conditional, blue = controlled.
+    nonisolated private static var layerDescriptors: [LayerDescriptor] {
+        func source<P: Decodable & Sendable>(
+            _ layerID: String, key: String, _ type: P.Type,
+            _ map: @escaping (P, [ED269Geometry], Int) -> NorwayZoneFeature?
+        ) -> LayerDescriptor {
+            LayerDescriptor(decode: { layers in
+                let layerKey = LayerKey(stringValue: key)
+                guard layers.contains(layerKey) else { return [] }
+
+                let features = try layers
+                    .decode(GeoJSONFeatureCollection<P>.self, forKey: layerKey)
+                    .features
+                return features.enumerated().compactMap { index, feature in
+                    let geometry = feature.ed269Geometry
+                    guard !geometry.isEmpty else { return nil }
+                    return map(feature.properties, geometry, index)
+                }
+            })
+        }
+
+        func base(
             _ layerID: String, dataset: String, category: ZoneCategory,
             verdict: FlightAssessmentOutcome, name: String?, sourceType: String? = nil,
             noteNB: String? = nil, noteKey: String? = nil,
@@ -392,34 +351,34 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
 
         return [
             // --- Prohibited / permission required (red) ---
-            source("notam", file: "forbud_notam", NONotamProps.self) { p, g, i in
+            source("notam", key: "forbud_notam", NONotamProps.self) { p, g, i in
                 base("notam", dataset: prohibited, category: .temporaryRestrictionActive, verdict: .prohibited,
                      name: p.navn, noteNB: NorwayText.plain(p.info), geometry: g, index: i)
             },
-            source("airport5km", file: "forbud_lufthavner_5km", NOAirportProps.self) { p, g, i in
+            source("airport5km", key: "forbud_lufthavner_5km", NOAirportProps.self) { p, g, i in
                 base("airport5km", dataset: prohibited, category: .airport, verdict: .prohibited,
                      name: p.navn, sourceType: p.icao, noteKey: "NO.NOTE.AIRPORT", geometry: g, index: i)
             },
-            source("restriksjoner", file: "forbud_restriksjoner", NONavnInfoProps.self) { p, g, i in
+            source("restriksjoner", key: "forbud_restriksjoner", NONavnInfoProps.self) { p, g, i in
                 base("restriksjoner", dataset: prohibited, category: .restrictedArea, verdict: .prohibited,
                      name: p.navn, noteNB: NorwayText.plain(p.info), geometry: g, index: i)
             },
-            source("fengsler", file: "forbud_fengsler", NONavnInfoProps.self) { p, g, i in
+            source("fengsler", key: "forbud_fengsler", NONavnInfoProps.self) { p, g, i in
                 base("fengsler", dataset: prohibited, category: .prison, verdict: .prohibited,
                      name: p.navn, noteNB: NorwayText.plain(p.info), geometry: g, index: i)
             },
-            source("nsmsensor", file: "forbud_nsm_sensor", NONsmProps.self) { p, g, i in
+            source("nsmsensor", key: "forbud_nsm_sensor", NONsmProps.self) { p, g, i in
                 base("nsmsensor", dataset: prohibited, category: .securityAuthority, verdict: .prohibited,
                      name: p.navn, sourceType: p.typeforbud, noteNB: NorwayText.plain(p.typeforbud),
                      noteKey: "NO.NOTE.NSM", geometry: g, index: i)
             },
-            source("ambassader", file: "forbud_ambassader", NOEmbassyProps.self) { p, g, i in
+            source("ambassader", key: "forbud_ambassader", NOEmbassyProps.self) { p, g, i in
                 base("ambassader", dataset: prohibited, category: .diplomaticMission, verdict: .prohibited,
                      name: p.nameEn ?? p.name, noteKey: "NO.NOTE.EMBASSY", geometry: g, index: i)
             },
 
             // --- Nature reserves with a drone ban (red, on by default) ---
-            source("nature_forbud", file: "forbud_verneomrader", NONatureProps.self) { p, g, i in
+            source("nature_forbud", key: "forbud_verneomrader", NONatureProps.self) { p, g, i in
                 let legal = NorwayText.natureLegal(p.verneforskrift)
                 return base("nature_forbud", dataset: natureBan, category: .natureReserve,
                             verdict: .prohibited,
@@ -429,7 +388,7 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
                             geometry: g, index: i)
             },
             // --- Protected areas without a drone ban (amber advisory, off by default) ---
-            source("nature_obs", file: "obs_verneomrader", NONatureProps.self) { p, g, i in
+            source("nature_obs", key: "obs_verneomrader", NONatureProps.self) { p, g, i in
                 let legal = NorwayText.natureLegal(p.verneforskrift)
                 return base("nature_obs", dataset: nature, category: .natureReserve,
                             verdict: .conditional,
@@ -441,29 +400,29 @@ final class NorwayProvider: GeospatialProvider, @unchecked Sendable {
             },
 
             // --- Caution (yellow) ---
-            source("fareomrader", file: "obs_fareomrader", NOFareProps.self) { p, g, i in
+            source("fareomrader", key: "obs_fareomrader", NOFareProps.self) { p, g, i in
                 base("fareomrader", dataset: caution, category: .restrictedArea, verdict: .conditional,
                      name: p.navn, noteNB: NorwayText.plain(p.info),
                      lower: NorwayText.altitude(p.lowerLimit), upper: NorwayText.altitude(p.upperLimit),
                      geometry: g, index: i)
             },
-            source("flyplasser", file: "obs_flyplasser", NOFlyplassProps.self) { p, g, i in
+            source("flyplasser", key: "obs_flyplasser", NOFlyplassProps.self) { p, g, i in
                 base("flyplasser", dataset: caution, category: .aerodrome, verdict: .conditional,
                      name: p.navn, sourceType: p.icaoKode, noteKey: "NO.NOTE.AIRFIELD", geometry: g, index: i)
             },
-            source("notamsoner", file: "obs_notam_soner", NONavnInfoProps.self) { p, g, i in
+            source("notamsoner", key: "obs_notam_soner", NONavnInfoProps.self) { p, g, i in
                 base("notamsoner", dataset: caution, category: .restrictedArea, verdict: .conditional,
                      name: p.navn, noteNB: NorwayText.plain(p.info), geometry: g, index: i)
             },
 
             // --- Controlled airspace (blue) ---
-            source("ctrtiz", file: "luftrom_ctr_tiz", NOAirspaceProps.self) { p, g, i in
+            source("ctrtiz", key: "luftrom_ctr_tiz", NOAirspaceProps.self) { p, g, i in
                 base("ctrtiz", dataset: controlled, category: .controlZone, verdict: .conditional,
                      name: p.navn, sourceType: p.type, noteKey: "NO.NOTE.CTR",
                      lower: NorwayText.altitude(p.lowerLimit), upper: NorwayText.altitude(p.upperLimit),
                      geometry: g, index: i)
             },
-            source("rmztmz", file: "luftrom_rmz_tmz", NOAirspaceProps.self) { p, g, i in
+            source("rmztmz", key: "luftrom_rmz_tmz", NOAirspaceProps.self) { p, g, i in
                 base("rmztmz", dataset: controlled, category: .controlZone, verdict: .conditional,
                      name: p.navn, sourceType: p.type, noteKey: "NO.NOTE.RMZ",
                      lower: NorwayText.altitude(p.lowerLimit), upper: NorwayText.altitude(p.upperLimit),

@@ -76,16 +76,3 @@ struct DownloadableFileStore: Sendable {
         try? FileManager.default.removeItem(at: localURL)
     }
 }
-
-// Best-effort remote size of a downloadable payload, used to show "how big is this download"
-// before the user commits to it. Returns nil whenever the server doesn't advertise a length,
-// so callers degrade gracefully to showing the size only once the file is on disk.
-nonisolated func remoteContentLength(_ url: URL) async -> Int64? {
-    var request = URLRequest(url: url)
-    request.httpMethod = "HEAD"
-    guard let (_, response) = try? await URLSession.shared.data(for: request) else {
-        return nil
-    }
-    let length = response.expectedContentLength
-    return length > 0 ? length : nil
-}

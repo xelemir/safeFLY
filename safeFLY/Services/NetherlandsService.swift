@@ -191,8 +191,8 @@ final class NetherlandsProvider: ED269DownloadableProvider, @unchecked Sendable 
 
     // Features whose derived dataset is among the selected ones. Shared by render and query
     // so category → dataset mapping lives in exactly one place.
-    @MainActor private func selectedFeatures(in selectedDatasetIDs: Set<String>) -> [NLDZoneFeature] {
-        dataset.features.filter { feature in
+    @MainActor private func selectedFeatures(in selectedDatasetIDs: Set<String>) async -> [NLDZoneFeature] {
+        await dataset.features.filter { feature in
             let category = NetherlandsZoneNormalizer.determineCategory(name: feature.name, message: feature.message ?? "")
             return selectedDatasetIDs.contains(NetherlandsZoneNormalizer.datasetID(for: category))
         }

@@ -24,9 +24,6 @@ protocol GeospatialProvider: Sendable {
     nonisolated var datasetLastUpdated: Date? { get }
     // Size of the downloaded data package on disk, or nil if not downloaded / not applicable.
     nonisolated var datasetByteSize: Int64? { get }
-    // Best-effort remote size of the package, so the download size can be shown before the user
-    // downloads it. nil when the server doesn't advertise a length.
-    nonisolated func remoteDatasetByteSize() async -> Int64?
     // Minimum time between silent background refreshes of a downloadable dataset. Providers
     // whose feed changes frequently (e.g. Luxembourg) can lower this to refresh every
     // foreground; the default keeps large datasets to once a day.
@@ -58,7 +55,6 @@ extension GeospatialProvider {
     nonisolated var isDataDownloaded: Bool { true }
     nonisolated var datasetLastUpdated: Date? { nil }
     nonisolated var datasetByteSize: Int64? { nil }
-    nonisolated func remoteDatasetByteSize() async -> Int64? { nil }
     nonisolated var datasetRefreshInterval: TimeInterval { 24 * 3600 }
     nonisolated var autoDownloadsDataset: Bool { false }
     nonisolated var coverage: CountryCoverage? { nil }
@@ -94,9 +90,21 @@ struct ProviderQueryJob: Sendable {
     let statusSnapshot: ProviderStatusSnapshot
 }
 
+// What the provider's downloadable package looks like on disk right now. These facts live in the
+// file system, which SwiftUI cannot observe, so they are snapshotted into published state and
+// re-read whenever the package is written or removed instead of being read during a view body.
+struct ProviderPackageSnapshot: Equatable, Sendable {
+    // Mirrors `GeospatialProvider.isDataDownloaded`, so providers without a package (live/online
+    // ones) report `true` here just as they do on the provider itself.
+    let isDownloaded: Bool
+    let byteSize: Int64?
+    let lastUpdated: Date?
+}
+
 @MainActor
 final class ProviderSession: ObservableObject, Identifiable {
     @Published private(set) var statusSnapshot: ProviderStatusSnapshot
+    @Published private(set) var packageSnapshot: ProviderPackageSnapshot
     @Published private(set) var renderPayloads: [ProviderRenderPayload] = []
     @Published private(set) var zoneQueryResult: ZoneQueryResult?
     @Published private(set) var isLoading = false
@@ -134,6 +142,7 @@ final class ProviderSession: ObservableObject, Identifiable {
         self.statusStorageKey = statusStorageKey
         self.selectedDatasetIDs = Self.loadSelectedDatasetIDs(for: provider)
         self.statusSnapshot = Self.loadStatusSnapshot(for: provider, storageKey: statusStorageKey)
+        self.packageSnapshot = Self.readPackageSnapshot(for: provider)
 
         if autoRefreshStatus {
             Task {
@@ -286,6 +295,42 @@ final class ProviderSession: ObservableObject, Identifiable {
 
         let refreshedSnapshot = await provider.refreshStatus()
         applyStatusSnapshot(refreshedSnapshot)
+    }
+
+    // MARK: - Downloadable package
+
+    // Every write to the local package goes through the session so the published snapshot is
+    // re-read afterwards — a manual download, an update, a silent background refresh and a delete
+    // all leave the size and "last updated" the user sees in step with the file on disk.
+    func downloadPackage() async throws {
+        // Refresh on failure too: a rejected payload leaves the previous copy untouched, and the
+        // snapshot must keep describing that copy rather than whatever was on screen before.
+        defer { refreshPackageSnapshot() }
+        try await provider.downloadData()
+    }
+
+    func deletePackage() {
+        provider.deleteData()
+        refreshPackageSnapshot()
+    }
+
+    func refreshPackageSnapshot() {
+        let snapshot = Self.readPackageSnapshot(for: provider)
+        guard snapshot != packageSnapshot else {
+            return
+        }
+
+        packageSnapshot = snapshot
+    }
+
+    nonisolated private static func readPackageSnapshot(
+        for provider: any GeospatialProvider
+    ) -> ProviderPackageSnapshot {
+        ProviderPackageSnapshot(
+            isDownloaded: provider.isDataDownloaded,
+            byteSize: provider.datasetByteSize,
+            lastUpdated: provider.datasetLastUpdated
+        )
     }
 
     private func selectedDatasetIDsForRendering() -> Set<String> {

@@ -135,6 +135,7 @@
 "Aerodromes" = "Flugplätze";
 "Control Zones" = "Kontrollzonen";
 "Temporary Restrictions" = "Temporäre Beschränkungen";
+"Expired Temporary Restrictions" = "Abgelaufene temporäre Beschränkungen";
 "Model Flying Fields" = "Modellflugplätze";
 "Motorways" = "Autobahnen";
 "Highways" = "Bundesstraßen";
@@ -347,7 +348,7 @@
 
 /* Gültigkeitsfenster unter einer deutschen temporären Beschränkung (NOTAM / §21h Abs. 3 Nr. 11).
    %1$@ = Beginn, %2$@ = Ende, beide bereits in deutscher Ortszeit formatiert. */
-"DE.TEMP.WINDOW" = "Zeitfenster: %1$@ bis %2$@";
+"DE.TEMP.WINDOW" = "%1$@ bis %2$@";
 
 "Active" = "Aktiv";
 "Disabled" = "Deaktiviert";
