@@ -125,15 +125,30 @@ struct MapView: View {
     
     private var navigationStackView: some View {
         NavigationStack {
-            contentWithSheet
-                .navigationTitle("Drone Map")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    toolbarContent
-                }
-                .onAppear {
-                    handleViewAppear()
-                }
+            navigationContent
+        }
+    }
+
+    // The map fills the screen, so there is no navigation title and both parts of the
+    // Liquid Glass top chrome are suppressed: the bar's own glass background and the
+    // progressive scroll edge blur that would otherwise wash out the tiles. The toolbar
+    // buttons keep their own glass capsules, so they stay legible over satellite imagery.
+    @ViewBuilder
+    private var navigationContent: some View {
+        let content = contentWithSheet
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                toolbarContent
+            }
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .onAppear {
+                handleViewAppear()
+            }
+
+        if #available(iOS 26.0, *) {
+            content.scrollEdgeEffectHidden(true, for: .top)
+        } else {
+            content
         }
     }
     

@@ -20,8 +20,10 @@ enum BuiltInProviders {
         // Czechia (ŘLP ČR DroneMap) is intentionally NOT registered: its terms prohibit
         // derived/public use regardless of the app being free. CzechService.swift is kept in
         // the repo so it can be re-registered the moment a written agreement is in place.
-        // Sweden (LFV Drönarkartan, CC BY-NC-ND) ships now that the app is free and
-        // non-commercial; the ND clause is accepted as residual risk.
+        // Sweden (LFV Drönarkartan) is plain CC BY 4.0 per LFV's own product specification at
+        // daim.lfv.se/echarts/dronechart/API/ ("For licence terms ... see the following Creative
+        // Commons licence: creativecommons.org/licenses/by/4.0/"). No NC and no ND clause, so
+        // attribution is the only obligation and nothing here rests on the app being free.
         ProviderRegistration(provider: BelgiumProvider(), normalizer: BelgiumZoneNormalizer()),
         ProviderRegistration(provider: DenmarkProvider(), normalizer: DenmarkZoneNormalizer()),
         ProviderRegistration(provider: FinlandProvider(), normalizer: FinlandZoneNormalizer()),

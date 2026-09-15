@@ -510,6 +510,10 @@
 "SE.NOTE.DNGA" = "Zone dangereuse (AIP). Des activités dangereuses s'y déroulent aux horaires publiés ; ne volez pas tant que la zone est active.";
 "SE.NOTE.CTR" = "Zone de contrôle / Zone d'information de vol. Sans clairance, les drones jusqu'à 10 kg peuvent voler ici à une hauteur maximale de 50 m au-dessus du sol (10 m dans un rayon de 1 km autour d'un héliport) ; sinon, contactez le contrôle aérien.";
 "SE.NOTE.UAS" = "Zone géographique UAS (Transportstyrelsen). Vérifiez les conditions de la zone avant le vol.";
+"SE.NOTE.TEMP" = "Zone réglementée ou dangereuse temporaire (AIP SUP). Pendant son activation, la zone est fermée ou dangereuse ; vérifiez la période de validité avant le vol.";
+"SE.TEMP.WINDOW" = "Créneau horaire : du %1$@ au %2$@";
+"SE.NOTE.NOTAM" = "Restriction à court préavis (NOTAM). Vérifiez le texte du NOTAM avant le vol.";
+"SE.NOTE.NOTAM.EXTENT" = "Le contour affiché correspond à la zone d'influence approximative du NOTAM, et non à sa limite exacte. La zone précise figure dans le texte du NOTAM.";
 
 /* Finland (Traficom via Flyk) */
 "Traficom" = "Traficom";
@@ -542,3 +546,8 @@
 "Active Download" = "Téléchargement actif";
 "Unnamed Area" = "Zone sans nom";
 "OFFLINE_MAP_ATTRIBUTION" = "© OpenFreeMap © OpenMapTiles © contributeurs OpenStreetMap";
+
+/* Search tab */
+"Find a town, address, or landmark to move the map there." = "Recherchez une ville, une adresse ou un point de repère pour y déplacer la carte.";
+"Couldn't open that place" = "Impossible d’ouvrir ce lieu";
+"Try again or pick another result." = "Réessayez ou choisissez un autre résultat.";

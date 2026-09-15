@@ -10,10 +10,27 @@ import Combine
 import CoreLocation
 import MapKit
 
+// One row of the search list. `id` carries the rank so duplicate place names can never
+// collide inside a ForEach, and the title is pre-rendered with the completer's highlight
+// ranges so the part the user actually typed reads bold.
+struct SearchSuggestion: Identifiable, Hashable {
+    let id: String
+    let title: AttributedString
+    let subtitle: String
+    let completion: MKLocalSearchCompletion
+
+    static func == (lhs: SearchSuggestion, rhs: SearchSuggestion) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
 class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate {
-    @Published var completions: [MKLocalSearchCompletion] = []
+    @Published private(set) var suggestions: [SearchSuggestion] = []
+    // True between accepting a query fragment and the completer answering, so the list can
+    // show a spinner instead of flashing the "no results" state on every keystroke.
+    @Published private(set) var isLoading = false
 
     private var completer = MKLocalSearchCompleter()
+    private var activeSearch: MKLocalSearch?
 
     // Subtitle indicators per covered country (keyed by `ProviderCountry.id`). Subtitles for
     // German results usually show the state rather than the country, so every Bundesland is
@@ -67,7 +84,39 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
     }
 
     func updateQuery(_ query: String) {
-        completer.queryFragment = query
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        // An empty field must also empty the results. Without this the completer simply
+        // stops answering and the last query's rows stay on screen.
+        guard !trimmed.isEmpty else {
+            clear()
+            return
+        }
+        isLoading = true
+        completer.queryFragment = trimmed
+    }
+
+    // Drops every result and cancels work in flight. Called when the field is cleared and
+    // after a result is picked, so returning to the tab never shows a stale list.
+    func clear() {
+        activeSearch?.cancel()
+        activeSearch = nil
+        completer.cancel()
+        suggestions = []
+        isLoading = false
+    }
+
+    // Turns a completion into real coordinates. Any previous lookup is cancelled first, so
+    // quickly tapping two rows can't have the loser's response win the race.
+    @MainActor
+    func resolve(_ suggestion: SearchSuggestion) async -> SearchCoordinate? {
+        activeSearch?.cancel()
+        let localSearch = MKLocalSearch(request: MKLocalSearch.Request(completion: suggestion.completion))
+        activeSearch = localSearch
+        defer { if activeSearch === localSearch { activeSearch = nil } }
+
+        guard let item = try? await localSearch.start().mapItems.first else { return nil }
+        let coordinate = item.placemark.coordinate
+        return SearchCoordinate(latitude: coordinate.latitude, longitude: coordinate.longitude)
     }
 
     func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
@@ -76,11 +125,33 @@ class SearchManager: NSObject, ObservableObject, MKLocalSearchCompleterDelegate 
                 completion.subtitle.contains(indicator)
             }
         }
-        completions = Array(filtered.prefix(14))
+        suggestions = filtered.prefix(14).enumerated().map { index, completion in
+            SearchSuggestion(
+                id: "\(index)\u{1F}\(completion.title)\u{1F}\(completion.subtitle)",
+                title: SearchManager.highlighted(completion.title, ranges: completion.titleHighlightRanges),
+                subtitle: completion.subtitle,
+                completion: completion
+            )
+        }
+        isLoading = false
     }
 
     func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
-        completions = []
+        suggestions = []
+        isLoading = false
+    }
+
+    // Bolds the substrings the completer matched against the query.
+    private static func highlighted(_ text: String, ranges: [NSValue]) -> AttributedString {
+        var attributed = AttributedString(text)
+        for value in ranges {
+            guard let range = Range(value.rangeValue, in: text),
+                  let lower = AttributedString.Index(range.lowerBound, within: attributed),
+                  let upper = AttributedString.Index(range.upperBound, within: attributed),
+                  lower < upper else { continue }
+            attributed[lower..<upper].inlinePresentationIntent = .stronglyEmphasized
+        }
+        return attributed
     }
 }
 
@@ -92,7 +163,6 @@ struct MainTabView: View {
     @StateObject private var offlineMapStore = OfflineMapStore()
     @State private var search: String = ""
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @Environment(\.dismissSearch) private var dismissSearch
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.scenePhase) private var scenePhase
     
@@ -174,83 +244,128 @@ struct MainTabView: View {
     }
 
     private var searchTabContent: some View {
+        SearchTabView(searchManager: searchManager, search: $search)
+    }
+}
+
+// MARK: - Search tab
+
+private struct SearchTabView: View {
+    @ObservedObject var searchManager: SearchManager
+    @Binding var search: String
+
+    var body: some View {
         NavigationStack {
-            VStack {
-                if searchManager.completions.isEmpty && search.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.largeTitle)
-                            .foregroundStyle(.secondary)
-                        Text("Search location")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.top, 50)
-                } else if searchManager.completions.isEmpty && !search.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.magnifyingglass")
-                            .font(.largeTitle)
-                            .foregroundStyle(.secondary)
-                        Text("No locations found")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.top, 50)
-                } else {
-                    List(searchManager.completions, id: \.hash) { completion in
-                        Button {
-                            let request = MKLocalSearch.Request(completion: completion)
-                            let localSearch = MKLocalSearch(request: request)
-                            localSearch.start { response, error in
-                                DispatchQueue.main.async {
-                                    if let item = response?.mapItems.first {
-                                        let coord = SearchCoordinate(
-                                            latitude: item.placemark.coordinate.latitude,
-                                            longitude: item.placemark.coordinate.longitude
-                                        )
-                                        droneSettings.searchedCoordinate = coord
-                                        search = ""
-                                        dismissSearch()
-                                        droneSettings.activeTab = 0
-                                    }
-                                }
-                            }
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: "location.fill")
-                                    .foregroundStyle(.secondary)
-                                    .font(.title3)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(completion.title)
-                                        .font(.headline)
-                                    if !completion.subtitle.isEmpty {
-                                        Text(completion.subtitle)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                                Spacer()
-                            }
-                            .padding(.vertical, 12)
-                            .padding(.horizontal, 16)
-                            // No background — results float directly over the map.
-                            .background(Color.clear)
-                        }
-                        .buttonStyle(.plain)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
-                    }
-                    .scrollContentBackground(.hidden)
+            SearchResultsView(searchManager: searchManager, search: $search)
+                .navigationTitle("Search")
+                .navigationBarTitleDisplayMode(.inline)
+                .searchable(text: $search, prompt: Text("Search location"))
+                .onChange(of: search) { _, newValue in
+                    searchManager.updateQuery(newValue)
                 }
-                Spacer()
+        }
+    }
+}
+
+// Split out from SearchTabView on purpose: `dismissSearch` only works when it is read by a
+// view *inside* the searchable container. Read from the parent it silently does nothing,
+// which is why the keyboard used to stay up after picking a result.
+private struct SearchResultsView: View {
+    @ObservedObject var searchManager: SearchManager
+    @Binding var search: String
+
+    @EnvironmentObject private var droneSettings: DroneSettings
+    @Environment(\.dismissSearch) private var dismissSearch
+    @State private var resolvingID: SearchSuggestion.ID?
+    @State private var showResolveError = false
+
+    var body: some View {
+        content
+            .alert("Couldn't open that place", isPresented: $showResolveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Try again or pick another result.")
             }
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .searchable(text: $search)
-            .onChange(of: search) { _, newValue in
-                searchManager.updateQuery(newValue)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if !searchManager.suggestions.isEmpty {
+            resultsList
+        } else if searchManager.isLoading {
+            ProgressView()
+                .controlSize(.large)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if search.isEmpty {
+            ContentUnavailableView {
+                Label("Search location", systemImage: "mappin.and.ellipse")
+            } description: {
+                Text("Find a town, address, or landmark to move the map there.")
+            }
+        } else {
+            ContentUnavailableView.search(text: search)
+        }
+    }
+
+    private var resultsList: some View {
+        List(searchManager.suggestions) { suggestion in
+            Button {
+                select(suggestion)
+            } label: {
+                row(for: suggestion)
+            }
+            .buttonStyle(.plain)
+            // One lookup at a time: the rows stay tappable-looking but inert while a
+            // selection resolves, so a second tap can't race the first.
+            .disabled(resolvingID != nil)
+        }
+        .listStyle(.plain)
+        .scrollDismissesKeyboard(.immediately)
+    }
+
+    private func row(for suggestion: SearchSuggestion) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "mappin.circle.fill")
+                .font(.title2)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(suggestion.title)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                if !suggestion.subtitle.isEmpty {
+                    Text(suggestion.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 8)
+            if resolvingID == suggestion.id {
+                ProgressView().controlSize(.small)
             }
         }
-        .background(Color.clear)
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+    }
+
+    private func select(_ suggestion: SearchSuggestion) {
+        guard resolvingID == nil else { return }
+        resolvingID = suggestion.id
+        Task {
+            let coordinate = await searchManager.resolve(suggestion)
+            resolvingID = nil
+            guard let coordinate else {
+                showResolveError = true
+                return
+            }
+            droneSettings.searchedCoordinate = coordinate
+            search = ""
+            searchManager.clear()
+            dismissSearch()
+            droneSettings.activeTab = 0
+        }
     }
 }
 
